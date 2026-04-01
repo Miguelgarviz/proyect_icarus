@@ -16,6 +16,14 @@ datasource db {
 model Player {
   id Int @default(autoincrement()) @id
   ship Ship?
+  storage Storage?
+  cards Cards[]
+  movement Int
+  name String
+  color String
+
+  lobby Lobby? @relation(fields: [lobbyId], references: [id])
+  lobbyId Int?
 }
 
 model Ship{
@@ -31,3 +39,94 @@ model Ship{
   playerId Int? @unique 
 }
 
+model Storage{
+  id Int @default(autoincrement()) @id
+
+  green Int @default(0)
+  red Int @default(0)
+  yellow Int @default(0)
+
+  player Player? @relation(fields: [playerId], references: [id])
+  playerId Int? @unique 
+}
+
+enum CardType {
+  TEMPORARY_PATCH
+  NEW_DRILL
+  BACKUP_POWER
+  SLINGSHOT
+  ENHANCED_SCANNER
+  ROCKET_THRUSTERS
+}
+
+model Cards {
+  id Int @default(autoincrement()) @id
+
+  player Player? @relation(fields: [playerId], references: [id])
+  playerId Int?
+
+  store Store? @relation(fields: [storeId], references: [id])
+  storeId Int?
+
+  cost Int
+  type CardType
+}
+
+model Store{
+  id Int @default(autoincrement()) @id
+
+  numCards Int
+  cards Cards[]
+}
+
+enum TileType {
+  EMPTY
+  GREEN
+  RED
+  YELLOW
+  SPACE_STATION
+  START
+}
+
+model Tile{
+  id Int @default(autoincrement()) @id
+
+  type TileType
+  positionX Int
+  positionY Int
+}
+
+enum Dificulty {
+  BEGINNER_I
+  BEGINNER_II
+  EASY_I
+  EASY_II
+  MEDIUM_I
+  MEDIUM_II
+  HARD_I
+  HARD_II
+  EXTREME_I
+  EXTREME_II
+  IMPOSSIBLE
+}
+
+model Lobby {
+  id Int @default(autoincrement()) @id
+
+  name String
+  dificulty Dificulty
+  numPlayers Int
+  players Player[]
+
+  game Game?
+}
+
+model Game {
+  id Int @default(autoincrement()) @id
+
+  lobby Lobby? @relation(fields: [lobbyId], references: [id])
+  lobbyId Int? @unique
+  round Int @default(0)
+  actualPlayerId Int?
+  supernovaLvL Int @default(0)
+}
