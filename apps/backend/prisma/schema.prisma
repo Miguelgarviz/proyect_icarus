@@ -1,0 +1,33 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Player {
+  id Int @default(autoincrement()) @id
+  ship Ship?
+}
+
+model Ship{
+  id Int @default(autoincrement()) @id
+
+  shield Int @default(10)
+  drill Int @default(10)
+  engine Int @default(3)
+  positionX Int? @default(0)
+  positionY Int? @default(0)
+
+  player Player? @relation(fields: [playerId], references: [id])
+  playerId Int? @unique 
+}
+
