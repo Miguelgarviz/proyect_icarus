@@ -5,6 +5,8 @@ build
 
 # Backend
 /apps/backend/node_modules
+/apps/backend/src/generated/prisma
+/apps/backend/.env
 
 # Frontend
 /apps/frontend/node_modules
