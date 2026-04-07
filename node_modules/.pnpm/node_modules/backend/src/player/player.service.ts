@@ -35,4 +35,26 @@ export class PlayerService {
         });
     }
 
+    async updatePlayer(params: {
+        where: Prisma.PlayerWhereUniqueInput;
+        data: Prisma.PlayerUpdateInput;
+    }):Promise<Player> {
+        const { where, data } = params;
+        return this.prisma.player.update({
+            data,
+            where
+        });
+    }
+
+    async deletePlayer(where: Prisma.PlayerWhereUniqueInput):Promise<Player> {
+        return this.prisma.player.delete({
+            where
+        });
+    }
+
+    async getPlayersInLobby(lobbyId: number): Promise<Player[]> {
+        return this.prisma.player.findMany({
+            where: { lobbyId }
+        });
+    }
 }

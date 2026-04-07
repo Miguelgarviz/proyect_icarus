@@ -6,9 +6,10 @@ import { PlayerController } from './player/player.controller';
 import { PlayerService } from './player/player.service';
 import { PlayerModule } from './player/player.module';
 import { PrismaService } from './prisma.service';
+import { LobbyModule } from './lobby/lobby.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), PlayerModule],
+  imports: [ConfigModule.forRoot(), PlayerModule, LobbyModule],
   controllers: [AppController, PlayerController],
   providers: [AppService, PlayerService, PrismaService],
 })

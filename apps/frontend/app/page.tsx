@@ -1,64 +1,70 @@
+'use client'
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 export default function Home() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleCreateLobby = async () => {
+    setLoading(true);
+    try {
+      // Llamada al endpoint que crea el lobby
+      const response = await fetch("http://localhost:4000/api/v1/lobby", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dificulty: "BEGINNER_I", numPlayers: 0 }),
+      });
+
+      if (response.ok) {
+        const lobby = await response.json();
+        // Redirigimos al lobby usando el ID que nos da el servidor (ej: lobby.id)
+        router.push(`/lobby/${lobby.id}`);
+      } else {
+        console.error("Error al crear el lobby");
+      }
+    } catch (error) {
+      console.error("Error de red:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <div className="flex flex-col min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black p-8">
+      <main className="flex flex-col items-center gap-12 text-center">
         <Image
-          className="dark:invert"
+          className="dark:invert opacity-80"
           src="/next.svg"
           alt="Next.js logo"
-          width={100}
-          height={20}
+          width={120}
+          height={24}
           priority
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+        
+        <div className="space-y-4">
+          <h1 className="text-5xl font-extrabold tracking-tighter text-black dark:text-zinc-50">
+            Game Room
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-zinc-600 dark:text-zinc-400 text-lg">
+            Crea una partida nueva y espera a tus amigos.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        <button
+          onClick={handleCreateLobby}
+          disabled={loading}
+          className="group relative flex h-16 w-64 items-center justify-center overflow-hidden rounded-full bg-black text-white text-xl font-bold transition-all hover:scale-105 active:scale-95 dark:bg-white dark:text-black disabled:opacity-50"
+        >
+          <span>{loading ? "Creando..." : "Crear Lobby"}</span>
+          {!loading && (
+            <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
+              <div className="relative h-full w-8 bg-white/20 dark:bg-black/10" />
+            </div>
+          )}
+        </button>
       </main>
     </div>
   );

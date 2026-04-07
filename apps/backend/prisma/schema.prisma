@@ -113,7 +113,6 @@ enum Dificulty {
 model Lobby {
   id Int @default(autoincrement()) @id
 
-  name String
   dificulty Dificulty
   numPlayers Int
   players Player[]
