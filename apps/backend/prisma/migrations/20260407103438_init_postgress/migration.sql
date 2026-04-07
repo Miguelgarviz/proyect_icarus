@@ -74,7 +74,6 @@ CREATE TABLE "Tile" (
 -- CreateTable
 CREATE TABLE "Lobby" (
     "id" SERIAL NOT NULL,
-    "name" TEXT NOT NULL,
     "dificulty" "Dificulty" NOT NULL,
     "numPlayers" INTEGER NOT NULL,
 

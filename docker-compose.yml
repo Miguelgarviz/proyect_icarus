@@ -1,8 +1,21 @@
 services:
   db:
-    image: postgres:16
-    restart: always
+    image: postgres
+    container_name: postgres_db
     environment:
-      POSTGRES_PASSWORD: mypassword
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: icarus_db
     ports:
       - "5435:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_container
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - db

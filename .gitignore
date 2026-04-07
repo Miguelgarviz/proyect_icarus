@@ -2,3 +2,9 @@ node-modules
 dist
 build
 .env
+
+# Backend
+/apps/backend/node_modules
+
+# Frontend
+/apps/frontend/node_modules
