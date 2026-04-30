@@ -77,6 +77,8 @@ model Store{
 
   numCards Int
   cards Cards[]
+
+  game Game?
 }
 
 enum TileType {
@@ -94,6 +96,9 @@ model Tile{
   type TileType
   positionX Int
   positionY Int
+
+  game Game? @relation(fields: [gameId], references: [id])
+  gameId Int?
 }
 
 enum Dificulty {
@@ -128,4 +133,9 @@ model Game {
   round Int @default(0)
   actualPlayerId Int?
   supernovaLvL Int @default(0)
+
+  store Store? @relation(fields: [storeId], references: [id])
+  storeId Int? @unique
+
+  tiles Tile[]
 }
