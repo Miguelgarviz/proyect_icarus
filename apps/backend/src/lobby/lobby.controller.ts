@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
 import { LobbyService } from './lobby.service';
-import { Lobby, Prisma, Player } from '../generated/prisma/client';
+import { Lobby, Prisma, Player, Dificulty } from '../generated/prisma/client';
 import { PlayerService } from '../player/player.service';
 
 @Controller('lobby')
@@ -33,12 +33,46 @@ export class LobbyController {
         });
     }
 
+    @Put('/:id/change-dificulty')
+    async changeLobbyDificulty(@Param('id') id: string, @Body() dificultyData: { dificulty: Dificulty }): Promise<Lobby> {
+        return this.lobbyService.changeLobbyDificulty({
+            where: { id: Number(id) },
+            data: dificultyData
+        });
+    }
+
     @Put('/:id/add-player')
     async addPlayerToLobby(@Param('id') id: string, @Body() playerData: { name: string; color: string, movement: number }): Promise<Lobby> {
         const newPlayer = await this.playerService.createPlayer(playerData);
         return this.lobbyService.addPlayerToLobby({
             where: { id: Number(id) },
             data: { playerId: newPlayer.id }
+        });
+    }
+
+    @Put('/:id/remove-player')
+    async removePlayerFromLobby(@Param('id') playerId: string): Promise<Lobby> {
+        try{
+        const lobby = await this.lobbyService.getLobbieFromPlayer(Number(playerId));
+
+        await this.playerService.deletePlayer({ id: Number(playerId) });
+        if (!lobby) {
+            throw new NotFoundException(`No se encontró un lobby para el jugador ${Number(playerId)}`);
+        }
+        return this.lobbyService.removePlayerFromLobby({
+            where: { id: lobby?.id },
+            data: { playerId: Number(playerId) }
+        });
+        } catch (error: unknown) {
+            throw new NotFoundException(`Error al eliminar el jugador ${Number(playerId)}: ${ (error as Error).message }`);
+        }
+    }
+
+    @Put('/:id/difficulty')
+    async updateLobbyDifficulty(@Param('id') id:string, @Body() difficulty: { difficulty: Dificulty }): Promise<Lobby> {
+        return this.lobbyService.updateLobbyDifficulty({
+            where: { id: Number(id) },
+            data: difficulty
         });
     }
 }

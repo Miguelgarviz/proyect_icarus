@@ -1,4 +1,4 @@
-import { Prisma, Lobby, Player } from '@backend/generated/prisma/client';
+import { Prisma, Lobby, Player, Dificulty } from '@backend/generated/prisma/client';
 import { PrismaService } from '../prisma.service';
 import { Injectable } from '@nestjs/common';
 
@@ -34,6 +34,19 @@ export class LobbyService {
         }); 
     }
 
+    async changeLobbyDificulty(params: {
+        where: Prisma.LobbyWhereUniqueInput;
+        data: { dificulty: Dificulty };
+    }): Promise<Lobby> {
+        const { where, data } = params;
+        return this.prisma.lobby.update({
+            where,
+            data: {
+                dificulty: data.dificulty
+            }
+        });
+    }
+
     async addPlayerToLobby(params: {
         where: Prisma.LobbyWhereUniqueInput;
         data: { playerId: number };
@@ -51,4 +64,41 @@ export class LobbyService {
         });
     }
 
+    async removePlayerFromLobby(params: {
+        where: Prisma.LobbyWhereUniqueInput;
+        data: { playerId: number };
+    }): Promise<Lobby> {
+        const { where, data } = params;
+
+        return this.prisma.lobby.update({
+            where,
+            data: {
+                numPlayers: { decrement: 1 },
+                players: {
+                    disconnect: { id: data.playerId }
+                }
+            }
+        });
+    }
+
+    async getLobbieFromPlayer(playerId: number): Promise<Lobby | null> {
+        const player = await this.prisma.player.findUnique({
+            where: { id: playerId },
+            include: { lobby: true }
+        });
+        return player?.lobby || null;
+    }
+
+    async updateLobbyDifficulty(params: {
+        where: Prisma.LobbyWhereUniqueInput;
+        data: { difficulty: Dificulty };
+    }): Promise<Lobby> {
+        const { where, data } = params;
+        return this.prisma.lobby.update({
+            where,
+            data: {
+                dificulty: data.difficulty
+            }
+        });
+    }
 }

@@ -1,7 +1,6 @@
 import { Controller, Param, Get, Post, Body, Put, Delete } from '@nestjs/common';
 import { PlayerService } from './player.service';
-import { Player } from '@backend/generated/prisma/client';
-
+import { Lobby, Player } from '@backend/generated/prisma/client';
 @Controller('player')
 export class PlayerController {
     constructor(
