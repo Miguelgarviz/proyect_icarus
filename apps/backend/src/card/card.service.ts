@@ -29,4 +29,14 @@ export class CardService {
             });
         }
     }
+
+    async getCardsByStore(storeWhereUniqueInput: Prisma.StoreWhereUniqueInput): Promise<Cards[]> {
+        const store = await this.prisma.store.findUnique({
+            where: storeWhereUniqueInput,
+            include: {
+                cards: true
+            }
+        });
+        return store?.cards || [];
+    }   
 }

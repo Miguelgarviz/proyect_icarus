@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Param } from '@nestjs/common';
 import { StoreService } from './store.service';
-import { Prisma, Store, CardType } from '../generated/prisma/browser';
+import { Prisma, Store, CardType, Cards } from '../generated/prisma/browser';
 import { CardService } from '../card/card.service';
 import { GameService } from '../game/game.service';
 
@@ -26,8 +26,12 @@ export class StoreController {
     }
 
     @Get('/:id')
-    async getStore(@Body() storeWhereUniqueInput: Prisma.StoreWhereUniqueInput):Promise<Store | null> {
-        return await this.storeService.getStore(storeWhereUniqueInput);
+    async getStore(@Param('id') storeId: string):Promise<Store | null> {
+        return await this.storeService.getStore({ id: Number(storeId) });
     }
 
+    @Get('/:id/cards')
+    async getCardsByStore(@Param('id') storeId: string):Promise<Cards[]> {
+        return await this.cardService.getCardsByStore({ id: Number(storeId) });
+    }
 }

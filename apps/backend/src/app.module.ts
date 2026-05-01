@@ -9,9 +9,10 @@ import { LobbyModule } from './lobby/lobby.module';
 import { GameModule } from './game/game.module';
 import { StoreModule } from './store/store.module';
 import { CardModule } from './card/card.module';
+import { DrillCardModule } from './drill-card/drill-card.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), PlayerModule, LobbyModule, GameModule, StoreModule, CardModule],
+  imports: [ConfigModule.forRoot(), PlayerModule, LobbyModule, GameModule, StoreModule, CardModule, DrillCardModule],
   controllers: [AppController],
   providers: [AppService, PlayerService, PrismaService],
 })

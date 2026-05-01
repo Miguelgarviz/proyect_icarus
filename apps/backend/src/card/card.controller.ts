@@ -17,4 +17,5 @@ export class CardController {
     async getCard(@Body() cardWhereUniqueInput: Prisma.CardsWhereUniqueInput):Promise<Cards | null> {
         return await this.cardService.getCard(cardWhereUniqueInput);
     }
+
 }

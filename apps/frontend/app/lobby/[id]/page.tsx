@@ -158,6 +158,11 @@ export default function Lobby() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({gameId: game.id}),
         })
+        await fetch(`http://localhost:4000/api/v1/drill-card`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({gameId: game.id}),
+        })
         router.push(`/game/${game.id}`);
       } else {
         console.error("Error al crear el game");

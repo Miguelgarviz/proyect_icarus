@@ -138,10 +138,10 @@ model Game {
   storeId Int? @unique
 
   tiles Tile[]
-  drillCards drillCard[]
+  drillCards DrillCard[]
 }
 
-model drillCard {
+model DrillCard {
   id Int @default(autoincrement()) @id
 
   greenResources Int @default(0)
