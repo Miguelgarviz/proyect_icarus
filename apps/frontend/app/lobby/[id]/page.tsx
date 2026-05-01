@@ -153,7 +153,11 @@ export default function Lobby() {
       });
       if (response.ok) {
         const game = await response.json();
-        // Redirigimos al lobby usando el ID que nos da el servidor (ej: lobby.id)
+        await fetch(`http://localhost:4000/api/v1/store`,{
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({gameId: game.id}),
+        })
         router.push(`/game/${game.id}`);
       } else {
         console.error("Error al crear el game");
@@ -208,7 +212,6 @@ export default function Lobby() {
         </select>
       </div>
 
-      {/* RECUADRO 2: NÚMERO DE JUGADORES */}
       <div className="bg-card border border-border p-4 rounded-xl shadow-sm min-w-[150px] flex flex-col items-center justify-center">
         <h3 className="text-sm font-bold mb-1">Estado del Lobby</h3>
         <div className="text-2xl font-black text-foreground">
@@ -218,10 +221,8 @@ export default function Lobby() {
       </div>
     </div>
 
-    {/* Formulario de Creación (Se mantiene Absolute a la izquierda) */}
     <div className="absolute left-8 top-8 w-72 rounded-xl border border-border p-6 shadow-sm bg-card">
       <h2 className="mb-4 text-lg font-bold text-center">Nuevo Jugador</h2>
-      {/* ... resto del form igual ... */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <input
             type="text"

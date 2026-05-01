@@ -22,4 +22,24 @@ export class GameService {
             }
         });
     }
+
+    async updateGame(params: {
+        where: Prisma.GameWhereUniqueInput;
+        data: Prisma.GameUpdateInput;
+    }) {
+        const { where, data } = params;
+        return this.prisma.game.update({
+            data,
+            where
+        }); 
+    }
+
+    async setGameStore(where: Prisma.GameWhereUniqueInput, storeId: number) {
+        return this.prisma.game.update({
+            where: where,
+            data: {
+                storeId:storeId
+            }
+        });
+    }
 }

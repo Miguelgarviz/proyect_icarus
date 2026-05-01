@@ -75,7 +75,7 @@ model Cards {
 model Store{
   id Int @default(autoincrement()) @id
 
-  numCards Int
+  numCards Int @default(18)
   cards Cards[]
 
   game Game?
@@ -138,4 +138,18 @@ model Game {
   storeId Int? @unique
 
   tiles Tile[]
+  drillCards drillCard[]
+}
+
+model drillCard {
+  id Int @default(autoincrement()) @id
+
+  greenResources Int @default(0)
+  redResources Int @default(0)
+  yellowResources Int @default(0)
+
+  isSupernovaCard Boolean @default(false)
+
+  game Game? @relation(fields: [gameId], references: [id])
+  gameId Int?
 }
