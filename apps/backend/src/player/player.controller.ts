@@ -1,10 +1,12 @@
 import { Controller, Param, Get, Post, Body, Put, Delete } from '@nestjs/common';
 import { PlayerService } from './player.service';
-import { Lobby, Player } from '@backend/generated/prisma/client';
+import { Player } from '../generated/prisma/client';
+import { ShipService } from '../ship/ship.service';
 @Controller('player')
 export class PlayerController {
     constructor(
-        private readonly playerService: PlayerService
+        private readonly playerService: PlayerService,
+        private readonly shipService: ShipService
     ) {}
 
     @Get('/:id')    
@@ -39,4 +41,15 @@ export class PlayerController {
     async deletePlayer(@Param('id') id: string): Promise<Player> {
         return this.playerService.deletePlayer({ id: Number(id) });
     }
+
+    @Post('/:lobbyId/ship')
+    async createShipToPlayer(@Param('lobbyId') lobbyId: string): Promise<void> {
+        const players: Player[] = await this.playerService.getPlayersInLobby(Number(lobbyId));
+        for (const player of players) {
+            await this.shipService.createShip({
+                player: { connect: { id: player.id } }
+            });
+        }
+    }
+
 }
