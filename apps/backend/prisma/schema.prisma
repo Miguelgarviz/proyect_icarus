@@ -24,6 +24,9 @@ model Player {
 
   lobby Lobby? @relation(fields: [lobbyId], references: [id])
   lobbyId Int?
+
+  @@unique([name, lobbyId])
+  @@unique([color, lobbyId])
 }
 
 model Ship{
@@ -93,12 +96,16 @@ enum TileType {
 model Tile{
   id Int @default(autoincrement()) @id
 
+  externalId String
+
   type TileType
   positionX Int
   positionY Int
 
   game Game? @relation(fields: [gameId], references: [id])
   gameId Int?
+
+  @@unique([externalId, gameId])
 }
 
 enum Dificulty {
