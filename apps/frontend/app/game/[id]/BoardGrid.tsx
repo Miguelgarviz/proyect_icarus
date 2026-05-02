@@ -9,34 +9,6 @@ interface BoardGridProps {
   onNodeClick: (id: string) => void;
 }
 
-const renderTiles = (tileList: TileMap[]) => {
-  return tileList.map((node) => (
-    <ellipse
-      key={node.id}
-      cx={node.cx}
-      cy={node.cy}
-      rx={node.rx}
-      ry={node.ry}
-      className={styles.interactable}
-      onClick={() => console.log("Nodo clickeado:", node.id)}
-    />
-  ));
-};
-
-const renderTracks = (trackList: TrackMap[]) => {
-  return trackList.map((rect) => (
-    <rect
-      key={rect.id}
-      x={rect.x}
-      y={rect.y}
-      width={rect.w}
-      height={rect.h}
-      className={styles.interactable}
-      onClick={() => console.log("Track clickeado:", rect.id)}
-    />
-  ));
-};
-
 export default function BoardGrid({ onNodeClick }: BoardGridProps) {
   const renderTiles = (tileList: TileMap[]) => {
   return tileList.map((node) => (
@@ -46,8 +18,9 @@ export default function BoardGrid({ onNodeClick }: BoardGridProps) {
       cy={node.cy}
       rx={node.rx}
       ry={node.ry}
+      type={node.type}
       className={styles.interactable}
-      onClick={() => console.log("Nodo clickeado:", node.id)}
+      onClick={() => console.log("Nodo clickeado:", node.id, "Tipo:", node.type)}
     />
   ));
 };
