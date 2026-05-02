@@ -1,12 +1,14 @@
 import { Controller, Param, Get, Post, Body, Put, Delete } from '@nestjs/common';
 import { PlayerService } from './player.service';
-import { Player } from '../generated/prisma/client';
+import { Player, Prisma } from '../generated/prisma/client';
 import { ShipService } from '../ship/ship.service';
+import { StorageService } from '../storage/storage.service';
 @Controller('player')
 export class PlayerController {
     constructor(
         private readonly playerService: PlayerService,
-        private readonly shipService: ShipService
+        private readonly shipService: ShipService,
+        private readonly storageService: StorageService
     ) {}
 
     @Get('/:id')    
@@ -49,6 +51,17 @@ export class PlayerController {
             await this.shipService.createShip({
                 player: { connect: { id: player.id } }
             });
+        }
+    }
+
+    @Post('/:lobbyId/storage')
+    async createStorageForPlayer(@Param('lobbyId') lobbyId: string): Promise<void> {
+        const players: Player[] = await this.playerService.getPlayersInLobby(Number(lobbyId));
+        if (players.length === 0) {
+            throw new Error('No players found in the specified lobby');
+        }
+        for (const player of players) {
+            await this.storageService.createStorage(Number(player.id));
         }
     }
 

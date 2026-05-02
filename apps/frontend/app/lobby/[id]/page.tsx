@@ -167,6 +167,10 @@ export default function Lobby() {
           method: "POST",
           headers: { "Content-Type": "application/json" }
         })
+        await fetch(`http://localhost:4000/api/v1/player/${lobby?.id}/storage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        })
         router.push(`/game/${game.id}`);
       } else {
         console.error("Error al crear el game");
