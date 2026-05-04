@@ -15,22 +15,22 @@ export interface TrackMap {
     h:number
 }
 export const greenPlanetNodes: TileMap[] = [
-    { id: 'green_planet_1', cx: 627, cy: 222, rx: 62.5, ry: 59, type: 'green_planet' },
-    { id: 'green_planet_2', cx: 202.5, cy: 745, rx: 62.5, ry: 59, type: 'green_planet' },
-    { id: 'green_planet_3', cx: 247, cy: 1155, rx: 62.5, ry: 59, type: 'green_planet' },
-    { id: 'green_planet_4', cx: 757, cy: 1574.5, rx: 62.5, ry: 59, type: 'green_planet' },
-    { id: 'green_planet_5', cx: 1289.5, cy: 1465, rx: 62.5, ry: 59, type: 'green_planet' },
-    { id: 'green_planet_6', cx: 1598.6, cy: 879.7, rx: 62.5, ry: 59, type: 'green_planet' },
-    { id: 'green_planet_7', cx: 1394, cy: 383, rx: 62.5, ry: 59, type: 'green_planet' },
-    { id: 'green_planet_8', cx: 560, cy: 550, rx: 62.5, ry: 59, type: 'green_planet' },
-    { id: 'green_planet_9', cx: 1365, cy: 878, rx: 62.5, ry: 59, type: 'green_planet' }
+    { id: 'green_planet_2', cx: 627, cy: 222, rx: 62.5, ry: 59, type: 'green_planet' },
+    { id: 'green_planet_3', cx: 202.5, cy: 745, rx: 62.5, ry: 59, type: 'green_planet' },
+    { id: 'green_planet_4', cx: 247, cy: 1155, rx: 62.5, ry: 59, type: 'green_planet' },
+    { id: 'green_planet_5', cx: 757, cy: 1574.5, rx: 62.5, ry: 59, type: 'green_planet' },
+    { id: 'green_planet_6', cx: 1289.5, cy: 1465, rx: 62.5, ry: 59, type: 'green_planet' },
+    { id: 'green_planet_7', cx: 1598.6, cy: 879.7, rx: 62.5, ry: 59, type: 'green_planet' },
+    { id: 'green_planet_1', cx: 1394, cy: 383, rx: 62.5, ry: 59, type: 'green_planet' },
+    { id: 'green_planet_9', cx: 560, cy: 550, rx: 62.5, ry: 59, type: 'green_planet' },
+    { id: 'green_planet_8', cx: 1365, cy: 878, rx: 62.5, ry: 59, type: 'green_planet' }
 ];
 
 export const redPlanetNodes: TileMap[] = [
-    { id: 'red_planet_1', cx: 705, cy: 450, rx: 62.5, ry: 62.5, type: 'red_planet' },
-    { id: 'red_planet_2', cx: 560, cy: 1220, rx: 62.5, ry: 62.5, type: 'red_planet' },
-    { id: 'red_planet_3', cx: 1230, cy: 1217, rx: 62.5, ry: 62.5, type: 'red_planet' },
-    { id: 'red_planet_4', cx: 1230, cy: 552.5, rx: 62.5, ry: 62.5, type: 'red_planet' },
+    { id: 'red_planet_2', cx: 705, cy: 450, rx: 62.5, ry: 62.5, type: 'red_planet' },
+    { id: 'red_planet_3', cx: 560, cy: 1220, rx: 62.5, ry: 62.5, type: 'red_planet' },
+    { id: 'red_planet_4', cx: 1230, cy: 1217, rx: 62.5, ry: 62.5, type: 'red_planet' },
+    { id: 'red_planet_1', cx: 1230, cy: 552.5, rx: 62.5, ry: 62.5, type: 'red_planet' },
     { id: 'red_planet_5', cx: 1175, cy: 878.5, rx: 62.5, ry: 62.5, type: 'red_planet' }
 
 ];
@@ -49,18 +49,18 @@ export const initialNodes: TileMap[] = [
 ];
 
 export const stationNodes: TileMap[] = [
-    {id: 'space_station_1', cx: 502.5, cy: 296, rx:56, ry:54.5, type: 'space_station'},
-    {id: 'space_station_2', cx: 190, cy: 882.5, rx:56, ry:54.5, type: 'space_station'},
-    {id: 'space_station_3', cx: 627.5, cy: 1535, rx:62.5, ry:62.5, type: 'space_station'},
-    {id: 'space_station_4', cx: 1163, cy: 1536, rx:62.5, ry:62.5, type: 'space_station'},
-    {id: 'space_station_5', cx: 1587.5, cy: 1015, rx:62.5, ry:62.5, type: 'space_station'},
-    {id: 'space_station_6', cx: 1285, cy: 300, rx:62.5, ry:62.5, type: 'space_station'},
+    {id: 'space_station_2', cx: 502.5, cy: 296, rx:56, ry:54.5, type: 'space_station'},
+    {id: 'space_station_3', cx: 190, cy: 882.5, rx:56, ry:54.5, type: 'space_station'},
+    {id: 'space_station_4', cx: 627.5, cy: 1535, rx:62.5, ry:62.5, type: 'space_station'},
+    {id: 'space_station_5', cx: 1163, cy: 1536, rx:62.5, ry:62.5, type: 'space_station'},
+    {id: 'space_station_6', cx: 1587.5, cy: 1015, rx:62.5, ry:62.5, type: 'space_station'},
+    {id: 'space_station_1', cx: 1285, cy: 300, rx:62.5, ry:62.5, type: 'space_station'},
     {id: 'space_station_7', cx: 1330, cy: 705, rx:62.5, ry:62.5, type: 'space_station'},
     {id: 'space_station_8', cx: 895, cy: 410, rx:62.5, ry:62.5, type: 'space_station'},
     {id: 'space_station_9', cx: 458, cy: 1063, rx:62.5, ry:62.5, type: 'space_station'},
     {id: 'space_station_10', cx: 895, cy: 1350, rx:62.5, ry:62.5, type: 'space_station'},
-    {id: 'space_station_11', cx: 1125, cy: 1045, rx:62.5, ry:62.5, type: 'space_station'},
-    {id: 'space_station_12', cx: 807, cy: 613, rx:62.5, ry:62.5, type: 'space_station'}
+    {id: 'space_station_12', cx: 1125, cy: 1045, rx:62.5, ry:62.5, type: 'space_station'},
+    {id: 'space_station_11', cx: 807, cy: 613, rx:62.5, ry:62.5, type: 'space_station'}
 ]
 
 export const novaTracks: TrackMap[] = [
@@ -88,27 +88,27 @@ export const novaTracks: TrackMap[] = [
 ];
 
 export const voidNodes: TileMap[] = [
-    {id: 'void_1', cx: 1585, cy: 747.5, rx: 48, ry: 48, type:'void'},
-    {id: 'void_2', cx: 1545, cy: 615, rx: 48, ry: 48, type:'void'},
-    {id: 'void_3', cx: 1163.5, cy: 233.5, rx: 48, ry: 48, type:'void'},
-    {id: 'void_4', cx: 1031.5, cy: 192.5, rx: 48, ry: 48, type:'void'},
-    {id: 'void_5', cx: 895, cy: 178, rx: 48, ry: 48, type:'void'},
-    {id: 'void_6', cx: 756, cy: 193.5, rx: 48, ry: 48, type:'void'},
-    {id: 'void_7', cx: 396, cy: 385, rx: 48, ry: 48, type:'void'},
-    {id: 'void_8', cx: 243, cy: 612.5, rx: 48, ry: 48, type:'void'},
-    {id: 'void_9', cx: 205, cy: 1020, rx: 48, ry: 48, type:'void'},
-    {id: 'void_10', cx: 398.5, cy: 1382.5, rx: 48, ry: 48, type:'void'},
-    {id: 'void_11', cx: 504, cy: 1470, rx: 48, ry: 48, type:'void'},
-    {id: 'void_12', cx: 895, cy: 1587.5, rx: 48, ry: 48, type:'void'},
-    {id: 'void_13', cx: 1032, cy: 1572.5, rx: 48, ry: 48, type:'void'},
-    {id: 'void_14', cx: 1390, cy: 1381.5, rx: 48, ry: 48, type:'void'},
-    {id: 'void_15', cx: 1545, cy: 1150, rx: 48, ry: 48, type:'void'},
-    {id: 'void_16', cx: 1330, cy: 1061, rx: 48, ry: 48, type:'void'},
-    {id: 'void_17', cx: 1075, cy: 447.5, rx: 48, ry: 48, type:'void'},
-    {id: 'void_18', cx: 457.5, cy: 702.5, rx: 48, ry: 48, type:'void'},
-    {id: 'void_19', cx: 422.5, cy: 882.5, rx: 48, ry: 48, type:'void'},
-    {id: 'void_20', cx: 716.3, cy: 1318, rx: 48, ry: 48, type:'void'},
-    {id: 'void_21', cx: 1075, cy: 1317.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_14', cx: 1585, cy: 747.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_15', cx: 1545, cy: 615, rx: 48, ry: 48, type:'void'},
+    {id: 'void_1', cx: 1163.5, cy: 233.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_2', cx: 1031.5, cy: 192.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_3', cx: 895, cy: 178, rx: 48, ry: 48, type:'void'},
+    {id: 'void_4', cx: 756, cy: 193.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_5', cx: 396, cy: 385, rx: 48, ry: 48, type:'void'},
+    {id: 'void_6', cx: 243, cy: 612.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_7', cx: 205, cy: 1020, rx: 48, ry: 48, type:'void'},
+    {id: 'void_8', cx: 398.5, cy: 1382.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_9', cx: 504, cy: 1470, rx: 48, ry: 48, type:'void'},
+    {id: 'void_10', cx: 895, cy: 1587.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_11', cx: 1032, cy: 1572.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_12', cx: 1390, cy: 1381.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_13', cx: 1545, cy: 1150, rx: 48, ry: 48, type:'void'},
+    {id: 'void_21', cx: 1330, cy: 1061, rx: 48, ry: 48, type:'void'},
+    {id: 'void_16', cx: 1075, cy: 447.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_17', cx: 457.5, cy: 702.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_18', cx: 422.5, cy: 882.5, rx: 48, ry: 48, type:'void'},
+    {id: 'void_19', cx: 716.3, cy: 1318, rx: 48, ry: 48, type:'void'},
+    {id: 'void_20', cx: 1075, cy: 1317.5, rx: 48, ry: 48, type:'void'},
     {id: 'void_22', cx: 1123, cy: 718.5, rx: 48, ry: 48, type:'void'},
     {id: 'void_23', cx: 665, cy: 716, rx: 48, ry: 48, type:'void'},
     {id: 'void_24', cx: 668, cy: 1048, rx: 48, ry: 48, type:'void'},

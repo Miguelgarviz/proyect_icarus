@@ -106,6 +106,7 @@ model Tile{
   gameId Int?
 
   @@unique([externalId, gameId])
+  @@unique([positionX, positionY, gameId])
 }
 
 enum Dificulty {

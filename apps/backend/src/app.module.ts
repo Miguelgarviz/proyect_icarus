@@ -12,9 +12,10 @@ import { CardModule } from './card/card.module';
 import { DrillCardModule } from './drill-card/drill-card.module';
 import { ShipModule } from './ship/ship.module';
 import { StorageModule } from './storage/storage.module';
+import { TileModule } from './tile/tile.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), PlayerModule, LobbyModule, GameModule, StoreModule, CardModule, DrillCardModule, ShipModule, StorageModule],
+  imports: [ConfigModule.forRoot(), PlayerModule, LobbyModule, GameModule, StoreModule, CardModule, DrillCardModule, ShipModule, StorageModule, TileModule],
   controllers: [AppController],
   providers: [AppService, PlayerService, PrismaService],
 })
