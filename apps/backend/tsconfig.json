@@ -12,6 +12,10 @@
     // "strictBindCallApply": true,
     // "forceConsistentCasingInFileNames": true,
     // "noFallthroughCasesInSwitch": true
+    "types":[
+      "node",
+      "jest"
+    ],
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,

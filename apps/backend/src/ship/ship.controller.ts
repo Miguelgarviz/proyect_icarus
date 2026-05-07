@@ -20,4 +20,5 @@ export class ShipController {
     async getShipById(@Body('id') id: number): Promise<Ship | null> {
         return await this.shipService.getShipById(id);
     }
+
 }
