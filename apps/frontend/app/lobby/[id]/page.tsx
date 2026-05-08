@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import LobbyForm from './LobbyForm';
 
 const PRESET_COLORS = ["#ef4444", "#3b82f6", "#eab308", "#22c55e"];
 
@@ -52,6 +53,7 @@ export default function Lobby() {
   const idLobby = params.id; // Obtenemos el ID de la URL
 
   const [players, setPlayers] = useState<Player[]>([]); 
+  const [joined, setJoined] = useState(false);
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [loading, setLoading] = useState(false);
   
@@ -109,6 +111,8 @@ export default function Lobby() {
     }
   }, [idLobby, players]);
 
+
+  
   // 2. Añadir jugador al lobby específico
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -238,39 +242,70 @@ export default function Lobby() {
       </div>
     </div>
 
-    <div className="absolute left-8 top-8 w-72 rounded-xl border border-border p-6 shadow-sm bg-card">
-      <h2 className="mb-4 text-lg font-bold text-center">Nuevo Jugador</h2>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nombre"
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm focus:ring-2 focus:ring-foreground outline-none"
-            required
-          />
+    {(lobby && lobby.numPlayers < 4) && (
+      <div className="absolute left-8 top-8 w-72 rounded-xl border border-border p-6 shadow-sm bg-card">
+        <h2 className="mb-4 text-lg font-bold text-center">Nuevo Jugador</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div> {/* Contenedor para el input y error de nombre */}
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Nombre"
+              className={`w-full rounded-md border bg-transparent px-3 py-2 text-sm focus:ring-2 focus:ring-foreground outline-none ${
+                // NUEVO: Borde rojo si el nombre ya existe
+                players.some(p => p.name.toLowerCase() === name.trim().toLowerCase()) ? 'border-red-500' : 'border-input'
+              }`}
+              required
+            />
+            {/* NUEVO: Mensaje de error de nombre */}
+            {players.some(p => p.name.toLowerCase() === name.trim().toLowerCase()) && (
+              <p className="text-[10px] text-red-500 mt-1 font-bold">Este nombre ya existe</p>
+            )}
+          </div>
           
           <div className="flex justify-center gap-3">
-            {PRESET_COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setColor(c)}
-                className={`h-10 w-10 rounded-lg border-2 transition-all ${color === c ? 'scale-110 border-foreground shadow-md' : 'border-transparent opacity-70'}`}
-                style={{ backgroundColor: c }}
-              />
-            ))}
+            {PRESET_COLORS.map((c) => {
+              // NUEVO: Comprobar si el color ya está usado por otro jugador
+              const isColorTaken = players.some(p => p.color === c);
+              
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  disabled={isColorTaken} // NUEVO: Deshabilitar si está usado
+                  onClick={() => setColor(c)}
+                  className={`h-10 w-10 rounded-lg border-2 transition-all ${
+                    color === c 
+                      ? 'scale-110 border-foreground shadow-md' 
+                      : 'border-transparent opacity-70'
+                  } ${
+                    // NUEVO: Estilo visual para color ocupado
+                    isColorTaken ? 'opacity-10 grayscale cursor-not-allowed' : 'hover:scale-105'
+                  }`}
+                  style={{ backgroundColor: c }}
+                  title={isColorTaken ? "Color ocupado" : ""}
+                />
+              );
+            })}
           </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className="h-10 w-full rounded-full bg-foreground text-background text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-opacity"
+            // NUEVO: Deshabilitar botón si el nombre o color ya existen
+            disabled={
+              loading || 
+              !name.trim() || 
+              !color || 
+              players.some(p => p.name.toLowerCase() === name.trim().toLowerCase())
+            }
+            className="h-10 w-full rounded-full bg-foreground text-background text-sm font-bold hover:opacity-90 disabled:opacity-30 transition-opacity"
           >
             {loading ? "Entrando..." : "Añadir al Lobby"}
           </button>
         </form>
-    </div>
+      </div>
+    )}
 
     {/* Lista de Jugadores */}
     <div className="flex flex-col items-center pt-10">
