@@ -118,7 +118,7 @@ export default function GamePage() {
           {/* Recuadro Amarillo */}
           <div style={{ 
             border: '3px solid #FFD700', 
-            height: '400px', 
+            height: '800px', 
             borderRadius: '8px',
             backgroundColor: 'rgba(0,0,0,0.3)' 
           }}>
