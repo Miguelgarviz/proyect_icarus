@@ -30,13 +30,12 @@ export class CardService {
         }
     }
 
-    async getCardsByStore(storeWhereUniqueInput: Prisma.StoreWhereUniqueInput): Promise<Cards[]> {
-        const store = await this.prisma.store.findUnique({
-            where: storeWhereUniqueInput,
-            include: {
-                cards: true
+    async getCardsByStore(storeId: number): Promise<Cards[]> {
+        const cards = await this.prisma.cards.findMany({
+            where:{
+                storeId:storeId
             }
-        });
-        return store?.cards || [];
+        })
+        return cards
     }   
 }

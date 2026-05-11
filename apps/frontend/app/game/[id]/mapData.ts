@@ -14,6 +14,8 @@ export interface TrackMap {
     w:number,
     h:number
 }
+
+
 export const greenPlanetNodes: TileMap[] = [
     { id: 'green_planet_2', cx: 627, cy: 222, rx: 62.5, ry: 59, type: 'green_planet' },
     { id: 'green_planet_3', cx: 202.5, cy: 745, rx: 62.5, ry: 59, type: 'green_planet' },
@@ -114,3 +116,9 @@ export const voidNodes: TileMap[] = [
     {id: 'void_24', cx: 668, cy: 1048, rx: 48, ry: 48, type:'void'},
     {id: 'void_25', cx: 809.4, cy: 1152.5, rx: 48, ry: 48, type:'void'}
 ];
+
+export const nodeCoordinates: Record<string, { cx: number, cy: number }> = {};
+
+[...greenPlanetNodes, ...redPlanetNodes, ...yellowPlanetNodes, ...initialNodes, ...stationNodes, ...voidNodes].forEach(node => {
+  nodeCoordinates[node.id] = { cx: node.cx, cy: node.cy };
+});

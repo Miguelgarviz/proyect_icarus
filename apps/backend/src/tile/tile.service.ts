@@ -29,4 +29,27 @@ export class TileService {
             });
         }
     }
+
+    async getTileByExternalId(externalId: string, gameId: number): Promise<Tile | null> {
+        return await this.prisma.tile.findUnique({
+            where: {
+                externalId_gameId:{
+                    externalId: externalId,
+                    gameId: gameId
+                }
+            }
+        });
+    }
+
+    async getTilesByCoordinates(gameId: number, x: number, y: number): Promise<Tile | null> {
+        return await this.prisma.tile.findUnique({
+            where: {
+                positionX_positionY_gameId:{
+                    gameId: gameId,
+                    positionX: x,
+                    positionY: y
+                }
+            }
+        });
+    }
 }

@@ -1,11 +1,15 @@
 import { Controller, Get, Param, Put, Post, Body } from '@nestjs/common';
 import { GameService } from './game.service';
-import { Game, Prisma } from '../generated/prisma/browser';
+import { Game, Prisma, Ship } from '../generated/prisma/browser';
+import { LobbyService } from '../lobby/lobby.service';
+import { ShipService } from '../ship/ship.service';
 
 @Controller('game')
 export class GameController {
     constructor(
-        private readonly gameService: GameService
+        private readonly gameService: GameService,
+        private readonly lobbyService: LobbyService,
+        private readonly shipService: ShipService
     ) {}
 
     @Get('/:id')
@@ -18,4 +22,43 @@ export class GameController {
         return this.gameService.createGame(gameData);
     }
     
+    @Get('/:id/players')
+    async getPlayers(@Param('id') id:string) {
+        const game = await this.gameService.getGame({ id: Number(id) });
+        if (!game) {
+            return [];
+        }
+        const players = await this.lobbyService.getPlayersInLobby({ id: Number(game.lobbyId) });
+        return players;
+
+    }
+
+    @Get('/:id/ships')
+    async getShips(@Param('id') id: string){
+        const game = await this.gameService.getGame({ id: Number(id) });
+        if (!game) {
+            return [];
+        }
+        const players = await this.lobbyService.getPlayersInLobby({ id: Number(game.lobbyId) });
+
+        let ships: Ship[] = [];
+
+        for (const player of players){
+            if(player.shipId){
+                const ship = await this.shipService.getShipById(player.shipId)
+                ship? ships.push(ship) : null
+            }
+        }
+        return ships;
+    }
+
+    @Get('/:id/store')
+    async getStore(@Param('id') id:string){
+        const game = await this.gameService.getGame({ id: Number(id) })
+        if(game && game.storeId){
+            return await this.gameService.getStoreByGame(game.storeId)
+        }else{
+            return null;
+        }
+    }
 }

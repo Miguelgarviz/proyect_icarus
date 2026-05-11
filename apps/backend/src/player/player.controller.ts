@@ -1,6 +1,6 @@
 import { Controller, Param, Get, Post, Body, Put, Delete } from '@nestjs/common';
 import { PlayerService } from './player.service';
-import { Player, Prisma } from '../generated/prisma/client';
+import { Player, Prisma, Ship, Storage } from '../generated/prisma/client';
 import { ShipService } from '../ship/ship.service';
 import { StorageService } from '../storage/storage.service';
 @Controller('player')
@@ -26,31 +26,38 @@ export class PlayerController {
         return this.playerService.getPlayersInLobby(Number(lobbyId));
     }
 
+    @Get('/:id/ship')
+    async getPlayersShip(@Param('id') id: string):Promise<Ship|null>{
+        const player = await this.playerService.getPlayer({id:Number(id)})
+        if(!player || !player.shipId){
+            return null
+        }
+        return this.shipService.getShipById(player.shipId)
+    }
+
+    @Get('/:id/storage')
+    async getPlayersStorage(@Param('id') id: string):Promise<Storage|null>{
+        const player = await this.playerService.getPlayer({id:Number(id)})
+        if(!player || !player.storageId){
+            return null
+        }
+        return this.storageService.getStorage(player.storageId)
+    }
     @Post()
     async createPlayer(@Body() playerData: {name: string, color: string, movement: number}):Promise<Player> {
         return this.playerService.createPlayer(playerData);
     }
 
-    @Put('/:id')
-    async updatePlayer(@Param('id') id:string , @Body() playerData: {name?: string, color?: string, movement?: number}):Promise<Player> {
-        return this.playerService.updatePlayer({
-            where: { id: Number(id) },
-            data: playerData
-        });
-    }
-
-    @Delete('/:id')
-    async deletePlayer(@Param('id') id: string): Promise<Player> {
-        return this.playerService.deletePlayer({ id: Number(id) });
-    }
-
     @Post('/:lobbyId/ship')
     async createShipToPlayer(@Param('lobbyId') lobbyId: string): Promise<void> {
         const players: Player[] = await this.playerService.getPlayersInLobby(Number(lobbyId));
+        let i = 1
         for (const player of players) {
             await this.shipService.createShip({
-                player: { connect: { id: player.id } }
+                player: { connect: { id: player.id } },
+                externalId: `initial_${i}`
             });
+            i=i+1;
         }
     }
 
@@ -65,4 +72,16 @@ export class PlayerController {
         }
     }
 
+    @Put('/:id')
+    async updatePlayer(@Param('id') id:string , @Body() playerData: {name?: string, color?: string, movement?: number}):Promise<Player> {
+        return this.playerService.updatePlayer({
+            where: { id: Number(id) },
+            data: playerData
+        });
+    }
+
+    @Delete('/:id')
+    async deletePlayer(@Param('id') id: string): Promise<Player> {
+        return this.playerService.deletePlayer({ id: Number(id) });
+    }
 }

@@ -42,4 +42,13 @@ export class GameService {
             }
         });
     }
+
+    async getStoreByGame(storeId: number){
+        return this.prisma.store.findUnique({
+            where:{
+                id:storeId
+            }
+        })
+    }
+    
 }

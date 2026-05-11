@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { TileService } from './tile.service';
 import { TileType } from '../generated/prisma/enums';
 import { externalIdsGreen, externalIdsRed, externalIdsYellow, externalIdsInitial, externalIdsStation, externalIdsVoid } from './tileData';
@@ -23,5 +23,15 @@ export class TileController {
         this.tileService.createTiles(externalIdsStation, TileType.SPACE_STATION, coordinatesSpaceStation, Number(gameId));
         this.tileService.createTiles(externalIdsInitial, TileType.START, coordinatesInitial, Number(gameId));
         this.tileService.createTiles(externalIdsVoid, TileType.EMPTY, coordinatesVoid, Number(gameId));
+    }
+
+    @Get('/:gameId/externalId/:externalId')
+    async getTileByExternalId(@Param('gameId') gameId: string, @Param('externalId') externalId: string) {
+        return this.tileService.getTileByExternalId(externalId, Number(gameId));
+    }
+
+    @Get('/:gameId/coordinates')
+    async getTileByCoordinates(@Param('gameId') gameId: string, @Query('x') coordX: number, @Query('y') coordY: number){
+        return this.tileService.getTilesByCoordinates(Number(gameId), coordX, coordY);
     }
 }
