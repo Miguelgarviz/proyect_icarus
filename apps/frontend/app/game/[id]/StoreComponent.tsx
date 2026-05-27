@@ -106,7 +106,8 @@ export default function StoreComponent({ cards, gameId }: { cards: CardDTO[], ga
                 <Image 
                   src={data.img} 
                   alt={String(card.type)} 
-                  fill 
+                  fill
+                  sizes="(max-width: 768px) 100vw, 300px"
                   style={{ objectFit: 'contain', padding: '10px' }} 
                 />
               </div>
@@ -151,7 +152,7 @@ export default function StoreComponent({ cards, gameId }: { cards: CardDTO[], ga
                   alignItems: 'center',
                   gap: '5px'
                 }}>
-                  {card.cost} <span style={{fontSize: '0.9rem'}}>💎</span>
+                  {card.cost} <span style={{fontSize: '0.9rem'}}>♦️</span>
                 </div>
 
                 <button 

@@ -72,3 +72,63 @@
   fill: rgba(0, 255, 0, 0.2); /* Se pone verde suave al pasar el ratón */
   stroke: lime;
 }
+
+.turnContainer {
+  border: 3px solid #5900ff;
+  height: 70px;
+  border-radius: 8px;
+  background-color: rgba(15, 10, 25, 0.85);
+  box-shadow: 0 0 15px rgba(89, 0, 255, 0.25);
+  flex-shrink: 0;
+  display: 'flex'; /* Nota: En CSS puro se escribe en minúscula, ver abajo */
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  gap: 12px;
+  font-family: sans-serif;
+  box-sizing: border-box;
+}
+
+/* El indicador luminoso (LED) */
+.turnLed {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  /* Usamos variables CSS para recibir el color dinámico desde React */
+  background-color: var(--player-color, #ffffff);
+  box-shadow: 0 0 10px var(--player-color, #ffffff);
+  flex-shrink: 0;
+}
+
+/* Contenedor de textos */
+.turnTextWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Etiqueta superior secundaria */
+.turnLabel {
+  font-size: 0.65rem;
+  color: #a085ff;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+/* Nombre del jugador principal */
+.turnPlayerName {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Estado de carga */
+.turnLoading {
+  font-size: 0.85rem;
+  color: #666;
+  font-style: italic;
+}
