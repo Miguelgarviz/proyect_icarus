@@ -10,6 +10,8 @@ const PLAYER_IMAGES: Record<string, string> = {
 };
 
 export default function EntitiesLayer({ playersData }: { playersData: PlayerChip[] }) {
+  
+  
   return (
     <g>
       {playersData.map((player) => {
