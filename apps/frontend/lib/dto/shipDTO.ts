@@ -4,6 +4,6 @@ export interface ShipDTO {
     engine: number;
     positionX: number;
     positionY: number;
-    playerId: number;
+    id: number;
     externalId: string;
 }

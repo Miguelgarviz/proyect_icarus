@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param } from '@nestjs/common';
 import { CardService } from './card.service';
 import { Prisma, Cards } from '../generated/prisma/client';
 
@@ -18,4 +18,11 @@ export class CardController {
         return await this.cardService.getCard(cardWhereUniqueInput);
     }
 
+    @Get('/player-cards/:playerId')
+    async getPlayerCards(@Param('playerId') playerId: string) {
+        if(!(Number(playerId))){
+            return [];
+        }
+        return await this.cardService.getPlayerCards( Number(playerId) );
+    }
 }

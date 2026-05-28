@@ -50,5 +50,14 @@ export class GameService {
             }
         })
     }
+
+    async nextPlayer(gameId: number, currentPlayerId: number){
+        return this.prisma.game.update({
+            where: {id: gameId},
+            data: {
+                actualPlayerId: currentPlayerId
+            }
+        })
+    }
     
 }

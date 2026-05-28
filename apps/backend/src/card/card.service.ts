@@ -37,5 +37,14 @@ export class CardService {
             }
         })
         return cards
-    }   
+    } 
+    
+    async getPlayerCards(playerId: number): Promise<Cards[]>{
+        const cards = await this.prisma.cards.findMany({
+            where:{
+                playerId: playerId
+            }
+        })
+        return cards
+    }
 }

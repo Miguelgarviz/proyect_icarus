@@ -4,10 +4,11 @@ import { GameService } from './game.service';
 import { PrismaService } from '../prisma.service';
 import { LobbyService } from '../lobby/lobby.service';
 import { ShipService } from '../ship/ship.service';
+import { StorageService } from '../storage/storage.service';
 
 @Module({
   imports: [],
   controllers: [GameController],
-  providers: [GameService, PrismaService, LobbyService, ShipService]
+  providers: [GameService, PrismaService, LobbyService, ShipService, StorageService]
 })
 export class GameModule {}

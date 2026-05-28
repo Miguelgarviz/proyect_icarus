@@ -3,6 +3,8 @@ export interface PlayerDTO {
     name: string;
     color: string;
     movement: number;
+    storageId: number;
+    shipId: number;
 }
 export interface PlayerChip {
     id:string;

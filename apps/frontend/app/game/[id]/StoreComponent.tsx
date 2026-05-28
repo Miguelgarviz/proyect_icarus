@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import styles from './game.module.css';
 import { CardDTO } from '../../../lib/dto/storeDTO';
 
 const CARD_DATA: { [key: string]: { img: string, desc: string, name: string } } = {
@@ -152,7 +153,15 @@ export default function StoreComponent({ cards, gameId }: { cards: CardDTO[], ga
                   alignItems: 'center',
                   gap: '5px'
                 }}>
-                  {card.cost} <span style={{fontSize: '0.9rem'}}>♦️</span>
+                  {card.cost} 
+                  <div className={styles.iconWrapper}>
+                    <Image 
+                      src="/images/icons/red-mineral.png"
+                      alt="Mineral Rojo" 
+                      fill 
+                      sizes="22px" 
+                      style={{ objectFit: 'contain' }} />
+                  </div> 
                 </div>
 
                 <button 

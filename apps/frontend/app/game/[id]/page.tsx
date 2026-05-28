@@ -9,43 +9,63 @@ import { useParams } from 'next/navigation';
 import { PlayerDTO, PlayerChip } from '../../../lib/dto/playerDTO';
 import { ShipDTO } from '../../../lib/dto/shipDTO';
 import { CardDTO, StoreDTO } from '../../../lib/dto/storeDTO';
+import { StorageDTO } from '../../../lib/dto/storageDTO';
+import { GameDTO } from '../../../lib/dto/gameDTO';
 import StoreComponent from './StoreComponent';
+import PlayerDataComponent from './playerDataComponent';
 
 export default function GamePage() {
   const params = useParams();
   const [players, setPlayers] = useState<PlayerDTO[]>([]);
+  const [game, setGame] = useState<GameDTO>();
+  const [round, setRound] = useState<number>(0);
   const [currentPlayer, setCurrentPlayer] = useState<PlayerDTO>();
   const [ships, setShips] = useState<ShipDTO[]>([]);
   const [playersChips, setPlayersChips] = useState<PlayerChip[]>([]);
   const [storeCards, setStoreCards] = useState<CardDTO[]>([]);
+  const [playerCards, setPlayerCards] = useState<CardDTO[]>([]);
+  const [storages, setStorages] = useState<StorageDTO[]>([]);
   const [store, setStore] = useState<StoreDTO>();
   const gameId = params.id;
-
-  const handleNodeClick = (id: string) => {
-    console.log("Has pulsado en:", id);
-  };
 
   useEffect(() => {
     fetchPlayers();
     fetchStore();
   }, [gameId]);
 
+  
   const fetchPlayers = async () => {
     try {
       const playersResponse = await fetch(`http://localhost:4000/api/v1/game/${gameId}/players`);
       if (!playersResponse.ok) throw new Error('Error al cargar jugadores');
       const playersData = await playersResponse.json();
       await setPlayers(playersData);
-      setCurrentPlayer(playersData[0]);
+
+      const gameResponse = await fetch(`http://localhost:4000/api/v1/game/${gameId}`);
+      if (!gameResponse.ok) throw new Error('Error al cargar la partida');
+      const gameData = await gameResponse.json();
+      await setGame(gameData);
+
+      await setRound(gameData.round);
+      await setCurrentPlayer(playersData.find((p: PlayerDTO) => p.id === gameData.actualPlayerId));;
+
       const shipsResponse = await fetch(`http://localhost:4000/api/v1/game/${gameId}/ships`);
       if (!shipsResponse.ok) throw new Error('Error al cargar naves');
       const shipsData = await shipsResponse.json();
       await setShips(shipsData);
 
+      const storageResponse = await fetch(`http://localhost:4000/api/v1/game/${gameId}/storages`);
+      if (!storageResponse.ok) throw new Error('Error al cargar almacenamiento');
+      const storageData = await storageResponse.json();
+      await setStorages(storageData);
+
+      const playerCardsResponse = await fetch(`http://localhost:4000/api/v1/card/player-cards/${gameData.actualPlayerId}`);
+      if (!playerCardsResponse.ok) throw new Error('Error al cargar las cartas del jugador');
+      const playerCardsData = await playerCardsResponse.json();
+      await setPlayerCards(playerCardsData);
+
       const newChips: PlayerChip[] = [];
-      const count = Math.min(playersData.length, shipsData.length);
-      
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < playersData.length; i++) {
         newChips.push({
           id: playersData[i].id,
           color: playersData[i].color,
@@ -60,11 +80,20 @@ export default function GamePage() {
     }
   };
 
-  const nextPlayer = () => {
+  const nextPlayer = async() => {
     if (players.length === 0) return;
     const currentIndex = players.findIndex(p => p.id === currentPlayer?.id);
     const nextIndex = (currentIndex + 1) % players.length;
     setCurrentPlayer(players[nextIndex]);
+    await fetch(`http://localhost:4000/api/v1/game/${gameId}/next-player`,{
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPlayerId: players[nextIndex].id })
+    });
+    const playerCardsResponse = await fetch(`http://localhost:4000/api/v1/card/player-cards/${players[nextIndex].id}`);
+      if (!playerCardsResponse.ok) throw new Error('Error al cargar las cartas del jugador');
+      const playerCardsData = await playerCardsResponse.json();
+      await setPlayerCards(playerCardsData);
   }
 
   function seededRandom(seed: number) {
@@ -102,8 +131,9 @@ export default function GamePage() {
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
+  console.log("Data:", playerCards);
   return (
     <main className={styles.pageContainer} style={{ 
       height: '100vh', 
@@ -172,7 +202,7 @@ export default function GamePage() {
 
           {/* Botón Verde */}
           <button 
-            onClick={() => nextPlayer()}
+            onClick={async() => await nextPlayer()}
             style={{ 
               border: '3px solid #00FF00', 
               height: '65px', 
@@ -185,8 +215,8 @@ export default function GamePage() {
               flexShrink: 0
             }}
           >
-            Pasar Turno
-          </button>
+              Pasar Turno
+            </button>
         </div>
 
         {/* TABLERO CENTRAL (Ajustado dinámicamente) */}
@@ -218,7 +248,7 @@ export default function GamePage() {
               maxHeight: '100%' // Asegura que el SVG siga las mismas reglas restrictivas de la imagen
             }}
           >
-            <BoardGrid onNodeClick={handleNodeClick} />
+            <BoardGrid currentRound={round} />
             <EntitiesLayer playersData={playersChips} />
           </svg>
         </div>
@@ -231,7 +261,7 @@ export default function GamePage() {
             borderRadius: '8px',
             backgroundColor: 'rgba(0,0,0,0.3)' 
           }}>
-            {/* Contenido para el cuadro rojo */}
+            {currentPlayer && <PlayerDataComponent shipData={ships.find(s => s.id === Number(currentPlayer.shipId))} cargoData={storages.find(s => s.id === Number(currentPlayer.storageId))} cardsData={playerCards} />}
           </div>
         </div>
 
