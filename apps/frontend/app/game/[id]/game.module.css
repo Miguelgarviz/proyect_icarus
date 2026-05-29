@@ -432,3 +432,31 @@
   color: #666;
   font-weight: bold;
 }
+
+/* --- Añadir a tu game.module.css --- */
+
+/* Clase para las casillas iluminadas a las que el jugador SÍ puede ir */
+.nodeHighlighted {
+  stroke: #00ffff !important;          /* Borde cian eléctrico brillante */
+  stroke-width: 3.5px !important;       /* Un poco más grueso para que destaque */
+  fill: rgba(0, 255, 255, 0.15) !important; /* Relleno sutilmente cian */
+  cursor: pointer;                     /* Mano de click */
+  
+  /* El truco definitivo de brillo neón en elementos vectoriales SVG */
+  filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8));
+  
+  /* Animación para que las casillas "respiren" y llamen la atención del jugador */
+  animation: pulseAllowedTile 1.8s infinite alternate ease-in-out;
+}
+
+/* Animación de pulsación cyberpunk */
+@keyframes pulseAllowedTile {
+  0% {
+    fill: rgba(0, 255, 255, 0.1);
+    filter: drop-shadow(0 0 4px rgba(0, 255, 255, 0.5));
+  }
+  100% {
+    fill: rgba(0, 255, 255, 0.3);      /* Se vuelve un poco más opaco en el pico */
+    filter: drop-shadow(0 0 14px rgba(0, 255, 255, 1)); /* Brillo intenso */
+  }
+}

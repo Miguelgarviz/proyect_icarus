@@ -15,34 +15,39 @@ import {
 import styles from "./game.module.css";
 
 interface BoardGridProps {
+  onNodeClick: (id: string) => void;
   currentRound: number;
-  onNodeClick: (nodeId: string) => void; // Callback para avisar al page.tsx
+  allowedNodes: string[]; // 🚀 NUEVO: Array con los IDs de las casillas iluminadas (ej: ['void_1', 'green_planet_2'])
 }
 
 export default function BoardGrid({
-  currentRound,
   onNodeClick,
+  currentRound,
+  allowedNodes,
 }: BoardGridProps) {
   const renderTiles = (tileList: TileMap[]) => {
-    return tileList.map((node) => (
-      <ellipse
-        key={node.id}
-        cx={node.cx}
-        cy={node.cy}
-        rx={node.rx}
-        ry={node.ry}
-        type={node.type}
-        className={styles.interactable}
-        onClick={() => onNodeClick(node.id)}
-      />
-    ));
+    return tileList.map((node) => {
+      // 🌟 Comprobamos si este nodo en concreto debe estar iluminado
+      const isAllowed = allowedNodes.includes(node.id);
+
+      return (
+        <ellipse
+          key={node.id}
+          cx={node.cx}
+          cy={node.cy}
+          rx={node.rx}
+          ry={node.ry}
+          // 🚀 Si está permitido, le sumamos la clase styles.nodeHighlighted
+          className={`${styles.interactable} ${isAllowed ? styles.nodeHighlighted : ""}`}
+          onClick={() => onNodeClick(node.id)}
+        />
+      );
+    });
   };
 
   const renderTracks = (trackList: TrackMap[]) => {
     return trackList.map((rect) => {
       const trackRoundNumber = parseInt(rect.id.replace("track_", ""), 10);
-
-      // Comprobamos si esta casilla coincide exactamente con la ronda actual del backend
       const isActive = trackRoundNumber === currentRound;
 
       return (
@@ -52,21 +57,16 @@ export default function BoardGrid({
           y={rect.y}
           width={rect.w}
           height={rect.h}
-          rx={4} // Añadimos bordes redondeados sutiles para que calce mejor con el diseño
+          rx={4}
           ry={4}
-          // Si está activa, le mete la clase novaTrackActive, si no, se queda con la interactable normal
-          className={`${styles.interactable} ${isActive ? styles.novaTrackActive : ""}`}
+          className={isActive ? styles.novaTrackActive : styles.novaTrackStatic}
         />
       );
     });
   };
 
   return (
-    <svg
-      viewBox="0 0 1790 1787"
-      className={styles.svgOverlay}
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <>
       {/* Renderizamos los planetas dinámicamente */}
       {renderTiles(greenPlanetNodes)}
       {renderTiles(redPlanetNodes)}
@@ -75,8 +75,8 @@ export default function BoardGrid({
       {renderTiles(stationNodes)}
       {renderTiles(voidNodes)}
 
-      {/* Renderizamos el track de puntuación */}
+      {/* Renderizamos el track de la supernova */}
       {renderTracks(novaTracks)}
-    </svg>
+    </>
   );
 }

@@ -29,6 +29,7 @@ export default function GamePage() {
   const [playerCards, setPlayerCards] = useState<CardDTO[]>([]);
   const [storages, setStorages] = useState<StorageDTO[]>([]);
   const [store, setStore] = useState<StoreDTO>();
+  const [reachableTiles, setReachableTiles] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const gameId = params.id;
 
@@ -50,7 +51,8 @@ export default function GamePage() {
           : ({ positionX: 0, positionY: 0, externalId: "" } as ShipDTO),
       );
     }
-  }, [currentPlayer?.movement, playersChips]);
+    console.log("Se ha actualizado el currentPlayer", currentPlayer);
+  }, [currentPlayer]);
   const fetchPlayers = async () => {
     try {
       const playersResponse = await fetch(
@@ -205,6 +207,7 @@ export default function GamePage() {
     let distance = 0;
     let validMove = false;
 
+    console.log("Tile:", tile);
     if (ship && tile && playerChip) {
       if (tile.positionY === ship.positionY) {
         distance = calculateDistance(
@@ -219,9 +222,12 @@ export default function GamePage() {
           distance +
           calculateNumberOfPlayersBetween(
             ship.positionX,
+            ship.positionY,
             tile.positionX,
             distance,
           );
+        //console.log("Distancia calculada:", distance);
+
         if (distance <= currentPlayer.movement) {
           validMove = true;
         }
@@ -240,6 +246,7 @@ export default function GamePage() {
             distance +
             calculateNumberOfPlayersBetween(
               landingTile.positionX,
+              landingTile.positionY,
               tile.positionX,
               distance,
             );
@@ -265,6 +272,7 @@ export default function GamePage() {
         playerChip.coordY = tile.positionY;
         playerChip.externalId = targetNodeId;
         currentPlayer.movement = currentPlayer.movement - distance;
+        setCurrentPlayer({ ...currentPlayer });
         setPlayersChips([...playersChips]);
         await fetch(`http://localhost:4000/api/v1/player/${currentPlayer.id}`, {
           method: "PUT",
@@ -277,12 +285,14 @@ export default function GamePage() {
 
   const calculateNumberOfPlayersBetween = (
     shipX: number,
+    shipY: number,
     tileX: number,
     distance: number,
   ) => {
     if (distance === 1) return 0;
     const numPlayers = playersChips.filter((p) => {
       if (p.id === currentPlayer?.id) return false;
+      if (p.coordY !== shipY) return false;
       const playerToShip = Math.abs(p.coordX - shipX);
       const playerToDestiny = Math.abs(p.coordX - tileX);
       if (playerToShip < distance && playerToDestiny < distance) {
@@ -290,6 +300,7 @@ export default function GamePage() {
       }
       return false;
     }).length;
+    //console.log("Número de jugadores entre:", numPlayers);
     return numPlayers;
   };
 
@@ -300,6 +311,7 @@ export default function GamePage() {
       tile1.positionX > tile2.positionX
         ? tile2.positionX + (maxPlanetNum[tile2.positionY] - tile1.positionX)
         : tile1.positionX + (maxPlanetNum[tile1.positionY] - tile2.positionX);
+    //console.log("Distancia 1:", distance1, "Distancia 2:", distance2);
     return Math.min(distance1, distance2);
   };
 
@@ -308,27 +320,51 @@ export default function GamePage() {
     const distOrbit: Record<number, number[]> = {};
 
     let dir1 = ship.positionX - player.movement;
-    if (dir1 < 0) dir1 += maxPlanetNum[ship.positionY];
+    if (dir1 < 0) dir1 = dir1 + maxPlanetNum[ship.positionY];
 
     const dir2 =
       (ship.positionX + player.movement) % maxPlanetNum[ship.positionY];
+
+    const reachableTiles: TileDTO[] = [];
+    let numTile = 0;
+
+    for (let i = 0; i < player.movement * 2 + 1; i++) {
+      numTile = (dir1 + i) % maxPlanetNum[ship.positionY];
+      const tile = tiles.find(
+        (t) =>
+          t.positionY === ship.positionY &&
+          t.positionX === numTile &&
+          t.positionX !== ship.positionX,
+      );
+      if (tile) reachableTiles.push(tile);
+    }
 
     distOrbit[ship.positionY] = [dir1, dir2];
 
     if (ship.externalId.includes("space_station")) {
       const landingTilesId = spaceStationLandings[ship.externalId];
-      landingTilesId.forEach((landingTileId) => {
+      landingTilesId.map((landingTileId) => {
         const tile = tiles.find((t) => t.externalId === landingTileId);
         if (tile) {
-          let dir3 = tile.positionX - player.movement;
-          if (dir3 < 0) dir3 += maxPlanetNum[tile.positionY];
+          const tileY = tile.positionY;
+          let dir3 = tile.positionX - player.movement + 1;
+          if (dir3 < 0) dir3 = dir3 + maxPlanetNum[tileY];
           const dir4 =
-            (tile.positionX + player.movement) % maxPlanetNum[tile.positionY];
-          distOrbit[tile.positionY] = [dir3, dir4];
+            (tile.positionX + player.movement - 1) % maxPlanetNum[tileY];
+          distOrbit[tileY] = [dir3, dir4];
+          let numTile2 = 0;
+          for (let i = 0; i < player.movement * 2 - 1; i++) {
+            numTile2 = (dir3 + i) % maxPlanetNum[tileY];
+            const otherTile = tiles.find(
+              (t) => t.positionY === tileY && t.positionX === numTile2,
+            );
+            if (otherTile) reachableTiles.push(otherTile);
+          }
         }
       });
     }
-    return distOrbit;
+
+    setReachableTiles(reachableTiles.map((t) => t.externalId));
   };
 
   return !loading ? (
@@ -474,7 +510,11 @@ export default function GamePage() {
               maxHeight: "100%", // Asegura que el SVG siga las mismas reglas restrictivas de la imagen
             }}
           >
-            <BoardGrid currentRound={round} onNodeClick={handleMovePlayer} />
+            <BoardGrid
+              currentRound={round}
+              onNodeClick={handleMovePlayer}
+              allowedNodes={reachableTiles}
+            />
             <EntitiesLayer playersData={playersChips} />
           </svg>
         </div>
