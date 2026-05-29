@@ -34,4 +34,9 @@ export class TileController {
     async getTileByCoordinates(@Param('gameId') gameId: string, @Query('x') coordX: number, @Query('y') coordY: number){
         return this.tileService.getTilesByCoordinates(Number(gameId), coordX, coordY);
     }
+
+    @Get('/game/:gameId')
+    async getTilesByGameId(@Param('gameId') gameId: string) {
+        return this.tileService.getTilesByGameId(Number(gameId));
+    }
 }

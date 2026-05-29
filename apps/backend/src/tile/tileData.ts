@@ -71,6 +71,6 @@ export const coordinatesVoid = [
     {x: 12, y: 1},
     {x: 0, y: 2},
     {x: 3, y: 2},
-    {x: 4, y: 2},
-    {x: 5, y: 2}
+    {x: 5, y: 2},
+    {x: 6, y: 2}
 ]

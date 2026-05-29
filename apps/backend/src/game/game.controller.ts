@@ -83,7 +83,7 @@ export class GameController {
     }
 
     @Put('/:id/next-player')
-    async nextPlayer(@Param('id') id:string, @Body() body: { currentPlayerId: number }) {
+    async nextPlayer(@Param('id') id:string, @Body() body: { currentPlayerId: number}) {
         return this.gameService.nextPlayer(Number(id), body.currentPlayerId);
     }
 }

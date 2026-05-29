@@ -1,4 +1,4 @@
-import { Controller, Body, Post, Get } from '@nestjs/common';
+import { Controller, Body, Post, Get, Put, Param } from '@nestjs/common';
 import { ShipService } from './ship.service';
 import { Prisma, Ship } from '../generated/prisma/browser';
 
@@ -21,4 +21,8 @@ export class ShipController {
         return await this.shipService.getShipById(id);
     }
 
+    @Put('/:id/move')
+    async moveShip(@Param('id') id: string, @Body('newX') newX: number, @Body('newY') newY: number, @Body('externalId') externalId: string): Promise<Ship> {
+        return await this.shipService.moveShip(Number(id), newX, newY, externalId);
+    }
 }

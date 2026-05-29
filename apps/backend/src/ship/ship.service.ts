@@ -22,4 +22,15 @@ export class ShipService {
         });
     }
 
+    async moveShip(id: number, newX: number, newY: number, externalId: string): Promise<Ship> {
+        return this.prisma.ship.update({
+            where: { id },
+            data: {
+                positionX: newX,
+                positionY: newY,
+                externalId: externalId
+            }
+        });
+    }
+
 }

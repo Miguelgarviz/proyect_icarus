@@ -22,6 +22,7 @@ export class TileService {
                 data: {
                     externalId: externalId[i],
                     type: type,
+                    
                     positionX: coordinates[i].x,
                     positionY: coordinates[i].y,
                     gameId: gameId
@@ -49,6 +50,14 @@ export class TileService {
                     positionX: x,
                     positionY: y
                 }
+            }
+        });
+    }
+
+    async getTilesByGameId(gameId: number): Promise<Tile[]> {
+        return await this.prisma.tile.findMany({
+            where: {
+                gameId: gameId
             }
         });
     }

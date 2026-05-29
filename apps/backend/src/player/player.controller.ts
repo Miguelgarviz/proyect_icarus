@@ -51,11 +51,14 @@ export class PlayerController {
     @Post('/:lobbyId/ship')
     async createShipToPlayer(@Param('lobbyId') lobbyId: string): Promise<void> {
         const players: Player[] = await this.playerService.getPlayersInLobby(Number(lobbyId));
+        const position = [{x: 0, y: 0},{x: 16, y: 0},{x: 10, y: 0},{x: 26, y: 0}]
         let i = 1
         for (const player of players) {
             await this.shipService.createShip({
                 player: { connect: { id: player.id } },
-                externalId: `initial_${i}`
+                externalId: `initial_${i}`,
+                positionX: position[i-1].x,
+                positionY: position[i-1].y
             });
             i=i+1;
         }
@@ -84,4 +87,5 @@ export class PlayerController {
     async deletePlayer(@Param('id') id: string): Promise<Player> {
         return this.playerService.deletePlayer({ id: Number(id) });
     }
+
 }
