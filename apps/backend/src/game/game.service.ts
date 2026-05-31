@@ -161,4 +161,51 @@ export class GameService {
         })
     }
 
+    async calculateMaxDistance(player: Player, ship: Ship, gameId: number){
+        const maxPlanetNum = [32, 16, 10];
+        const distOrbit: Record<number, number[]> = {};
+
+        let dir1 = ship.positionX - player.movement;
+        if (dir1 < 0) dir1 = dir1 + maxPlanetNum[ship.positionY];
+
+        const dir2 = (ship.positionX + player.movement) % maxPlanetNum[ship.positionY];
+
+        const reachableTiles: Tile[] = [];
+        let numTile = 0;
+
+        for (let i = 0; i < player.movement * 2 + 1; i++) {
+            numTile = (dir1 + i) % maxPlanetNum[ship.positionY];
+            if(numTile !== ship.positionX){
+                const tile = await this.tileService.getTilesByCoordinates(gameId, numTile, ship.positionY)
+                if (tile) reachableTiles.push(tile);
+            }
+        }
+
+        distOrbit[ship.positionY] = [dir1, dir2];
+
+        if (ship.externalId.includes("space_station")) {
+            const landingTilesId = spaceStationLandings[ship.externalId];
+            for (const landingTileId of landingTilesId) {
+                const tile = await this.tileService.getTileByExternalId(landingTileId, gameId)
+                if (tile) {
+                    const tileY = tile.positionY;
+                    let dir3 = tile.positionX - player.movement + 1;
+                    if (dir3 < 0) dir3 = dir3 + maxPlanetNum[tileY];
+                    const dir4 = (tile.positionX + player.movement - 1) % maxPlanetNum[tileY];
+                    distOrbit[tileY] = [dir3, dir4];
+                    let numTile2 = 0;
+                    for (let i = 0; i < player.movement * 2 - 1; i++) {
+                        numTile2 = (dir3 + i) % maxPlanetNum[tileY];
+                        const otherTile = await this.tileService.getTilesByCoordinates(gameId, numTile2, tileY)
+                        if (otherTile){
+                            reachableTiles.push(otherTile);
+                        }     
+                    }
+                }
+            };
+        }
+        return reachableTiles;
+    }
+
+
 }

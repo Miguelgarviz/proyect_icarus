@@ -123,4 +123,14 @@ export class GameController {
         const game = await this.gameService.getGame({id: Number(gameId)})
         return await this.cardService.getPlayerCards(game.actualPlayerId)
     }
+
+    @Get('/:id/max-range')
+    async calculateMaxRange(@Param('id') gameId: string){
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        const player = await this.playerService.getPlayer({id: game.actualPlayerId})
+        const ship = await this.shipService.getShipById(player.shipId!)
+
+        const reachableTiles = await this.gameService.calculateMaxDistance(player,ship,Number(gameId))
+        return reachableTiles.map((t) => t.externalId)
+    }
 }

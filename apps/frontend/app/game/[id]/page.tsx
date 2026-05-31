@@ -18,9 +18,6 @@ import { spaceStationLandings } from "./mapData";
 
 export default function GamePage() {
   const params = useParams();
-  const [players, setPlayers] = useState<PlayerDTO[]>([]);
-  const [game, setGame] = useState<GameDTO>();
-  const [tiles, setTiles] = useState<TileDTO[]>([]);
   const [round, setRound] = useState<number>(0);
   const [currentPlayer, setCurrentPlayer] = useState<PlayerDTO>();
   const [ships, setShips] = useState<ShipDTO[]>([]);
@@ -37,23 +34,12 @@ export default function GamePage() {
     setLoading(true);
     fetchPlayers();
     fetchActualPlayer();
+    fetchMaxDistance();
     fetchPlayersCards();
-    fetchTiles();
     fetchStore();
     setLoading(false);
   }, [gameId]);
 
-  useEffect(() => {
-    if (currentPlayer && ships.length > 0) {
-      const ship = ships.find((s) => s.id === currentPlayer?.shipId);
-      maxDistance(
-        currentPlayer,
-        ship
-          ? ship
-          : ({ positionX: 0, positionY: 0, externalId: "" } as ShipDTO),
-      );
-    }
-  }, [currentPlayer, gameId]);
   const fetchPlayers = async () => {
     try {
       const playersResponse = await fetch(
@@ -61,15 +47,12 @@ export default function GamePage() {
       );
       if (!playersResponse.ok) throw new Error("Error al cargar jugadores");
       const playersData = await playersResponse.json();
-      await setPlayers(playersData);
 
       const gameResponse = await fetch(
         `http://localhost:4000/api/v1/game/${gameId}`,
       );
       if (!gameResponse.ok) throw new Error("Error al cargar la partida");
       const gameData = await gameResponse.json();
-      await setGame(gameData);
-
       await setRound(gameData.round);
 
       const shipsResponse = await fetch(
@@ -86,14 +69,6 @@ export default function GamePage() {
         throw new Error("Error al cargar almacenamiento");
       const storageData = await storageResponse.json();
       await setStorages(storageData);
-
-      const playerCardsResponse = await fetch(
-        `http://localhost:4000/api/v1/card/player-cards/${gameData.actualPlayerId}`,
-      );
-      if (!playerCardsResponse.ok)
-        throw new Error("Error al cargar las cartas del jugador");
-      const playerCardsData = await playerCardsResponse.json();
-      await setPlayerCards(playerCardsData);
 
       const newChips: PlayerChipDTO[] = [];
       for (let i = 0; i < playersData.length; i++) {
@@ -165,19 +140,6 @@ export default function GamePage() {
     }
   };
 
-  const fetchTiles = async () => {
-    try {
-      const tilesResponse = await fetch(
-        `http://localhost:4000/api/v1/tile/game/${gameId}`,
-      );
-      if (!tilesResponse.ok) throw new Error("Error al cargar las losetas");
-      const tilesData = await tilesResponse.json();
-      await setTiles(tilesData);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   async function fetchPlayersCards(){
     try{
       const playerCardsResponse = await fetch(
@@ -197,6 +159,7 @@ export default function GamePage() {
     });
     await fetchActualPlayer();
     await fetchPlayersCards();
+    await fetchMaxDistance();
   };
 
   const handleMovePlayer = async (targetNodeId: string) => {
@@ -208,61 +171,18 @@ export default function GamePage() {
       });
       await fetchPlayers();
       await fetchActualPlayer();
+      await fetchMaxDistance();
       
     }catch(error){
       console.error(error)
     }
   };
 
-  const maxDistance = (player: PlayerDTO, ship: ShipDTO) => {
-    const maxPlanetNum = [32, 16, 10];
-    const distOrbit: Record<number, number[]> = {};
-
-    let dir1 = ship.positionX - player.movement;
-    if (dir1 < 0) dir1 = dir1 + maxPlanetNum[ship.positionY];
-
-    const dir2 =
-      (ship.positionX + player.movement) % maxPlanetNum[ship.positionY];
-
-    const reachableTiles: TileDTO[] = [];
-    let numTile = 0;
-
-    for (let i = 0; i < player.movement * 2 + 1; i++) {
-      numTile = (dir1 + i) % maxPlanetNum[ship.positionY];
-      const tile = tiles.find(
-        (t) =>
-          t.positionY === ship.positionY &&
-          t.positionX === numTile &&
-          t.positionX !== ship.positionX,
-      );
-      if (tile) reachableTiles.push(tile);
-    }
-
-    distOrbit[ship.positionY] = [dir1, dir2];
-
-    if (ship.externalId.includes("space_station")) {
-      const landingTilesId = spaceStationLandings[ship.externalId];
-      landingTilesId.map((landingTileId) => {
-        const tile = tiles.find((t) => t.externalId === landingTileId);
-        if (tile) {
-          const tileY = tile.positionY;
-          let dir3 = tile.positionX - player.movement + 1;
-          if (dir3 < 0) dir3 = dir3 + maxPlanetNum[tileY];
-          const dir4 =
-            (tile.positionX + player.movement - 1) % maxPlanetNum[tileY];
-          distOrbit[tileY] = [dir3, dir4];
-          let numTile2 = 0;
-          for (let i = 0; i < player.movement * 2 - 1; i++) {
-            numTile2 = (dir3 + i) % maxPlanetNum[tileY];
-            const otherTile = tiles.find(
-              (t) => t.positionY === tileY && t.positionX === numTile2,
-            );
-            if (otherTile) reachableTiles.push(otherTile);
-          }
-        }
-      });
-    }
-    setReachableTiles(reachableTiles.map((t) => t.externalId));
+  async function fetchMaxDistance(){
+    const maxTilesResponse = await fetch(`http://localhost:4000/api/v1/game/${gameId}/max-range`)
+    if (!maxTilesResponse.ok) throw new Error("Error al cargar las casillas a las que puede ir el jugador");
+    const maxTilesData = await maxTilesResponse.json();
+    setReachableTiles(maxTilesData);
   };
 
   return !loading ? (
