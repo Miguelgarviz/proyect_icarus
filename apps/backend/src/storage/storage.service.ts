@@ -1,4 +1,4 @@
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, Storage } from '../generated/prisma/client';
 import { Injectable } from '@nestjs/common';
 
@@ -6,8 +6,8 @@ import { Injectable } from '@nestjs/common';
 export class StorageService {
     constructor(private prisma: PrismaService) {}
 
-    async getStorage(storageId: number): Promise<Storage | null>{
-        return this.prisma.storage.findUnique({
+    async getStorage(storageId: number){
+        return this.prisma.storage.findUniqueOrThrow({
             where:{
                 id: storageId
             }

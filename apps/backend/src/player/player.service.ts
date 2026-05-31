@@ -1,4 +1,4 @@
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Lobby, Player, Prisma } from '../generated/prisma/client';
 
@@ -6,8 +6,8 @@ import { Lobby, Player, Prisma } from '../generated/prisma/client';
 export class PlayerService {
     constructor(private prisma: PrismaService) {}
     
-    async getPlayer( playerWhereUniqueInput: Prisma.PlayerWhereUniqueInput ):Promise<Player | null> {
-        return this.prisma.player.findUnique({
+    async getPlayer( playerWhereUniqueInput: Prisma.PlayerWhereUniqueInput ) {
+        return this.prisma.player.findUniqueOrThrow({
             where: playerWhereUniqueInput
         });
     }

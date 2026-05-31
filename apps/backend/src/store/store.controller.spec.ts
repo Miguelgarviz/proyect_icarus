@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { StoreController } from './store.controller';
 import { StoreService } from './store.service';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CardService } from '../card/card.service';
 import { GameService } from '../game/game.service';
 

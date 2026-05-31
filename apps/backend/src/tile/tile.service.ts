@@ -1,4 +1,4 @@
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Prisma, Tile, TileType } from '../generated/prisma/client';
 
@@ -8,8 +8,8 @@ export class TileService {
         private prisma: PrismaService
     ){}
 
-    async getTileById(id: number): Promise<Tile | null> {
-        return await this.prisma.tile.findUnique({
+    async getTileById(id: number){
+        return await this.prisma.tile.findUniqueOrThrow({
             where: {
                 id: id
             }
@@ -31,8 +31,8 @@ export class TileService {
         }
     }
 
-    async getTileByExternalId(externalId: string, gameId: number): Promise<Tile | null> {
-        return await this.prisma.tile.findUnique({
+    async getTileByExternalId(externalId: string, gameId: number){
+        return await this.prisma.tile.findUniqueOrThrow({
             where: {
                 externalId_gameId:{
                     externalId: externalId,
@@ -42,8 +42,8 @@ export class TileService {
         });
     }
 
-    async getTilesByCoordinates(gameId: number, x: number, y: number): Promise<Tile | null> {
-        return await this.prisma.tile.findUnique({
+    async getTilesByCoordinates(gameId: number, x: number, y: number){
+        return await this.prisma.tile.findUniqueOrThrow({
             where: {
                 positionX_positionY_gameId:{
                     gameId: gameId,

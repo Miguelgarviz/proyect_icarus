@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'; // Importamos Swagger
+import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +16,7 @@ async function bootstrap() {
   // 2. Prefijo Global (IMPORTANTE: Esto afecta a todas las rutas)
   // Tus URLs ahora serán: http://localhost:4000/api/v1/...
   app.setGlobalPrefix('api/v1');
+  app.useGlobalFilters(new PrismaExceptionFilter());
 
   // 3. Configuración de Swagger
   const config = new DocumentBuilder()

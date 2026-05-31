@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LobbyController } from './lobby.controller';
 import { LobbyService } from './lobby.service';
 import { PlayerService } from '../player/player.service';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 describe('LobbyController', () => {
   let controller: LobbyController;

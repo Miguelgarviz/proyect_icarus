@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { PlayerService } from './player/player.service';
 import { PlayerModule } from './player/player.module';
-import { PrismaService } from './prisma.service';
+import { PrismaService } from './prisma/prisma.service';
 import { LobbyModule } from './lobby/lobby.module';
 import { GameModule } from './game/game.module';
 import { StoreModule } from './store/store.module';

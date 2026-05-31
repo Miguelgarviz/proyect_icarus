@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { DrillCardController } from './drill-card.controller';
 import { DrillCardService } from './drill-card.service';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Module({
   controllers: [DrillCardController],

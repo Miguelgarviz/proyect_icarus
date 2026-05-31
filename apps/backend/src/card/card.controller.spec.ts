@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CardController } from './card.controller';
 import { CardService } from './card.service';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 describe('CardController', () => {
   let controller: CardController;

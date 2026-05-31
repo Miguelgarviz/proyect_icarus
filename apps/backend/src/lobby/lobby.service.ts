@@ -1,5 +1,5 @@
 import { Prisma, Lobby, Player, Dificulty } from '@backend/generated/prisma/client';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -7,7 +7,7 @@ export class LobbyService {
     constructor(private prisma: PrismaService) {}
 
     async getLobby(lobbyWhereUniqueInput: Prisma.LobbyWhereUniqueInput){
-        return this.prisma.lobby.findUnique({
+        return this.prisma.lobby.findUniqueOrThrow({
             where: lobbyWhereUniqueInput
         });
     }
@@ -81,8 +81,8 @@ export class LobbyService {
         });
     }
 
-    async getLobbieFromPlayer(playerId: number): Promise<Lobby | null> {
-        const player = await this.prisma.player.findUnique({
+    async getLobbieFromPlayer(playerId: number) {
+        const player = await this.prisma.player.findUniqueOrThrow({
             where: { id: playerId },
             include: { lobby: true }
         });

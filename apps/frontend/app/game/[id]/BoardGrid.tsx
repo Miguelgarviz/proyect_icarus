@@ -46,24 +46,25 @@ export default function BoardGrid({
   };
 
   const renderTracks = (trackList: TrackMap[]) => {
-    return trackList.map((rect) => {
-      const trackRoundNumber = parseInt(rect.id.replace("track_", ""), 10);
-      const isActive = trackRoundNumber === currentRound;
+  return trackList.map((rect) => {
+    const trackRoundNumber = parseInt(rect.id.replace('track_', ''), 10);
+    const isActive = trackRoundNumber === currentRound;
 
-      return (
-        <rect
-          key={rect.id}
-          x={rect.x}
-          y={rect.y}
-          width={rect.w}
-          height={rect.h}
-          rx={4}
-          ry={4}
-          className={isActive ? styles.novaTrackActive : styles.novaTrackStatic}
-        />
-      );
-    });
-  };
+    return (
+      <rect
+        key={rect.id}
+        x={rect.x}
+        y={rect.y}
+        width={rect.w}
+        height={rect.h}
+        rx={4}
+        ry={4}
+        // 🌟 Si está activa aplica novaTrackActive, si no, novaTrackStatic (ahora negra)
+        className={isActive ? styles.novaTrackActive : styles.novaTrackStatic}
+      />
+    );
+  });
+};
 
   return (
     <>

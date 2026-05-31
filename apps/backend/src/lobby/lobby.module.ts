@@ -1,7 +1,7 @@
 import { forwardRef,Module } from '@nestjs/common';
 import { LobbyController } from './lobby.controller';
 import { LobbyService } from './lobby.service';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { PlayerService } from '../player/player.service';
 import { PlayerModule } from '../player/player.module';
 

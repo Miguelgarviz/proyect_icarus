@@ -1,5 +1,5 @@
 import { Prisma, Ship } from '../generated/prisma/client';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -16,8 +16,8 @@ export class ShipService {
         return this.prisma.ship.findMany();
     }
 
-    async getShipById(id: number): Promise<Ship | null> {
-        return this.prisma.ship.findUnique({
+    async getShipById(id: number) {
+        return this.prisma.ship.findUniqueOrThrow({
             where: { id }
         });
     }

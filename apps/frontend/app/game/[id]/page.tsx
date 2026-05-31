@@ -36,6 +36,7 @@ export default function GamePage() {
   useEffect(() => {
     setLoading(true);
     fetchPlayers();
+    fetchActualPlayer();
     fetchTiles();
     fetchStore();
     setLoading(false);
@@ -51,8 +52,7 @@ export default function GamePage() {
           : ({ positionX: 0, positionY: 0, externalId: "" } as ShipDTO),
       );
     }
-    console.log("Se ha actualizado el currentPlayer", currentPlayer);
-  }, [currentPlayer]);
+  }, [currentPlayer, gameId]);
   const fetchPlayers = async () => {
     try {
       const playersResponse = await fetch(
@@ -70,9 +70,6 @@ export default function GamePage() {
       await setGame(gameData);
 
       await setRound(gameData.round);
-      await setCurrentPlayer(
-        playersData.find((p: PlayerDTO) => p.id === gameData.actualPlayerId),
-      );
 
       const shipsResponse = await fetch(
         `http://localhost:4000/api/v1/game/${gameId}/ships`,
@@ -112,6 +109,13 @@ export default function GamePage() {
       console.error(error);
     }
   };
+
+  async function fetchActualPlayer(){
+    const currentPlayerResponse = await fetch(`http://localhost:4000/api/v1/game/${gameId}/current-player`)
+      if(!currentPlayerResponse.ok) throw new Error("Error al cargar el jugador actual")
+      const currentPlayerData = await currentPlayerResponse.json()
+      await setCurrentPlayer(currentPlayerData)
+  }
 
   function seededRandom(seed: number) {
     return function () {
@@ -199,120 +203,18 @@ export default function GamePage() {
   };
 
   const handleMovePlayer = async (targetNodeId: string) => {
-    if (!currentPlayer) return;
-
-    const tile = tiles.find((t) => t.externalId === targetNodeId);
-    const ship = ships.find((s) => s.id === currentPlayer.shipId);
-    const playerChip = playersChips.find((p) => p.id === currentPlayer.id);
-    let distance = 0;
-    let validMove = false;
-
-    console.log("Tile:", tile);
-    if (ship && tile && playerChip) {
-      if (tile.positionY === ship.positionY) {
-        distance = calculateDistance(
-          {
-            positionX: ship.positionX,
-            positionY: ship.positionY,
-            externalId: ship.externalId,
-          } as TileDTO,
-          tile,
-        );
-        distance =
-          distance +
-          calculateNumberOfPlayersBetween(
-            ship.positionX,
-            ship.positionY,
-            tile.positionX,
-            distance,
-          );
-        //console.log("Distancia calculada:", distance);
-
-        if (distance <= currentPlayer.movement) {
-          validMove = true;
-        }
-      } else if (
-        ship.externalId.includes("space_station") &&
-        spaceStationLandings[ship.externalId]
-      ) {
-        const landingTileId =
-          spaceStationLandings[ship.externalId][
-            tile.positionY === 1 ? 0 : tile.positionY === 0 ? 0 : 1
-          ];
-        const landingTile = tiles.find((t) => t.externalId === landingTileId);
-        if (landingTile) {
-          distance = calculateDistance(landingTile, tile) + 1;
-          distance =
-            distance +
-            calculateNumberOfPlayersBetween(
-              landingTile.positionX,
-              landingTile.positionY,
-              tile.positionX,
-              distance,
-            );
-        }
-        if (distance <= currentPlayer.movement) {
-          validMove = true;
-        }
-      }
-      if (validMove) {
-        await fetch(`http://localhost:4000/api/v1/ship/${ship.id}/move`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            newX: tile.positionX,
-            newY: tile.positionY,
-            externalId: targetNodeId,
-          }),
-        });
-        ship.positionX = tile.positionX;
-        ship.positionY = tile.positionY;
-        ship.externalId = targetNodeId;
-        playerChip.coordX = tile.positionX;
-        playerChip.coordY = tile.positionY;
-        playerChip.externalId = targetNodeId;
-        currentPlayer.movement = currentPlayer.movement - distance;
-        setCurrentPlayer({ ...currentPlayer });
-        setPlayersChips([...playersChips]);
-        await fetch(`http://localhost:4000/api/v1/player/${currentPlayer.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ movement: currentPlayer.movement }),
-        });
-      }
+    try{
+      await fetch(`http://localhost:4000/api/v1/game/${gameId}/move-player`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ externalId: targetNodeId}),
+      });
+      await fetchPlayers();
+      await fetchActualPlayer();
+      
+    }catch(error){
+      console.error(error)
     }
-  };
-
-  const calculateNumberOfPlayersBetween = (
-    shipX: number,
-    shipY: number,
-    tileX: number,
-    distance: number,
-  ) => {
-    if (distance === 1) return 0;
-    const numPlayers = playersChips.filter((p) => {
-      if (p.id === currentPlayer?.id) return false;
-      if (p.coordY !== shipY) return false;
-      const playerToShip = Math.abs(p.coordX - shipX);
-      const playerToDestiny = Math.abs(p.coordX - tileX);
-      if (playerToShip < distance && playerToDestiny < distance) {
-        return true;
-      }
-      return false;
-    }).length;
-    //console.log("Número de jugadores entre:", numPlayers);
-    return numPlayers;
-  };
-
-  const calculateDistance = (tile1: TileDTO, tile2: TileDTO): number => {
-    const maxPlanetNum = [32, 16, 10];
-    const distance1 = Math.abs(tile1.positionX - tile2.positionX);
-    const distance2 =
-      tile1.positionX > tile2.positionX
-        ? tile2.positionX + (maxPlanetNum[tile2.positionY] - tile1.positionX)
-        : tile1.positionX + (maxPlanetNum[tile1.positionY] - tile2.positionX);
-    //console.log("Distancia 1:", distance1, "Distancia 2:", distance2);
-    return Math.min(distance1, distance2);
   };
 
   const maxDistance = (player: PlayerDTO, ship: ShipDTO) => {
@@ -363,7 +265,6 @@ export default function GamePage() {
         }
       });
     }
-
     setReachableTiles(reachableTiles.map((t) => t.externalId));
   };
 

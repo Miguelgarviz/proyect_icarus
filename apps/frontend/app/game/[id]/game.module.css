@@ -1,35 +1,6 @@
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #222;
-}
-
-.boardWrapper {
-  position: relative;
-  width: 600px;  /* Ajusta según el tamaño de tu PNG */
-  aspect-ratio: 1 / 1; /* Mantén la proporción si es cuadrado */
-}
-
-.grid {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: grid;
-}
-
-.cell {
-  border: 1px solid rgba(255, 255, 255, 0.1); /* Solo para debug */
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.cell:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
+/* ==========================================================================
+   1. LAYOUT PRINCIPAL Y CONTENEDORES
+   ========================================================================== */
 
 .pageContainer {
   display: flex;
@@ -44,8 +15,7 @@
 
 .boardWrapper {
   position: relative;
-  /* Usamos vmin para que escale grande y cuadrado */
-  width: 100vmin;
+  width: 100vmin; /* Escala de forma cuadrada perfecta según la pantalla */
   height: 100vmin;
   box-shadow: 0 0 30px rgba(72, 196, 253, 0.4);
 }
@@ -56,58 +26,78 @@
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 10; /* Por encima de la imagen */
+  z-index: 10; /* Se posiciona firmemente por encima del mapa PNG background */
 }
+
+/* ==========================================================================
+   2. ELEMENTOS INTERACTIVOS DEL TABLERO (SVG)
+   ========================================================================== */
 
 .interactable {
-  fill: rgba(255, 255, 255, 0); /* Totalmente transparente */
+  fill: rgba(255, 255, 255, 0); /* Totalmente transparente por defecto */
   cursor: pointer;
-  pointer-events: all; /* Asegura que detecte el clic */
+  pointer-events: all;
   stroke: transparent;
-  transition: fill 0.2s;
+  transition: fill 0.2s, stroke 0.2s;
 }
 
-/* Útil para debugear: cuando pasas el ratón se iluminan un poco */
+/* Efecto hover general de debug para los nodos del mapa (planetas y vacíos) */
 .interactable:hover {
-  fill: rgba(0, 255, 0, 0.2); /* Se pone verde suave al pasar el ratón */
+  fill: rgba(0, 255, 0, 0.2); 
   stroke: lime;
 }
 
+/* Bloques iluminados dinámicamente según el rango de movimiento restante */
+.nodeHighlighted {
+  stroke: #00ffff !important;
+  stroke-width: 3.5px !important;
+  fill: rgba(0, 255, 255, 0.15) !important;
+  cursor: pointer;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8));
+  animation: pulseAllowedTile 1.8s infinite alternate ease-in-out;
+}
+
+/* Filtro específico para que las casillas del track de Supernova ignoren el hover verde */
+.interactable[x]:hover { 
+  fill: rgba(255, 255, 255, 0); 
+  stroke: transparent;
+}
+
+/* ==========================================================================
+   3. PANEL DE CONTROL DE TURNO (HUD SUPERIOR)
+   ========================================================================== */
+
 .turnContainer {
-  border: 3px solid #5900ff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Alinea los textos a la izquierda y el movimiento a la derecha */
   height: 70px;
+  padding: 0 20px;
+  gap: 15px;
+  border: 3px solid #5900ff;
   border-radius: 8px;
   background-color: rgba(15, 10, 25, 0.85);
   box-shadow: 0 0 15px rgba(89, 0, 255, 0.25);
   flex-shrink: 0;
-  display: 'flex'; /* Nota: En CSS puro se escribe en minúscula, ver abajo */
-  display: flex;
-  align-items: center;
-  padding: 0 15px;
-  gap: 12px;
   font-family: sans-serif;
   box-sizing: border-box;
 }
 
-/* El indicador luminoso (LED) */
 .turnLed {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  /* Usamos variables CSS para recibir el color dinámico desde React */
   background-color: var(--player-color, #ffffff);
   box-shadow: 0 0 10px var(--player-color, #ffffff);
   flex-shrink: 0;
 }
 
-/* Contenedor de textos */
 .turnTextWrapper {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-/* Etiqueta superior secundaria */
 .turnLabel {
   font-size: 0.65rem;
   color: #a085ff;
@@ -117,7 +107,6 @@
   margin-bottom: 2px;
 }
 
-/* Nombre del jugador principal */
 .turnPlayerName {
   font-size: 1.05rem;
   font-weight: 900;
@@ -126,14 +115,48 @@
   letter-spacing: 0.5px;
 }
 
-/* Estado de carga */
 .turnLoading {
   font-size: 0.85rem;
   color: #666;
   font-style: italic;
 }
 
-/* Contenedor principal que va dentro del cuadro rojo */
+/* Módulo específico de movimientos en el HUD */
+.movementWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  padding-left: 15px;
+}
+
+.movementLabel {
+  font-size: 0.6rem;
+  color: #48c4fd;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.movementValue {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(72, 196, 253, 0.5);
+}
+
+.movementMax {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: bold;
+}
+
+/* ==========================================================================
+   4. DASHBOARD DE DETALLES DEL JUGADOR
+   ========================================================================== */
+
 .dashboardContainer {
   display: flex;
   flex-direction: column;
@@ -144,18 +167,16 @@
   box-sizing: border-box;
 }
 
-/* Título de la sección */
 .dashboardTitle {
   text-align: center;
   text-transform: uppercase;
   font-size: 1.2rem;
   margin: 10px 0 20px 0;
-  color: #ff4d4d; /* Rojo a juego con tu contenedor derecho */
+  color: #ff4d4d;
   text-shadow: 0 0 8px rgba(255, 77, 77, 0.4);
   letter-spacing: 2px;
 }
 
-/* Secciones internas (Sistemas y Almacén) */
 .section {
   background-color: rgba(15, 12, 20, 0.85);
   border: 2px solid #ff4d4d;
@@ -176,14 +197,12 @@
   padding-bottom: 4px;
 }
 
-/* Grid para mostrar los indicadores en filas limpias */
 .gridRows {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* Fila de datos individual */
 .dataRow {
   display: flex;
   justify-content: space-between;
@@ -204,7 +223,6 @@
   color: #ddd;
 }
 
-/* El valor numérico destacado */
 .valueBadge {
   font-size: 1.2rem;
   font-weight: 900;
@@ -215,24 +233,20 @@
   text-align: center;
 }
 
-/* Variaciones de luces LED/Filtros para sistemas */
-.engineValue { color: #00ff66; background-color: rgba(0, 255, 102, 0.1); }
-.drillValue { color: #ff3333; background-color: rgba(255, 51, 51, 0.1); }
-.shieldValue { color: #3399ff; background-color: rgba(51, 153, 255, 0.1); }
+/* Indicadores de color para Sistemas de Navegación */
+.engineValue  { color: #00ff66; background-color: rgba(0, 255, 102, 0.1); }
+.drillValue   { color: #ff3333; background-color: rgba(255, 51, 51, 0.1); }
+.shieldValue  { color: #3399ff; background-color: rgba(51, 153, 255, 0.1); }
 
-/* Variaciones de colores para los minerales */
-.mineralGreen { color: #00ff66; }
-.mineralRed { color: #ff3333; }
-.mineralYellow { color: #ffcc00; }
+/* Indicadores de color para Bodega de Minerales */
+.mineralGreen   { color: #00ff66; }
+.mineralRed     { color: #ff3333; }
+.mineralYellow  { color: #ffcc00; }
+.noDataText     { text-align: center; font-style: italic; color: #666; font-size: 0.9rem; margin-top: 40px; }
 
-/* Estado de carga sin datos */
-.noDataText {
-  text-align: center;
-  font-style: italic;
-  color: #666;
-  font-size: 0.9rem;
-  margin-top: 40px;
-}
+/* ==========================================================================
+   5. SISTEMA DE TIENDA DE CARTAS
+   ========================================================================== */
 
 .storeContainer {
   display: flex;
@@ -243,7 +257,6 @@
   box-sizing: border-box;
 }
 
-/* Título de la tienda */
 .storeTitle {
   text-align: center;
   text-transform: uppercase;
@@ -253,7 +266,6 @@
   text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
 }
 
-/* Envoltorio de la lista de cartas */
 .storeCardsWrapper {
   display: flex;
   flex-direction: column;
@@ -263,7 +275,6 @@
   padding-bottom: 20px;
 }
 
-/* La Carta Individual (Clave para que no flote al medio) */
 .storeCard {
   width: 100%;
   background-color: rgba(20, 20, 20, 0.9);
@@ -273,11 +284,9 @@
   flex-direction: column;
   overflow: hidden;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-  /* CRÍTICO: Esto confina a la imagen con 'fill' dentro de la carta */
   position: relative; 
 }
 
-/* Contenedor de la Imagen superior */
 .storeCardImageWrapper {
   position: relative;
   width: 100%;
@@ -286,7 +295,6 @@
   border-bottom: 1px solid rgba(255, 215, 0, 0.3);
 }
 
-/* Textos de la carta */
 .storeCardInfo {
   padding: 12px;
   flex: 1;
@@ -309,7 +317,6 @@
   font-style: italic;
 }
 
-/* Barra inferior (Precio y Botón) */
 .storeCardBuy {
   padding: 10px 12px;
   background-color: rgba(255, 215, 0, 0.05);
@@ -329,7 +336,6 @@
   gap: 5px;
 }
 
-/* Botón de compra */
 .buyButton {
   background-color: #FFD700;
   color: #000;
@@ -347,10 +353,13 @@
   background-color: #ffffff;
 }
 
-/* Añade esto a tu archivo playerData.module.css */
+/* ==========================================================================
+   6. COMPONENTES VARIOS (COMPLEMENTOS)
+   ========================================================================== */
+
 .iconWrapper {
   position: relative;
-  width: 22px;   /* Ajusta el tamaño que quieras para tus iconos */
+  width: 22px;
   height: 22px;
   flex-shrink: 0;
 }
@@ -364,7 +373,7 @@
   text-align: center;
 }
 
-/* Casilla del track de Supernova apagada por defecto */
+/* Estado activo para el track de la Supernova */
 .novaTrackActive {
   fill: rgba(255, 51, 51, 0.3) !important;
   stroke: #ff3333 !important;
@@ -373,90 +382,65 @@
   animation: novaPulse 2s infinite alternate;
 }
 
-/* 🚀 NUEVA REGLA: Anula el hover verde cuando la ronda está activa */
 .novaTrackActive:hover {
-  fill: rgba(255, 51, 51, 0.3) !important; /* Mantiene su color rojo */
-  stroke: #ff3333 !important;             /* Mantiene su borde rojo */
-  cursor: default;                         /* Quita la mano de click si quieres */
+  fill: rgba(255, 51, 51, 0.3) !important;
+  stroke: #ff3333 !important;
+  cursor: default;
 }
 
-/* 🚀 NUEVA REGLA: Anula el hover verde en las casillas apagadas del track */
-.interactable[x]:hover { 
-  /* Nota: Usar [x] es un truco CSS para apuntar solo a los <rect> (que usan x/y) 
-     y no a los <ellipse> (que usan cx/cy) de los planetas */
-  fill: rgba(255, 255, 255, 0); 
-  stroke: transparent;
-}
-/* --- Añadir al final de game.module.css --- */
+/* ==========================================================================
+   7. ANIMACIONES (KEYFRAMES)
+   ========================================================================== */
 
-/* Forzamos a que el contenedor principal reparta el espacio */
-.turnContainer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* Empuja el módulo de movimientos a la derecha */
-  padding: 0 20px;
-  gap: 15px;
-}
-
-/* Envoltorio del bloque de movimiento */
-.movementWrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end; /* Alinea los textos a la derecha */
-  justify-content: center;
-  border-left: 1px solid rgba(255, 255, 255, 0.15); /* Separador sutil */
-  padding-left: 15px;
-}
-
-/* Etiqueta pequeña superior */
-.movementLabel {
-  font-size: 0.6rem;
-  color: #48c4fd; /* Azul cian estilo HUD espacial */
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  font-weight: bold;
-  margin-bottom: 2px;
-}
-
-/* El número grande de movimientos */
-.movementValue {
-  font-size: 1.2rem;
-  font-weight: 900;
-  color: #ffffff;
-  text-shadow: 0 0 8px rgba(72, 196, 253, 0.5);
-}
-
-/* El divisor y el número máximo atenuados */
-.movementMax {
-  font-size: 0.85rem;
-  color: #666;
-  font-weight: bold;
-}
-
-/* --- Añadir a tu game.module.css --- */
-
-/* Clase para las casillas iluminadas a las que el jugador SÍ puede ir */
-.nodeHighlighted {
-  stroke: #00ffff !important;          /* Borde cian eléctrico brillante */
-  stroke-width: 3.5px !important;       /* Un poco más grueso para que destaque */
-  fill: rgba(0, 255, 255, 0.15) !important; /* Relleno sutilmente cian */
-  cursor: pointer;                     /* Mano de click */
-  
-  /* El truco definitivo de brillo neón en elementos vectoriales SVG */
-  filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8));
-  
-  /* Animación para que las casillas "respiren" y llamen la atención del jugador */
-  animation: pulseAllowedTile 1.8s infinite alternate ease-in-out;
-}
-
-/* Animación de pulsación cyberpunk */
 @keyframes pulseAllowedTile {
   0% {
     fill: rgba(0, 255, 255, 0.1);
     filter: drop-shadow(0 0 4px rgba(0, 255, 255, 0.5));
   }
   100% {
-    fill: rgba(0, 255, 255, 0.3);      /* Se vuelve un poco más opaco en el pico */
-    filter: drop-shadow(0 0 14px rgba(0, 255, 255, 1)); /* Brillo intenso */
+    fill: rgba(0, 255, 255, 0.3);
+    filter: drop-shadow(0 0 14px rgba(0, 255, 255, 1));
   }
+}
+
+/* Asegúrate de tener declarada novaPulse si el track de la supernova la usa */
+@keyframes novaPulse {
+  0% {
+    fill: rgba(255, 51, 51, 0.1);
+    filter: drop-shadow(0 0 4px #ff3333);
+  }
+  100% {
+    fill: rgba(255, 51, 51, 0.4);
+    filter: drop-shadow(0 0 12px #ff3333);
+  }
+}
+
+/* ==========================================================================
+   6. COMPONENTES VARIOS (TRACK DE SUPERNOVA)
+   ========================================================================== */
+
+/* 🚀 NUEVA REGLA: Casillas del track que NO están activas (Fondo Negro/Oscuro) */
+.novaTrackStatic {
+  fill: transparent !important;       /* Deja pasar el fondo al 100% */
+  stroke: transparent !important;     /* Eliminamos cualquier borde CSS para usar el del dibujo */
+  cursor: default;
+  pointer-events: none;               /* 🚀 CRÍTICO: El ratón atraviesa la casilla, evitando bugs de hover */
+  transition: fill 0.3s ease;
+}
+
+/* Estado ACTIVO para la casilla de la ronda actual (Rojo neón sobre el dibujo) */
+.novaTrackActive {
+  fill: rgba(255, 51, 51, 0.25) !important; /* Un rojo traslúcido para que no tape el número impreso debajo */
+  stroke: #ff3333 !important;
+  stroke-width: 2.5px;
+  pointer-events: all;                /* Volvemos a activar los eventos por si necesitas interactuar con la ronda activa */
+  filter: drop-shadow(0 0 8px #ff3333);
+  animation: novaPulse 2s infinite alternate;
+}
+
+/* Evitamos que el hover general del tablero pinte de verde el track activo */
+.novaTrackActive:hover {
+  cursor: default;
+  fill: rgba(255, 51, 51, 0.25) !important;
+  stroke: #ff3333 !important;
 }

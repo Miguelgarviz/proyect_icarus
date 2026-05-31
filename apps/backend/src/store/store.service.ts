@@ -1,5 +1,5 @@
 import { Prisma, Store } from '../generated/prisma/client';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -12,8 +12,8 @@ export class StoreService {
         });
     }
 
-    async getStore(storeWhereUniqueInput: Prisma.StoreWhereUniqueInput): Promise<Store | null> {
-        return this.prisma.store.findUnique({
+    async getStore(storeWhereUniqueInput: Prisma.StoreWhereUniqueInput) {
+        return this.prisma.store.findUniqueOrThrow({
             where: storeWhereUniqueInput
         });
     }

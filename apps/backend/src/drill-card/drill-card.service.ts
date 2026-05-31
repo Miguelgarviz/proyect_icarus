@@ -1,4 +1,4 @@
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, DrillCard } from '../generated/prisma/client';
 import { Injectable } from '@nestjs/common';
 
@@ -13,7 +13,7 @@ export class DrillCardService {
     }
 
     async getDrillCardById(id: number){
-        return await this.prisma.drillCard.findUnique({
+        return await this.prisma.drillCard.findUniqueOrThrow({
             where: { id }
         });
     }

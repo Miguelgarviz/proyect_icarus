@@ -1,5 +1,5 @@
 import { Prisma, Cards, CardType } from '../generated/prisma/client';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -12,8 +12,8 @@ export class CardService {
         });
     }
 
-    async getCard(cardWhereUniqueInput: Prisma.CardsWhereUniqueInput): Promise<Cards | null> {
-        return this.prisma.cards.findUnique({
+    async getCard(cardWhereUniqueInput: Prisma.CardsWhereUniqueInput) {
+        return this.prisma.cards.findUniqueOrThrow({
             where: cardWhereUniqueInput
         });
     }
