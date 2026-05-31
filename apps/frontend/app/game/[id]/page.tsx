@@ -18,7 +18,7 @@ import { spaceStationLandings } from "./mapData";
 
 export default function GamePage() {
   const params = useParams();
-  const [round, setRound] = useState<number>(0);
+  const [game, setGame] = useState<GameDTO>();
   const [currentPlayer, setCurrentPlayer] = useState<PlayerDTO>();
   const [ships, setShips] = useState<ShipDTO[]>([]);
   const [playersChips, setPlayersChips] = useState<PlayerChipDTO[]>([]);
@@ -31,71 +31,194 @@ export default function GamePage() {
   const gameId = params.id;
 
   useEffect(() => {
-    setLoading(true);
-    fetchPlayers();
-    fetchActualPlayer();
-    fetchMaxDistance();
-    fetchPlayersCards();
-    fetchStore();
-    setLoading(false);
+    async function loadAllGameData() {
+      setLoading(true);
+      try {
+        const players = await fetchPlayers();
+        const freshShips = await fetchShips();
+        await fetchGame();
+        await fetchStorages();
+        await fetchActualPlayer();
+        await fetchMaxDistance();
+        await fetchPlayersCards();
+        await fetchStore();
+
+        if (players && freshShips) {
+          calculatePlayerChips(players, freshShips);
+        }
+      } catch (error) {
+        console.error("Error cargando los datos iniciales de la partida:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadAllGameData();
   }, [gameId]);
 
-  const fetchPlayers = async () => {
+
+  async function fetchPlayers() {
     try {
-      const playersResponse = await fetch(
-        `http://localhost:4000/api/v1/game/${gameId}/players`,
-      );
-      if (!playersResponse.ok) throw new Error("Error al cargar jugadores");
-      const playersData = await playersResponse.json();
-
-      const gameResponse = await fetch(
-        `http://localhost:4000/api/v1/game/${gameId}`,
-      );
-      if (!gameResponse.ok) throw new Error("Error al cargar la partida");
-      const gameData = await gameResponse.json();
-      await setRound(gameData.round);
-
-      const shipsResponse = await fetch(
-        `http://localhost:4000/api/v1/game/${gameId}/ships`,
-      );
-      if (!shipsResponse.ok) throw new Error("Error al cargar naves");
-      const shipsData = await shipsResponse.json();
-      await setShips(shipsData);
-
-      const storageResponse = await fetch(
-        `http://localhost:4000/api/v1/game/${gameId}/storages`,
-      );
-      if (!storageResponse.ok)
-        throw new Error("Error al cargar almacenamiento");
-      const storageData = await storageResponse.json();
-      await setStorages(storageData);
-
-      const newChips: PlayerChipDTO[] = [];
-      for (let i = 0; i < playersData.length; i++) {
-        newChips.push({
-          id: playersData[i].id,
-          color: playersData[i].color,
-          coordX: shipsData[i].positionX,
-          coordY: shipsData[i].positionY,
-          externalId: shipsData[i].externalId,
-        });
-      }
-      setPlayersChips(newChips);
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/players`);
+      if (!response.ok) throw new Error("Error al cargar jugadores");
+      return await response.json();
     } catch (error) {
       console.error(error);
     }
-  };
+  }
 
-  async function fetchActualPlayer(){
-    try{
-      const currentPlayerResponse = await fetch(`http://localhost:4000/api/v1/game/${gameId}/current-player`)
-        if(!currentPlayerResponse.ok) throw new Error("Error al cargar el jugador actual")
-        const currentPlayerData = await currentPlayerResponse.json()
-        await setCurrentPlayer(currentPlayerData)
-    }catch(error){
-      console.error(error)
+  async function fetchGame() {
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}`);
+      if (!response.ok) throw new Error("Error al cargar la partida");
+      const gameData = await response.json();
+      setGame(gameData);
+      return gameData;
+    } catch (error) {
+      console.error(error);
     }
   }
+
+  async function fetchShips() {
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/ships`);
+      if (!response.ok) throw new Error("Error al cargar naves");
+      const shipsData = await response.json();
+      setShips(shipsData);
+      return shipsData;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function fetchStorages() {
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/storages`);
+      if (!response.ok) throw new Error("Error al cargar almacenamiento");
+      const storageData = await response.json();
+      setStorages(storageData);
+      return storageData;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function fetchActualPlayer() {
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/current-player`);
+      if (!response.ok) throw new Error("Error al cargar el jugador actual");
+      const currentPlayerData = await response.json();
+      setCurrentPlayer(currentPlayerData);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function fetchStore() {
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/store`);
+      if (!response.ok) throw new Error("Error al cargar la tienda de la partida");
+      const storeData = await response.json();
+      setStore(storeData);
+
+      // Desglosamos también la llamada secundaria de las cartas de la tienda
+      await fetchStoreCards(storeData.id);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function fetchStoreCards(storeId: number) {
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/store/${storeId}/cards`);
+      if (!response.ok) throw new Error("Error al cargar las cartas de la tienda");
+      const storeCardsData = await response.json();
+
+      const randomCards = shuffleArray(storeCardsData, Number(gameId));
+      setStoreCards(randomCards);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function fetchPlayersCards() {
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/players-cards`);
+      if (!response.ok) throw new Error("Error al cargar las cartas del jugador");
+      const playerCardsData = await response.json();
+      setPlayerCards(playerCardsData);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function fetchMaxDistance() {
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/max-range`);
+      if (!response.ok) throw new Error("Error al cargar las casillas a las que puede ir el jugador");
+      const maxTilesData = await response.json();
+      setReachableTiles(maxTilesData);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  // --- FUNCIONES DE LÓGICA Y ACCIONES ---
+
+  function calculatePlayerChips(playersData: PlayerDTO[], shipsData: ShipDTO[]) {
+    const newChips: PlayerChipDTO[] = [];
+    // 💡 Añadida protección por si los arrays no coinciden en tamaño por algún lag de red
+    const limit = Math.min(playersData.length, shipsData.length);
+    
+    for (let i = 0; i < limit; i++) {
+      newChips.push({
+        id: playersData[i].id,
+        color: playersData[i].color,
+        coordX: shipsData[i].positionX,
+        coordY: shipsData[i].positionY,
+        externalId: shipsData[i].externalId,
+      });
+    }
+    setPlayersChips(newChips);
+  }
+
+  async function nextPlayer() {
+    try {
+      await fetch(`http://localhost:4000/api/v1/game/${gameId}/next-turn`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" }
+      });
+      await fetchActualPlayer();
+      await fetchPlayersCards();
+      await fetchMaxDistance();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function handleMovePlayer(targetNodeId: string) {
+    try {
+      await fetch(`http://localhost:4000/api/v1/game/${gameId}/move-player`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ externalId: targetNodeId }),
+      });
+      
+      const players = await fetchPlayers();
+      const freshShips = await fetchShips();
+      await fetchGame();
+      await fetchActualPlayer();
+      await fetchMaxDistance();
+
+      if (players && freshShips) {
+        calculatePlayerChips(players, freshShips);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  // --- MÉTODOS AUXILIARES ---
 
   function seededRandom(seed: number) {
     return function () {
@@ -106,7 +229,7 @@ export default function GamePage() {
     };
   }
 
-  const shuffleArray = (array: CardDTO[], seed: number) => {
+  function shuffleArray(array: CardDTO[], seed: number) {
     const shuffled = [...array];
     const random = seededRandom(seed);
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -114,76 +237,7 @@ export default function GamePage() {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
-  };
-
-  const fetchStore = async () => {
-    try {
-      const storeResponse = await fetch(
-        `http://localhost:4000/api/v1/game/${gameId}/store`,
-      );
-      if (!storeResponse.ok)
-        throw new Error("Error al cargar la tienda de la partida");
-      const storeData = await storeResponse.json();
-      await setStore(storeData);
-
-      const storeCardsResponse = await fetch(
-        `http://localhost:4000/api/v1/store/${storeData.id}/cards`,
-      );
-      if (!storeCardsResponse.ok)
-        throw new Error("Error al cargar las cartas de la tienda");
-      const storeCardsData = await storeCardsResponse.json();
-
-      const randomCards = shuffleArray(storeCardsData, Number(gameId));
-      setStoreCards(randomCards);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  async function fetchPlayersCards(){
-    try{
-      const playerCardsResponse = await fetch(
-        `http://localhost:4000/api/v1/game/${gameId}/players-cards`,
-      );
-      if (!playerCardsResponse.ok) throw new Error("Error al cargar las cartas del jugador");
-      const playerCardsData = await playerCardsResponse.json();
-      await setPlayerCards(playerCardsData);
-    }catch (error){
-      console.error(error)
-    }
   }
-  const nextPlayer = async () => {
-    await fetch(`http://localhost:4000/api/v1/game/${gameId}/next-turn`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" }
-    });
-    await fetchActualPlayer();
-    await fetchPlayersCards();
-    await fetchMaxDistance();
-  };
-
-  const handleMovePlayer = async (targetNodeId: string) => {
-    try{
-      await fetch(`http://localhost:4000/api/v1/game/${gameId}/move-player`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ externalId: targetNodeId}),
-      });
-      await fetchPlayers();
-      await fetchActualPlayer();
-      await fetchMaxDistance();
-      
-    }catch(error){
-      console.error(error)
-    }
-  };
-
-  async function fetchMaxDistance(){
-    const maxTilesResponse = await fetch(`http://localhost:4000/api/v1/game/${gameId}/max-range`)
-    if (!maxTilesResponse.ok) throw new Error("Error al cargar las casillas a las que puede ir el jugador");
-    const maxTilesData = await maxTilesResponse.json();
-    setReachableTiles(maxTilesData);
-  };
 
   return !loading ? (
     <main
@@ -329,7 +383,7 @@ export default function GamePage() {
             }}
           >
             <BoardGrid
-              currentRound={round}
+              currentRound={game?.round!}
               onNodeClick={handleMovePlayer}
               allowedNodes={reachableTiles}
             />

@@ -133,4 +133,5 @@ export class GameController {
         const reachableTiles = await this.gameService.calculateMaxDistance(player,ship,Number(gameId))
         return reachableTiles.map((t) => t.externalId)
     }
+
 }
