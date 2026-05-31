@@ -70,33 +70,18 @@ export class GameService {
             }
         })
     }
-
-    async nextPlayer(gameId: number, currentPlayerId: number){
-        return this.prisma.game.update({
-            where: {id: gameId},
-            data: {
-                actualPlayerId: currentPlayerId
-            }
-        })
-    }
     
     async movePlayer(tile: Tile, otherPlayers: Player[], actualPlayer: Player){
         let distance = 0
         let validMove = false
         const ship = await this.getShipsFromPlayer(actualPlayer)
-        console.log("Entramos en la función")
-        console.log(ship.externalId!)
-        console.log("Landing", spaceStationLandings[ship.externalId!])
         if(tile.positionY === ship.positionY){
-            console.log("Misma Y")
             const start = {x:ship.positionX!,y:ship.positionY!}
             const end = {x:tile.positionX!, y: tile.positionY!}
             distance = await this.calculateDistance(start, end)
-            console.log("Distancia", distance)
             distance = distance + await this.calculateNumberOfPlayersBetween(start, end, distance, otherPlayers)
             validMove = distance <= actualPlayer.movement;
-        }else if(ship.externalId!.includes("space_station") && spaceStationLandings[ship.externalId!]){
-            console.log("Distinta Y")
+        }else if(ship.externalId.includes("space_station") && spaceStationLandings[ship.externalId] && spaceStationLandings[ship.externalId][tile.positionY === 1 ? 0 : tile.positionY === 0 ? 0 : 1]){
             
             const startTile = await this.tileService.getTileByExternalId(spaceStationLandings[ship.externalId!][tile.positionY === 1 ? 0 : tile.positionY === 0 ? 0 : 1], tile.gameId!)
             const start = {x:startTile.positionX!,y:startTile.positionY!}
@@ -159,4 +144,21 @@ export class GameService {
             where:{id: player.shipId!}
         })
     }
+
+    async nextPlayer(player: Player, game: Game){
+        const ship = await this.getShipsFromPlayer(player)
+        await this.prisma.player.update({
+            where: {id: player.id},
+            data:{
+                movement: ship.engine
+            }
+        })
+        await this.prisma.game.update({
+            where:{id: game.id},
+            data:{
+                actualPlayerId: player.id
+            }
+        })
+    }
+
 }

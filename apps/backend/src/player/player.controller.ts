@@ -44,7 +44,7 @@ export class PlayerController {
         return this.storageService.getStorage(player.storageId)
     }
     @Post()
-    async createPlayer(@Body() playerData: {name: string, color: string, movement: number}):Promise<Player> {
+    async createPlayer(@Body() playerData: Prisma.PlayerCreateInput):Promise<Player> {
         return this.playerService.createPlayer(playerData);
     }
 

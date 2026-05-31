@@ -7,6 +7,7 @@ import { StorageService } from '../storage/storage.service';
 import { TileService } from '../tile/tile.service';
 import { PlayerService } from '../player/player.service';
 import { NotFoundError } from 'rxjs';
+import { CardService } from '../card/card.service';
 
 @Controller('game')
 export class GameController {
@@ -16,7 +17,8 @@ export class GameController {
         private readonly shipService: ShipService,
         private readonly storageService: StorageService,
         private readonly tileService: TileService,
-        private readonly playerService: PlayerService
+        private readonly playerService: PlayerService,
+        private readonly cardService: CardService
     ) {}
 
     @Get('/:id')
@@ -87,31 +89,38 @@ export class GameController {
         return storages;
     }
 
-    @Put('/:id/next-player')
-    async nextPlayer(@Param('id') id:string, @Body() body: { currentPlayerId: number}) {
-        return this.gameService.nextPlayer(Number(id), body.currentPlayerId);
-    }
-
     @Put('/:id/move-player')
     async movePlayer(@Param('id') gameId: string, @Body('externalId') externalId: string){
         const game = await this.gameService.getGame({id: Number(gameId)});
         const endTile = await this.tileService.getTileByExternalId(externalId, Number(gameId));
-        const player = await this.playerService.getPlayer({id: game.actualPlayerId!})
-        const ship = await this.shipService.getShipById(player.shipId!)
+        const player = await this.playerService.getPlayer({id: game.actualPlayerId})
 
-        console.log(game)
-        console.log(endTile)
-        console.log(player)
-        console.log(ship)
         const otherPlayers = await this.lobbyService.getPlayersInLobby({id:player.lobbyId!})
         otherPlayers.filter((p) => p.id !== player.id)
-        console.log(otherPlayers)
         this.gameService.movePlayer(endTile, otherPlayers, player)
     }
 
     @Get('/:id/current-player')
     async getCurrentPlayer(@Param('id') gameId: string){
         const game = await this.gameService.getGame({id: Number(gameId)})
-        return await this.playerService.getPlayer({id: game.actualPlayerId!})
+        return await this.playerService.getPlayer({id: game.actualPlayerId})
+    }
+
+    @Put('/:id/next-turn')
+    async nextTurn(@Param('id') gameId: string){
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        const players = await this.playerService.getPlayersInLobby(game.lobbyId!)
+        const actualPlayer = await this.playerService.getPlayer({id: game.actualPlayerId})
+
+        const nextPlayer = players.find((p) => p.turnOrder === (actualPlayer.turnOrder + 1)% players.length)
+
+        await this.gameService.nextPlayer(nextPlayer!, game)
+        return players
+    }
+
+    @Get('/:id/players-cards')
+    async getPlayersCards(@Param('id') gameId: string){
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        return await this.cardService.getPlayerCards(game.actualPlayerId)
     }
 }

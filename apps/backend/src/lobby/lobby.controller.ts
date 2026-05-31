@@ -12,7 +12,7 @@ export class LobbyController {
 
     @Get('/:id')
     async getLobby( @Param('id') id: string ):Promise<Lobby | null> {
-        return this.lobbyService.getLobby({ id: Number(id) });
+        return await this.lobbyService.getLobby({ id: Number(id) });
     }
 
     @Get('players/:id')
@@ -42,8 +42,10 @@ export class LobbyController {
     }
 
     @Put('/:id/add-player')
-    async addPlayerToLobby(@Param('id') id: string, @Body() playerData: { name: string; color: string, movement: number }): Promise<Lobby> {
-        const newPlayer = await this.playerService.createPlayer(playerData);
+    async addPlayerToLobby(@Param('id') id: string, @Body() playerData: { name: string; color: string}): Promise<Lobby> {
+        const lobby = await this.getLobby(id);
+        const data = {name: playerData.name, color: playerData.color, movement: 3, turnOrder: lobby? lobby.numPlayers: 0}
+        const newPlayer = await this.playerService.createPlayer(data);
         return this.lobbyService.addPlayerToLobby({
             where: { id: Number(id) },
             data: { playerId: newPlayer.id }

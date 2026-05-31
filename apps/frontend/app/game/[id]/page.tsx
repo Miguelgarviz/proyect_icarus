@@ -37,6 +37,7 @@ export default function GamePage() {
     setLoading(true);
     fetchPlayers();
     fetchActualPlayer();
+    fetchPlayersCards();
     fetchTiles();
     fetchStore();
     setLoading(false);
@@ -111,10 +112,14 @@ export default function GamePage() {
   };
 
   async function fetchActualPlayer(){
-    const currentPlayerResponse = await fetch(`http://localhost:4000/api/v1/game/${gameId}/current-player`)
-      if(!currentPlayerResponse.ok) throw new Error("Error al cargar el jugador actual")
-      const currentPlayerData = await currentPlayerResponse.json()
-      await setCurrentPlayer(currentPlayerData)
+    try{
+      const currentPlayerResponse = await fetch(`http://localhost:4000/api/v1/game/${gameId}/current-player`)
+        if(!currentPlayerResponse.ok) throw new Error("Error al cargar el jugador actual")
+        const currentPlayerData = await currentPlayerResponse.json()
+        await setCurrentPlayer(currentPlayerData)
+    }catch(error){
+      console.error(error)
+    }
   }
 
   function seededRandom(seed: number) {
@@ -173,33 +178,25 @@ export default function GamePage() {
     }
   };
 
+  async function fetchPlayersCards(){
+    try{
+      const playerCardsResponse = await fetch(
+        `http://localhost:4000/api/v1/game/${gameId}/players-cards`,
+      );
+      if (!playerCardsResponse.ok) throw new Error("Error al cargar las cartas del jugador");
+      const playerCardsData = await playerCardsResponse.json();
+      await setPlayerCards(playerCardsData);
+    }catch (error){
+      console.error(error)
+    }
+  }
   const nextPlayer = async () => {
-    if (players.length === 0) return;
-    const currentIndex = players.findIndex((p) => p.id === currentPlayer?.id);
-    const nextIndex = (currentIndex + 1) % players.length;
-    const ship = await ships.find((s) => s.id === players[nextIndex].shipId);
-    players[nextIndex].movement = ship ? ship.engine : 0;
-    setCurrentPlayer(players[nextIndex]);
-    await fetch(`http://localhost:4000/api/v1/game/${gameId}/next-player`, {
+    await fetch(`http://localhost:4000/api/v1/game/${gameId}/next-turn`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentPlayerId: players[nextIndex].id }),
+      headers: { "Content-Type": "application/json" }
     });
-    await fetch(
-      `http://localhost:4000/api/v1/player/${players[nextIndex].id}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ movement: ship ? ship.engine : 0 }),
-      },
-    );
-    const playerCardsResponse = await fetch(
-      `http://localhost:4000/api/v1/card/player-cards/${players[nextIndex].id}`,
-    );
-    if (!playerCardsResponse.ok)
-      throw new Error("Error al cargar las cartas del jugador");
-    const playerCardsData = await playerCardsResponse.json();
-    await setPlayerCards(playerCardsData);
+    await fetchActualPlayer();
+    await fetchPlayersCards();
   };
 
   const handleMovePlayer = async (targetNodeId: string) => {
