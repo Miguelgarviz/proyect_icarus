@@ -5,7 +5,7 @@ import Image from 'next/image';
 import styles from './game.module.css';
 import { CardDTO } from '../../../lib/dto/storeDTO';
 
-const CARD_DATA: { [key: string]: { img: string, desc: string, name: string } } = {
+export const CARD_DATA: { [key: string]: { img: string, desc: string, name: string } } = {
   'TEMPORARY_PATCH': {
     img: '/images/cards/Temporary_Patch_card.png',
     name: 'Parche Temporal',
@@ -38,21 +38,8 @@ const CARD_DATA: { [key: string]: { img: string, desc: string, name: string } } 
   }
 };
 
-export default function StoreComponent({ cards, gameId }: { cards: CardDTO[], gameId: number }) {
+export default function StoreComponent({ cards, handleBuy, externalId, redMinerals, numPlayerCards }: { cards: CardDTO[], handleBuy: (cardId: number) => void, externalId: string, redMinerals: number, numPlayerCards: number }) {
 
-  const handleBuy = async (cardId: number) => {
-    try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/buy-card`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cardId })
-      });
-      if (!response.ok) throw new Error("Error");
-      alert("¡Sistema actualizado!");
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   return (
     <div style={{
@@ -147,7 +134,7 @@ export default function StoreComponent({ cards, gameId }: { cards: CardDTO[], ga
               }}>
                 <div style={{ 
                   fontSize: '1.2rem', 
-                  color: '#00FF00', 
+                  color: '#ff0000', 
                   fontWeight: 'bold',
                   display: 'flex',
                   alignItems: 'center',
@@ -164,7 +151,7 @@ export default function StoreComponent({ cards, gameId }: { cards: CardDTO[], ga
                   </div> 
                 </div>
 
-                <button 
+                {externalId.includes("space_station") && redMinerals>=card.cost && numPlayerCards<3 && <button 
                   onClick={() => handleBuy(Number(card.id))}
                   style={{
                     backgroundColor: '#FFD700',
@@ -182,7 +169,7 @@ export default function StoreComponent({ cards, gameId }: { cards: CardDTO[], ga
                   onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FFD700'}
                 >
                   COMPRAR
-                </button>
+                </button>}
               </div>
             </div>
           );

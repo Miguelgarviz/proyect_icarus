@@ -157,10 +157,9 @@ export default function Lobby() {
       });
       if (response.ok) {
         const game = await response.json();
-        await fetch(`http://localhost:4000/api/v1/store`,{
+        await fetch(`http://localhost:4000/api/v1/game/${game.id}/create-store`,{
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({gameId: game.id}),
         })
         await fetch(`http://localhost:4000/api/v1/drill-card`, {
           method: "POST",

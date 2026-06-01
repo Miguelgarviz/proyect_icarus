@@ -9,11 +9,12 @@ import { PlayerService } from '../player/player.service';
 import { TileService } from '../tile/tile.service';
 import { TileModule } from '../tile/tile.module';
 import { CardService } from '../card/card.service';
+import { StoreService } from '../store/store.service';
 
 @Module({
   imports: [TileModule],
   controllers: [GameController],
-  providers: [GameService, PrismaService, LobbyService, ShipService, StorageService, PlayerService, TileService, CardService],
-  exports:[GameService]
+  providers: [GameService, PrismaService, LobbyService, ShipService, StorageService, PlayerService, TileService, CardService, StoreService],
+  exports:[]
 })
 export class GameModule {}

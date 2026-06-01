@@ -444,3 +444,106 @@
   fill: rgba(255, 51, 51, 0.25) !important;
   stroke: #ff3333 !important;
 }
+
+.upgradeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: #00e5ff; /* Un cian brillante espacial */
+  color: #000000;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upgradeButton:hover {
+  background-color: #00ffa2; /* Cambia a verde neón al pasar por encima */
+  transform: scale(1.1);
+}
+
+.upgradeButton:active {
+  transform: scale(0.95);
+}
+
+.changeToGreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: #1eff00; 
+  color: #000000;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.changeToGreen:hover {
+  background-color: #8cff7c; /* Cambia a verde neón al pasar por encima */
+  transform: scale(1.1);
+}
+
+.changeToRed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: #ff0000; 
+  color: #000000;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.changeToRed:hover {
+  background-color: #ff6b6b; /* Cambia a verde neón al pasar por encima */
+  transform: scale(1.1);
+}
+
+.changeToYellow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: #fbff00; 
+  color: #000000;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.changeToYellow:hover {
+  background-color: #fdff7c; /* Cambia a verde neón al pasar por encima */
+  transform: scale(1.1);
+}
+
+.emptyCardSlot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px; /* Ajusta esto para que mida lo mismo que tu .dataRow */
+  margin-bottom: 8px; /* Si tus filas tienen separación */
+  border: 2px dashed #334155; /* Línea discontinua gris/azulada */
+  border-radius: 6px;
+  background-color: rgba(30, 41, 59, 0.2); /* Fondo muy sutil y oscuro */
+}
+
+.emptyCardText {
+  font-size: 0.75rem;
+  color: #64748b; /* Texto gris apagado */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

@@ -17,7 +17,7 @@ model Player {
   id Int @default(autoincrement()) @id
   
   
-  cards Cards[]
+  cards Card[]
   movement Int
   name String
   color String
@@ -44,6 +44,7 @@ model Ship{
   positionY Int @default(0)
   externalId String
 
+  engineUpgraded Boolean @default(false)
   player Player?
 
   @@unique([externalId,id])
@@ -68,7 +69,7 @@ enum CardType {
   ROCKET_THRUSTERS
 }
 
-model Cards {
+model Card {
   id Int @default(autoincrement()) @id
 
   player Player? @relation(fields: [playerId], references: [id])
@@ -79,13 +80,15 @@ model Cards {
 
   cost Int
   type CardType
+
+  inFrontStore Boolean @default(false)
 }
 
 model Store{
   id Int @default(autoincrement()) @id
 
   numCards Int @default(18)
-  cards Cards[]
+  cards Card[]
 
   game Game?
 }

@@ -1,4 +1,4 @@
-import { PlayerChip } from "../../../lib/dto/playerDTO";
+import { PlayerChipDTO } from "../../../lib/dto/playerDTO";
 import { nodeCoordinates } from "./mapData";
 
 // Mapeo de colores a archivos en public/images/
@@ -12,7 +12,7 @@ const PLAYER_IMAGES: Record<string, string> = {
 export default function EntitiesLayer({
   playersData,
 }: {
-  playersData: PlayerChip[];
+  playersData: PlayerChipDTO[];
 }) {
   return (
     <g>

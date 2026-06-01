@@ -25,7 +25,6 @@ export default function GamePage() {
   const [storeCards, setStoreCards] = useState<CardDTO[]>([]);
   const [playerCards, setPlayerCards] = useState<CardDTO[]>([]);
   const [storages, setStorages] = useState<StorageDTO[]>([]);
-  const [store, setStore] = useState<StoreDTO>();
   const [reachableTiles, setReachableTiles] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const gameId = params.id;
@@ -41,7 +40,7 @@ export default function GamePage() {
         await fetchActualPlayer();
         await fetchMaxDistance();
         await fetchPlayersCards();
-        await fetchStore();
+        await fetchStoreCards();
 
         if (players && freshShips) {
           calculatePlayerChips(players, freshShips);
@@ -114,28 +113,12 @@ export default function GamePage() {
     }
   }
 
-  async function fetchStore() {
+  async function fetchStoreCards() {
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/store`);
-      if (!response.ok) throw new Error("Error al cargar la tienda de la partida");
-      const storeData = await response.json();
-      setStore(storeData);
-
-      // Desglosamos también la llamada secundaria de las cartas de la tienda
-      await fetchStoreCards(storeData.id);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  async function fetchStoreCards(storeId: number) {
-    try {
-      const response = await fetch(`http://localhost:4000/api/v1/store/${storeId}/cards`);
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/store-cards`);
       if (!response.ok) throw new Error("Error al cargar las cartas de la tienda");
       const storeCardsData = await response.json();
-
-      const randomCards = shuffleArray(storeCardsData, Number(gameId));
-      setStoreCards(randomCards);
+      setStoreCards(storeCardsData);
     } catch (error) {
       console.error(error);
     }
@@ -167,7 +150,6 @@ export default function GamePage() {
 
   function calculatePlayerChips(playersData: PlayerDTO[], shipsData: ShipDTO[]) {
     const newChips: PlayerChipDTO[] = [];
-    // 💡 Añadida protección por si los arrays no coinciden en tamaño por algún lag de red
     const limit = Math.min(playersData.length, shipsData.length);
     
     for (let i = 0; i < limit; i++) {
@@ -218,26 +200,47 @@ export default function GamePage() {
     }
   }
 
-  // --- MÉTODOS AUXILIARES ---
-
-  function seededRandom(seed: number) {
-    return function () {
-      let t = (seed += 0x6d2b79f5);
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  function shuffleArray(array: CardDTO[], seed: number) {
-    const shuffled = [...array];
-    const random = seededRandom(seed);
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  async function handleUpgradeShip(system:string){
+    try{
+      await fetch(`http://localhost:4000/api/v1/game/${gameId}/upgrade-ship`,{
+        method: "PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ system: system})
+      });
+      await fetchShips();
+    }catch(error){
+      console.error(error);
     }
-    return shuffled;
   }
+
+  async function handleChangeMinerals(system: string){
+    try{
+      await fetch(`http://localhost:4000/api/v1/game/${gameId}/change-minerals`,{
+        method: "PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ system: system})
+      });
+      await fetchStorages();
+    }catch(error){
+      console.error(error);
+    }
+  }
+
+  const handleBuy = async (cardId: number) => {
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/buy-card`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cardId })
+      });
+      if (!response.ok) throw new Error("Error");
+      await fetchStoreCards();
+      await fetchStorages();
+      await fetchPlayersCards();
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return !loading ? (
     <main
@@ -327,7 +330,10 @@ export default function GamePage() {
           >
             <StoreComponent
               cards={storeCards.slice(0, 3)}
-              gameId={Number(gameId)}
+              handleBuy={handleBuy}
+              externalId={ships.find((s) => s.id===currentPlayer?.shipId)?.externalId!}
+              redMinerals={storages.find((s) => s.id === currentPlayer?.storageId)?.red!}
+              numPlayerCards={playerCards.length}
             />
           </div>
 
@@ -387,7 +393,9 @@ export default function GamePage() {
               onNodeClick={handleMovePlayer}
               allowedNodes={reachableTiles}
             />
-            <EntitiesLayer playersData={playersChips} />
+            <EntitiesLayer 
+              playersData={playersChips}
+            />
           </svg>
         </div>
 
@@ -410,6 +418,8 @@ export default function GamePage() {
                   (s) => s.id === Number(currentPlayer.storageId),
                 )}
                 cardsData={playerCards}
+                handleUpgrade={handleUpgradeShip}
+                handleChange={handleChangeMinerals}
               />
             )}
           </div>

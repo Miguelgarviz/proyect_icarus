@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Body, Param } from '@nestjs/common';
 import { CardService } from './card.service';
-import { Prisma, Cards } from '../generated/prisma/client';
+import { Prisma, Card } from '../generated/prisma/client';
 
 @Controller('card')
 export class CardController {
@@ -9,12 +9,12 @@ export class CardController {
     ){}
 
     @Post()
-    async createCard(@Body() cardData: Prisma.CardsCreateInput):Promise<Cards> {
+    async createCard(@Body() cardData: Prisma.CardCreateInput):Promise<Card> {
         return await this.cardService.createCard(cardData);
     }
 
     @Get('/:id')
-    async getCard(@Body() cardWhereUniqueInput: Prisma.CardsWhereUniqueInput):Promise<Cards | null> {
+    async getCard(@Body() cardWhereUniqueInput: Prisma.CardWhereUniqueInput):Promise<Card | null> {
         return await this.cardService.getCard(cardWhereUniqueInput);
     }
 

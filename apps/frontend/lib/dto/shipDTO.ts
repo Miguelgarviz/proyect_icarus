@@ -6,4 +6,5 @@ export interface ShipDTO {
     positionY: number;
     id: number;
     externalId: string;
+    upgradedEngine: boolean;
 }

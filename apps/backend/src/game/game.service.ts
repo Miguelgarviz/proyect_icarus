@@ -1,6 +1,6 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { Prisma, Game, Tile, Ship, Player } from '@backend/generated/prisma/client';
+import { Prisma, Game, Tile, Ship, Player, Storage } from '@backend/generated/prisma/client';
 import { TileService } from '../tile/tile.service';
 
 const spaceStationLandings: Record<string, string[]> = {
@@ -159,6 +159,12 @@ export class GameService {
                 actualPlayerId: player.id
             }
         })
+        await this.prisma.ship.update({
+            where: {id: ship.id},
+            data: {
+                engineUpgraded: false
+            }
+        })
     }
 
     async calculateMaxDistance(player: Player, ship: Ship, gameId: number){
@@ -207,5 +213,86 @@ export class GameService {
         return reachableTiles;
     }
 
+    async upgradeShield(ship: Ship, storage: Storage){
+        await this.prisma.ship.update({
+            where:{
+                id: ship.id
+            },
+            data:{
+                shield:{increment: 1}
+            }
+        })
+        await this.prisma.storage.update({
+            where: {id: storage.id},
+            data: {green: {decrement: 1}}
+        })
+    }
+
+    async upgradeDrill(ship: Ship, storage: Storage){
+        await this.prisma.ship.update({
+            where:{
+                id: ship.id
+            },
+            data:{
+                drill:{increment: 1}
+            }
+        })
+        await this.prisma.storage.update({
+            where: {id: storage.id},
+            data: {green: {decrement: 1}}
+        })
+    }
+    async upgradeEngine(ship: Ship, storage: Storage){
+        await this.prisma.ship.update({
+            where:{
+                id: ship.id
+            },
+            data:{
+                engine:{increment: 1},
+                engineUpgraded: true
+            }
+        })
+        await this.prisma.storage.update({
+            where: {id: storage.id},
+            data: {red: {decrement: 1}}
+        })
+    }
+
+    async changeMineralsGreenToRed(storage: Storage){
+        await this.prisma.storage.update({
+            where:{id:storage.id},
+            data:{
+                green: {decrement:7},
+                red: {increment: 1}
+            }
+        })
+    }
+    async changeMineralsRedToGreen(storage: Storage){
+        await this.prisma.storage.update({
+            where:{id:storage.id},
+            data:{
+                green: (storage.green + 5 <= 18)?{increment:5}:18,
+                red: {decrement: 1}
+            }
+        })
+    }
+    async changeMineralsRedToYellow(storage: Storage){
+        await this.prisma.storage.update({
+            where:{id:storage.id},
+            data:{
+                red: {decrement: 5},
+                yellow: {increment: 1}
+            }
+        })
+    }
+    async changeMineralsYellowToRed(storage: Storage){
+        await this.prisma.storage.update({
+            where:{id:storage.id},
+            data:{
+                red: (storage.red + 3 > 10)?{increment: 3}:10,
+                yellow: {decrement: 1}
+            }
+        })
+    }
 
 }
