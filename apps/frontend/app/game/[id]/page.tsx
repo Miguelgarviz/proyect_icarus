@@ -8,14 +8,13 @@ import styles from "./game.module.css";
 import { useParams } from "next/navigation";
 import { PlayerDTO, PlayerChipDTO } from "../../../lib/dto/playerDTO";
 import { ShipDTO } from "../../../lib/dto/shipDTO";
-import { CardDTO, StoreDTO } from "../../../lib/dto/storeDTO";
+import { CardDTO } from "../../../lib/dto/storeDTO";
 import { StorageDTO } from "../../../lib/dto/storageDTO";
 import { GameDTO } from "../../../lib/dto/gameDTO";
 import { TileDTO } from "../../../lib/dto/tileDTO";
 import { DrillCardDTO } from "../../../lib/dto/drillCardDTO";
 import StoreComponent from "./StoreComponent";
 import PlayerDataComponent from "./playerDataComponent";
-import { spaceStationLandings } from "./mapData";
 
 // 🌟 Definimos una interfaz limpia para estructurar lo que responde tu backend al excavar
 interface DrillResponse {
@@ -42,6 +41,7 @@ export default function GamePage() {
   // 🌟 NUEVOS ESTADOS: Para controlar la visibilidad y el contenido del modal de excavación
   const [isDrillModalOpen, setIsDrillModalOpen] = useState<boolean>(false);
   const [drillResult, setDrillResult] = useState<DrillResponse | null>(null);
+  const [drillDeeper, setDrillDeeper] = useState<boolean>(false);
   
   const gameId = params.id;
 
@@ -201,6 +201,7 @@ export default function GamePage() {
       await fetchActualPlayer();
       await fetchPlayersCards();
       await fetchMaxDistance();
+      await fetchActualTile();
     } catch (error) {
       console.error(error);
     }
@@ -292,6 +293,35 @@ export default function GamePage() {
         await fetchStorages();
         await fetchGame();
         await fetchShips();
+        await fetchActualTile();
+      }
+      
+
+    } catch (error) {
+      console.error("Error en la perforación:", error);
+    }
+  }
+
+  async function handleDrillDeeper(){
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/drill-deeper`, {
+        method: "PUT", // O PUT, dependiendo de cómo lo tengas configurado
+        headers: { "Content-Type": "application/json" }
+      });
+      
+      if (!response.ok) throw new Error("Fallo en los sistemas de perforación");
+      
+      const data: DrillResponse = await response.json();
+      
+      // 1. Guardamos la telemetría devuelta por el servidor en el estado
+      if(data.valid){
+        setDrillResult(data);
+        // 2. Desplegamos el modal en pantalla
+        setIsDrillModalOpen(true);
+        await fetchStorages();
+        await fetchGame();
+        await fetchShips();
+        await fetchActualTile();
       }
       
 
@@ -539,18 +569,32 @@ export default function GamePage() {
               <span className={styles.resourceLabel}>
                 Mineral {drillResult.type === "green" ? "Verde" : drillResult.type === "red" ? "Rojo" : "Amarillo"}
               </span>
+              
             </div>
+            
           </div>
         )}
 
       </div>
 
       {/* BOTÓN DE CIERRE */}
+      {(drillResult.type === "red" || drillResult.type === "yellow" || drillResult.empty) && !drillDeeper && 
+              <button
+                className={styles.modalDrillDeeperButton}
+                onClick={() => {
+                  setDrillDeeper(true);
+                  handleDrillDeeper()}
+                }
+              >
+                Excavar mas profundo
+              </button>}
+      
       <button 
         className={styles.modalCloseButton}
         onClick={() => {
           setIsDrillModalOpen(false);
           setDrillResult(null);
+          setDrillDeeper(false);
         }}
       >
         Confirmar Informe

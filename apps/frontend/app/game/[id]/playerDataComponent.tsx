@@ -43,9 +43,6 @@ export default function PlayerDataComponent({
             "YELLOW":3
         }
 
-  console.log(shipData.externalId.includes("planet"), actualTile.drillAttempts > 0, shipData.drill > 0 ,shipData.drill >= drillPrice[actualTile.type.toString()])
-  // Funciones manejadoras temporales para las mejoras (aquí harás tus fetchs PUT/PATCH al backend en el futuro)
-
   return (
     <div className={styles.dashboardContainer}>
       <h2 className={styles.dashboardTitle}>Datos del Jugador</h2>

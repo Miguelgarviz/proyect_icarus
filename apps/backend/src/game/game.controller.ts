@@ -264,7 +264,7 @@ export class GameController {
         
         const isPlanet = tile.type === (TileType.GREEN) || tile.type === (TileType.RED) || tile.type === (TileType.YELLOW)
         if(isPlanet && tile.drillAttempts > 0 && drillPrice[tile.type.toString()]<=ship.drill){
-            const drillCard = await this.drillCardsService.getShuffledDrillCard(drillCards, game.id + game.round + tile.drillAttempts + player.id)
+            const drillCard = await this.drillCardsService.getShuffledDrillCard(drillCards, game.id + game.round + tile.drillAttempts + player.id + ship.drill)
             
             if(drillCard.isSupernovaCard){
                 await this.gameService.increaseSupernovaLvL(game)
@@ -305,6 +305,56 @@ export class GameController {
             }
             await this.shipService.decreaseDrill(ship.id, drillPrice[tile.type.toString()])
             await this.tileService.decreaseDrillAttempts(tile.id)
+            return {drillCard: drillCard, empty: false, valid: true, type: tile.type.toString().toLowerCase()};
+        }
+        return {drillCard: null, empty: false, valid: false, type: ""}
+    }
+
+
+    @Put("/:id/drill-deeper")
+    async drillDeeper(@Param('id') gameId: string){
+        const drillDeeperPrice: Record<string, number> = {
+            "RED": 1,
+            "YELLOW": 2
+        }
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        const player = await this.playerService.getPlayer({id: game.actualPlayerId})
+        const ship = await this.shipService.getShipById(player.shipId!)
+        const tile = await this.tileService.getTileByExternalId(ship.externalId, Number(gameId))
+        const storage = await this.storageService.getStorage(player.storageId!)
+        if((tile.type === TileType.RED || tile.type === TileType.YELLOW) && tile.drillAttempts > 0 && drillDeeperPrice[tile.type.toString()]<=ship.drill){
+            const drillCards = await this.drillCardsService.getDrillCardsByGame(Number(gameId))
+
+            const drillCard = await this.drillCardsService.getShuffledDrillCard(drillCards, game.id + game.round + tile.drillAttempts + player.id + ship.drill)
+            
+            if(drillCard.isSupernovaCard){
+                await this.gameService.increaseSupernovaLvL(game)
+                await this.shipService.decreaseDrill(ship.id, drillDeeperPrice[tile.type.toString()])
+                return {drillCard: drillCard, empty: false, valid: true, type: "supernova"};
+            } 
+            switch(tile.type){
+                case TileType.RED:
+                    if(drillCard.redResources > 0){
+                        await this.storageService.addRedMinerals(storage, drillCard)
+                        break;
+                    }else{
+                        await this.shipService.decreaseDrill(ship.id, drillDeeperPrice[tile.type.toString()])
+
+                        return {drillCard: drillCard, empty: true, valid: true, type: tile.type.toString().toLowerCase()};
+                    }
+                case TileType.YELLOW:
+                    if(drillCard.yellowResources > 0){
+                        await this.storageService.addYellowMinerals(storage, drillCard)
+                        break;
+                    }else{
+                        await this.shipService.decreaseDrill(ship.id, drillDeeperPrice[tile.type.toString()])
+
+                        return {drillCard: drillCard, empty: true, valid: true, type: tile.type.toString().toLowerCase()};
+                    }
+                default:
+                    break;
+            }
+            await this.shipService.decreaseDrill(ship.id, drillDeeperPrice[tile.type.toString()])
             return {drillCard: drillCard, empty: false, valid: true, type: tile.type.toString().toLowerCase()};
         }
         return {drillCard: null, empty: false, valid: false, type: ""}
