@@ -45,6 +45,9 @@ model Ship{
   externalId String
 
   engineUpgraded Boolean @default(false)
+
+  canDrillDeeper Boolean @default(false)
+
   player Player?
 
   @@unique([externalId,id])
@@ -110,6 +113,9 @@ model Tile{
   type TileType
   positionX Int
   positionY Int
+
+  drillAttempts Int 
+  ocupiedByPlayerId Int?
 
   game Game? @relation(fields: [gameId], references: [id])
   gameId Int?

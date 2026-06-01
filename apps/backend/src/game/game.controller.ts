@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Put, Post, Body } from '@nestjs/common';
 import { GameService } from './game.service';
-import { Game, Prisma, Ship, Storage, CardType, Card, Store} from '../generated/prisma/browser';
+import { Game, Prisma, Ship, Storage, CardType, Card, Store, TileType, DrillCard} from '../generated/prisma/browser';
 import { LobbyService } from '../lobby/lobby.service';
 import { ShipService } from '../ship/ship.service';
 import { StorageService } from '../storage/storage.service';
@@ -8,6 +8,7 @@ import { TileService } from '../tile/tile.service';
 import { PlayerService } from '../player/player.service';
 import { CardService } from '../card/card.service';
 import { StoreService } from '../store/store.service';
+import { DrillCardService } from '../drill-card/drill-card.service';
 
 @Controller('game')
 export class GameController {
@@ -19,7 +20,8 @@ export class GameController {
         private readonly tileService: TileService,
         private readonly playerService: PlayerService,
         private readonly cardService: CardService,
-        private readonly storeService: StoreService
+        private readonly storeService: StoreService,
+        private readonly drillCardsService: DrillCardService
     ) {}
 
     @Get('/:id')
@@ -117,9 +119,7 @@ export class GameController {
         const endTile = await this.tileService.getTileByExternalId(externalId, Number(gameId));
         const player = await this.playerService.getPlayer({id: game.actualPlayerId})
 
-        const otherPlayers = await this.lobbyService.getPlayersInLobby({id:player.lobbyId!})
-        otherPlayers.filter((p) => p.id !== player.id)
-        this.gameService.movePlayer(endTile, otherPlayers, player)
+        this.gameService.movePlayer(endTile, player)
     }
 
     @Get('/:id/current-player')
@@ -137,6 +137,7 @@ export class GameController {
         const nextPlayer = players.find((p) => p.turnOrder === (actualPlayer.turnOrder + 1)% players.length)
 
         await this.gameService.nextPlayer(nextPlayer!, game)
+        await this.tileService.resetDrillAttempts(Number(gameId))
         return players
     }
 
@@ -151,8 +152,10 @@ export class GameController {
         const game = await this.gameService.getGame({id: Number(gameId)})
         const player = await this.playerService.getPlayer({id: game.actualPlayerId})
         const ship = await this.shipService.getShipById(player.shipId!)
+        const otherPlayers = await this.lobbyService.getPlayersInLobby({id:player.lobbyId!})
+        otherPlayers.filter((p) => p.id !== player.id)
 
-        const reachableTiles = await this.gameService.calculateMaxDistance(player,ship,Number(gameId))
+        const reachableTiles = await this.gameService.calculateMaxDistance(player,ship,Number(gameId), otherPlayers)
         return reachableTiles.map((t) => t.externalId)
     }
 
@@ -171,7 +174,8 @@ export class GameController {
                 if(ship.externalId.includes("space_station") && ship.shield < 10 && storage.green >= 1) await this.gameService.upgradeShield(ship, storage)
                 break;
             case "engine":
-                if(ship.externalId.includes("space_station") && ship.drill < 5 && storage.red >= 1 && !ship.engineUpgraded) await this.gameService.upgradeEngine(ship, storage)
+                console.log(ship.engineUpgraded, ship.drill, storage.red)
+                if(ship.externalId.includes("space_station") && ship.engine < 5 && storage.red >= 1 && !ship.engineUpgraded) await this.gameService.upgradeEngine(ship, storage)
                 break;
             default: 
                 console.log("Valor system no valido")
@@ -187,16 +191,16 @@ export class GameController {
 
         switch(system){
             case "green-to-red":
-                if(ship.externalId.includes("space_station") && storage.green>=7 && storage.red<10) await this.gameService.changeMineralsGreenToRed(storage)
+                if(ship.externalId.includes("space_station") && storage.green>=7 && storage.red<10) await this.storageService.changeMineralsGreenToRed(storage)
                 break;
             case "red-to-green":
-                if(ship.externalId.includes("space_station") && storage.red>=1 && storage.green<18) await this.gameService.changeMineralsRedToGreen(storage)
+                if(ship.externalId.includes("space_station") && storage.red>=1 && storage.green<18) await this.storageService.changeMineralsRedToGreen(storage)
                 break;
             case "red-to-yellow":
-                if(ship.externalId.includes("space_station") && storage.red>=5 && storage.yellow<10) await this.gameService.changeMineralsRedToYellow(storage)
+                if(ship.externalId.includes("space_station") && storage.red>=5 && storage.yellow<10) await this.storageService.changeMineralsRedToYellow(storage)
                 break;
             case "yellow-to-red":
-                if(ship.externalId.includes("space_station") && storage.yellow>=1 && storage.red<10) await this.gameService.changeMineralsYellowToRed(storage)
+                if(ship.externalId.includes("space_station") && storage.yellow>=1 && storage.red<10) await this.storageService.changeMineralsYellowToRed(storage)
                 break;
             default:
                 console.log("Valor system no valido")
@@ -231,5 +235,78 @@ export class GameController {
             }
         }
 
+    }
+
+    @Get('/:id/current-tile')
+    async getCurrentTile(@Param('id') gameId: string){
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        const player = await this.playerService.getPlayer({id: game.actualPlayerId})
+        const ship = await this.shipService.getShipById(player.shipId!)
+
+        return await this.tileService.getTileByExternalId(ship.externalId, Number(gameId))
+    }
+
+    @Put("/:id/drill")
+    async drillPlanet(@Param('id') gameId: string){
+        const drillPrice: Record<string,number> = {
+            "GREEN":1,
+            "RED":2,
+            "YELLOW":3
+        }
+
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        const player = await this.playerService.getPlayer({id: game.actualPlayerId})
+        const ship = await this.shipService.getShipById(player.shipId!)
+        const tile = await this.tileService.getTileByExternalId(ship.externalId, Number(gameId))
+        const storage = await this.storageService.getStorage(player.storageId!)
+        const drillCards = await this.drillCardsService.getDrillCardsByGame(Number(gameId))
+
+        
+        const isPlanet = tile.type === (TileType.GREEN) || tile.type === (TileType.RED) || tile.type === (TileType.YELLOW)
+        if(isPlanet && tile.drillAttempts > 0 && drillPrice[tile.type.toString()]<=ship.drill){
+            const drillCard = await this.drillCardsService.getShuffledDrillCard(drillCards, game.id + game.round + tile.drillAttempts + player.id)
+            
+            if(drillCard.isSupernovaCard){
+                await this.gameService.increaseSupernovaLvL(game)
+                await this.shipService.decreaseDrill(ship.id, drillPrice[tile.type.toString()])
+                await this.tileService.decreaseDrillAttempts(tile.id)
+                return {drillCard: drillCard, empty: false, valid: true, type: "supernova"};
+            } 
+            switch(tile.type){
+                case TileType.GREEN:
+                    if(drillCard.greenResources > 0){
+                        await this.storageService.addGreenMinerals(storage, drillCard)
+                        break;
+                    }else{
+                        await this.shipService.decreaseDrill(ship.id, drillPrice[tile.type.toString()])
+                        await this.tileService.decreaseDrillAttempts(tile.id)
+                        return {drillCard: drillCard, empty: true, valid: true, type: tile.type.toString().toLowerCase()};
+                    }
+                case TileType.RED:
+                    if(drillCard.redResources > 0){
+                        await this.storageService.addRedMinerals(storage, drillCard)
+                        break;
+                    }else{
+                        await this.shipService.decreaseDrill(ship.id, drillPrice[tile.type.toString()])
+                        await this.tileService.decreaseDrillAttempts(tile.id)
+                        return {drillCard: drillCard, empty: true, valid: true, type: tile.type.toString().toLowerCase()};
+                    }
+                case TileType.YELLOW:
+                    if(drillCard.yellowResources > 0){
+                        await this.storageService.addYellowMinerals(storage, drillCard)
+                        break;
+                    }else{
+                        await this.shipService.decreaseDrill(ship.id, drillPrice[tile.type.toString()])
+                        await this.tileService.decreaseDrillAttempts(tile.id)
+                        return {drillCard: drillCard, empty: true, valid: true, type: tile.type.toString().toLowerCase()};
+                    }
+                default:
+                    break;
+            }
+            await this.shipService.decreaseDrill(ship.id, drillPrice[tile.type.toString()])
+            await this.tileService.decreaseDrillAttempts(tile.id)
+            return {drillCard: drillCard, empty: false, valid: true, type: tile.type.toString().toLowerCase()};
+        }
+        return {drillCard: null, empty: false, valid: false, type: ""}
     }
 }

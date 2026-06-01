@@ -12,9 +12,19 @@ import { CardDTO, StoreDTO } from "../../../lib/dto/storeDTO";
 import { StorageDTO } from "../../../lib/dto/storageDTO";
 import { GameDTO } from "../../../lib/dto/gameDTO";
 import { TileDTO } from "../../../lib/dto/tileDTO";
+import { DrillCardDTO } from "../../../lib/dto/drillCardDTO";
 import StoreComponent from "./StoreComponent";
 import PlayerDataComponent from "./playerDataComponent";
 import { spaceStationLandings } from "./mapData";
+
+// 🌟 Definimos una interfaz limpia para estructurar lo que responde tu backend al excavar
+interface DrillResponse {
+  empty: boolean;
+  valid: boolean;
+  type: "green" | "red" | "yellow" | "supernova" | "";
+
+  drillCard?: DrillCardDTO; // Solo vendrá si el tipo es "card"
+}
 
 export default function GamePage() {
   const params = useParams();
@@ -27,6 +37,12 @@ export default function GamePage() {
   const [storages, setStorages] = useState<StorageDTO[]>([]);
   const [reachableTiles, setReachableTiles] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [actualTile, setActualTile] = useState<TileDTO>();
+  
+  // 🌟 NUEVOS ESTADOS: Para controlar la visibilidad y el contenido del modal de excavación
+  const [isDrillModalOpen, setIsDrillModalOpen] = useState<boolean>(false);
+  const [drillResult, setDrillResult] = useState<DrillResponse | null>(null);
+  
   const gameId = params.id;
 
   useEffect(() => {
@@ -40,6 +56,7 @@ export default function GamePage() {
         await fetchActualPlayer();
         await fetchMaxDistance();
         await fetchPlayersCards();
+        await fetchActualTile();
         await fetchStoreCards();
 
         if (players && freshShips) {
@@ -146,6 +163,17 @@ export default function GamePage() {
     }
   }
 
+  async function fetchActualTile(){
+    try{
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/current-tile`)
+      if(!response.ok) throw new Error("Error al cargar la casilla actual del jugador");
+      const tileData = await response.json();
+      setActualTile(tileData);
+    }catch(error){
+      console.error(error);
+    }
+  }
+
   // --- FUNCIONES DE LÓGICA Y ACCIONES ---
 
   function calculatePlayerChips(playersData: PlayerDTO[], shipsData: ShipDTO[]) {
@@ -191,6 +219,7 @@ export default function GamePage() {
       await fetchGame();
       await fetchActualPlayer();
       await fetchMaxDistance();
+      await fetchActualTile();
 
       if (players && freshShips) {
         calculatePlayerChips(players, freshShips);
@@ -208,6 +237,7 @@ export default function GamePage() {
         body: JSON.stringify({ system: system})
       });
       await fetchShips();
+      await fetchStorages();
     }catch(error){
       console.error(error);
     }
@@ -226,7 +256,7 @@ export default function GamePage() {
     }
   }
 
-  const handleBuy = async (cardId: number) => {
+  async function handleBuy (cardId: number) {
     try {
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/buy-card`, {
         method: 'PUT',
@@ -242,22 +272,49 @@ export default function GamePage() {
     }
   };
 
+  // 🌟 REFACTORIZADO: Lógica de excavación con control de estados para el Modal
+  async function handleDrill(){
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/drill`, {
+        method: "PUT", // O PUT, dependiendo de cómo lo tengas configurado
+        headers: { "Content-Type": "application/json" }
+      });
+      
+      if (!response.ok) throw new Error("Fallo en los sistemas de perforación");
+      
+      const data: DrillResponse = await response.json();
+      
+      // 1. Guardamos la telemetría devuelta por el servidor en el estado
+      if(data.valid){
+        setDrillResult(data);
+        // 2. Desplegamos el modal en pantalla
+        setIsDrillModalOpen(true);
+        await fetchStorages();
+        await fetchGame();
+        await fetchShips();
+      }
+      
+
+    } catch (error) {
+      console.error("Error en la perforación:", error);
+    }
+  }
+
   return !loading ? (
     <main
       className={styles.pageContainer}
       style={{
         height: "100vh",
         overflow: "hidden",
-        backgroundColor: "#0a0c10", // Asegura un fondo oscuro uniforme si queda espacio
+        backgroundColor: "#0a0c10", 
       }}
     >
-      {/* Contenedor principal limitado a la altura de la pantalla (Viewport) */}
       <div
         style={{
           display: "flex",
           width: "100%",
           maxWidth: "1800px",
-          height: "100vh", // Limita la altura total al 100% de la ventana
+          height: "100vh", 
           margin: "0 auto",
           gap: "20px",
           alignItems: "stretch",
@@ -270,16 +327,14 @@ export default function GamePage() {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "15px", // Cambiado a gap para mejor distribución reactiva
+            gap: "15px", 
             width: "320px",
             flexShrink: 0,
           }}
         >
-          {/* Recuadro Azul/Morado */}
           <div className={styles.turnContainer}>
             {currentPlayer ? (
               <>
-                {/* 1. Indicador LED con la variable de color inyectada dinámicamente */}
                 <div
                   className={styles.turnLed}
                   style={
@@ -289,7 +344,6 @@ export default function GamePage() {
                   }
                 />
 
-                {/* 2. Textos del Turno */}
                 <div className={styles.turnTextWrapper}>
                   <span className={styles.turnLabel}>Turno Actual</span>
                   <span className={styles.turnPlayerName}>
@@ -297,12 +351,9 @@ export default function GamePage() {
                   </span>
                 </div>
 
-                {/* 3. 🚀 NUEVO: Módulo de Movimientos Restantes (Alineado a la derecha) */}
                 <div className={styles.movementWrapper}>
                   <span className={styles.movementLabel}>MOVIMIENTOS</span>
                   <span className={styles.movementValue}>
-                    {/* Asumiendo que guardas el movimiento actual y el máximo. 
-              Si solo tienes una variable, puedes dejar solo {currentPlayer.movement} */}
                     {currentPlayer.movement}{" "}
                     <span className={styles.movementMax}>
                       /{" "}
@@ -317,12 +368,11 @@ export default function GamePage() {
             )}
           </div>
 
-          {/* Recuadro Amarillo (Tienda) */}
           <div
             style={{
               border: "3px solid #FFD700",
-              flex: 1, // Ahora crece dinámicamente según el alto disponible
-              minHeight: 0, // Truco de flexbox para permitir que el contenedor interno haga scroll si es necesario
+              flex: 1, 
+              minHeight: 0, 
               borderRadius: "8px",
               backgroundColor: "rgba(0,0,0,0.3)",
               overflow: "hidden",
@@ -337,7 +387,6 @@ export default function GamePage() {
             />
           </div>
 
-          {/* Botón Verde */}
           <button
             onClick={async () => await nextPlayer()}
             style={{
@@ -356,13 +405,13 @@ export default function GamePage() {
           </button>
         </div>
 
-        {/* TABLERO CENTRAL (Ajustado dinámicamente) */}
+        {/* TABLERO CENTRAL */}
         <div
           className={styles.boardWrapper}
           style={{
             flex: 1,
             position: "relative",
-            height: "100%", // Obliga al contenedor a usar el espacio vertical asignado
+            height: "100%", 
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -374,7 +423,7 @@ export default function GamePage() {
             fill
             priority
             sizes="(max-width: 768px) 90vw, (max-width: 1200px) 80vw, 1200px"
-            style={{ objectFit: "contain" }} // Evita que la imagen se deforme o se salga de su contenedor
+            style={{ objectFit: "contain" }} 
           />
 
           <svg
@@ -385,11 +434,11 @@ export default function GamePage() {
               position: "absolute",
               width: "100%",
               height: "100%",
-              maxHeight: "100%", // Asegura que el SVG siga las mismas reglas restrictivas de la imagen
+              maxHeight: "100%", 
             }}
           >
             <BoardGrid
-              currentRound={game?.round!}
+              currentRound={game?.supernovaLvL!}
               onNodeClick={handleMovePlayer}
               allowedNodes={reachableTiles}
             />
@@ -418,13 +467,98 @@ export default function GamePage() {
                   (s) => s.id === Number(currentPlayer.storageId),
                 )}
                 cardsData={playerCards}
+                actualTile={actualTile!}
                 handleUpgrade={handleUpgradeShip}
                 handleChange={handleChangeMinerals}
+                handleDrill={handleDrill} // Pasamos la función actualizada
               />
             )}
           </div>
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* 🌟 ESQUEMA DEL MODAL DE EXCAVACIÓN (RENDERIZADO CONDICIONAL)             */}
+      {/* ========================================================================= */}
+      {isDrillModalOpen && drillResult && drillResult.valid && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalContent}>
+      
+      {/* CABECERA GENERAL DEL MODAL */}
+      <h3 className={styles.modalTitle}>Resultado de la excavación</h3>
+      
+      <div className={styles.modalBody}>
+        
+        {/* CASO 1: SECTOR VACÍO */}
+        {drillResult.empty && (
+          <div className={styles.resultEmpty}>
+            <div className={styles.resultIcon}>🌌</div>
+            <h4>Excavación sin resultados</h4>
+            <p className={styles.resultDescription}>
+              Los escáneres térmicos confirman que el núcleo de este sector está completamente agotado.
+            </p>
+          </div>
+        )}
+
+        {/* CASO 2: EVENTO SUPERNOVA (Solo si viene la carta Y tiene el flag activo) */}
+        {drillResult.drillCard && drillResult.drillCard.isSupernovaCard && !drillResult.empty && (
+          <div className={styles.resultSupernova}>
+            <div className={styles.resultIcon}>💥</div>
+            <h4>¡Alerta de Supernova!</h4>
+            <p className={styles.resultDescription}>
+              La perforación ha desestabilizado el núcleo cuántico provocando una descarga crítica.
+            </p>
+          </div>
+        )}
+
+        {/* CASO 3: RECOMPENSA DE CARTA DE RECURSOS (Solo si NO es supernova y NO está vacío) */}
+        {drillResult.drillCard && !drillResult.drillCard.isSupernovaCard && !drillResult.empty && (
+          <div className={styles.resultCard}>
+            <div className={styles.resultIcon}>⭐</div>
+            <h4>Excavación Exitosa</h4>
+            <p className={styles.resultDescription}>
+              Sistemas de carga estables. Se han refinado los siguientes materiales del subsuelo:
+            </p>
+            
+            {/* Contenedor visual del recurso extraído */}
+            <div className={`${styles.resourceDisplay} ${styles[drillResult.type]}`}>
+              <span className={styles.resourceAmount}>
+                {(() => {
+                  switch (drillResult.type) {
+                    case "green":
+                      return `+${drillResult.drillCard.greenResources ?? 0}`;
+                    case "red":
+                      return `+${drillResult.drillCard.redResources ?? 0}`;
+                    case "yellow":
+                      return `+${drillResult.drillCard.yellowResources ?? 0}`;
+                    default:
+                      return "0";
+                  }
+                })()}
+              </span>
+              <span className={styles.resourceLabel}>
+                Mineral {drillResult.type === "green" ? "Verde" : drillResult.type === "red" ? "Rojo" : "Amarillo"}
+              </span>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* BOTÓN DE CIERRE */}
+      <button 
+        className={styles.modalCloseButton}
+        onClick={() => {
+          setIsDrillModalOpen(false);
+          setDrillResult(null);
+        }}
+      >
+        Confirmar Informe
+      </button>
+
+    </div>
+  </div>
+)}
     </main>
   ) : (
     <main>

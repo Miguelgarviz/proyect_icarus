@@ -33,4 +33,12 @@ export class ShipService {
         });
     }
 
+    async decreaseDrill(id: number, drillCost: number){
+        return this.prisma.ship.update({
+            where: { id },
+            data: {
+                drill: { decrement: drillCost }
+            }
+        });
+    }
 }

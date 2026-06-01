@@ -17,6 +17,20 @@ export class TileService {
     }
 
     async createTiles(externalId: string[], type: TileType, coordinates: {x: number, y: number}[], gameId: number): Promise<void> {
+        let drillAttempts = 0;
+        switch (type){
+            case TileType.GREEN:
+                drillAttempts = 3
+                break;
+            case TileType.RED:
+                drillAttempts = 2
+                break;
+            case TileType.YELLOW:
+                drillAttempts = 1
+                break;
+            default:
+                break;
+        }
         for (let i = 0; i < externalId.length; i++) {
             await this.prisma.tile.create({
                 data: {
@@ -25,7 +39,9 @@ export class TileService {
                     
                     positionX: coordinates[i].x,
                     positionY: coordinates[i].y,
-                    gameId: gameId
+                    gameId: gameId,
+                    drillAttempts: drillAttempts
+
                 }
             });
         }
@@ -62,4 +78,54 @@ export class TileService {
         });
     }
 
+    async decreaseDrillAttempts(id: number){
+        return await this.prisma.tile.update({
+            where: { id },
+            data: {
+                drillAttempts: { decrement: 1 }
+            }
+        });
+    }
+
+    async resetDrillAttempts(gameId: number){
+        const tiles = await this.prisma.tile.findMany({
+            where: {
+                gameId: gameId
+            }
+        });
+        for (const tile of tiles) {
+            let drillAttempts = 0;
+            switch (tile.type){
+                case TileType.GREEN:
+                    drillAttempts = 3;
+                    break;
+                case TileType.RED:
+                    drillAttempts = 2;
+                    break;
+                case TileType.YELLOW:
+                    drillAttempts = 1;
+                    break;
+                default:
+                    break;
+            }
+            
+            await this.prisma.tile.update({
+                where: { id: tile.id },
+                data: { drillAttempts: drillAttempts
+                 }
+            });
+        }
+    }
+
+    async isTileOccupied(gameId: number, x: number, y: number){
+        const tile = await this.prisma.tile.findUniqueOrThrow({
+            where: {
+                positionX_positionY_gameId:{
+                    gameId: gameId,
+                    positionX: x,
+                    positionY: y
+                }            }
+        });
+        return tile.ocupiedByPlayerId;
+    }
 }

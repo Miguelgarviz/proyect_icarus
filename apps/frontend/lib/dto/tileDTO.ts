@@ -16,5 +16,6 @@ export interface TileDTO {
     positionX: number;
     positionY: number;
 
+    drillAttempts: number;
     gameId: number;
 }

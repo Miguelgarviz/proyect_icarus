@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Ship" ADD COLUMN     "canDrillDeeper" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "drillTriesGreen" INTEGER NOT NULL DEFAULT 3,
+ADD COLUMN     "drillTriesRed" INTEGER NOT NULL DEFAULT 2,
+ADD COLUMN     "drillTriesYellow" INTEGER NOT NULL DEFAULT 1;

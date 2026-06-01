@@ -5,19 +5,24 @@ import { ShipDTO } from "../../../lib/dto/shipDTO";
 import Image from "next/image";
 import { CardDTO } from "../../../lib/dto/storeDTO";
 import { CARD_DATA } from "./StoreComponent";
+import { TileDTO } from "../../../lib/dto/tileDTO";
 
 export default function PlayerDataComponent({
   shipData,
   cargoData,
   cardsData,
+  actualTile,
   handleUpgrade,
-  handleChange
+  handleChange,
+  handleDrill
 }: {
   shipData: ShipDTO | undefined;
   cargoData: StorageDTO | undefined;
   cardsData: CardDTO[] | undefined;
+  actualTile: TileDTO;
   handleUpgrade: (system: string) => void;
   handleChange: (system: string) => void;
+  handleDrill: () => void;
 }) {
   // Si los datos aún no se han cargado del backend, evitamos que rompa mostrando un loader
   if (!shipData || !cargoData) {
@@ -29,8 +34,16 @@ export default function PlayerDataComponent({
   }
 
   // 🌟 Condición: ¿La nave está actualmente en una estación espacial?
-  const isAtSpaceStation = shipData.externalId?.includes("space_station") ?? false;
+  const isAtSpaceStation =
+    shipData.externalId?.includes("space_station") ?? false;
 
+  const drillPrice: Record<string,number> = {
+            "GREEN":1,
+            "RED":2,
+            "YELLOW":3
+        }
+
+  console.log(shipData.externalId.includes("planet"), actualTile.drillAttempts > 0, shipData.drill > 0 ,shipData.drill >= drillPrice[actualTile.type.toString()])
   // Funciones manejadoras temporales para las mejoras (aquí harás tus fetchs PUT/PATCH al backend en el futuro)
 
   return (
@@ -41,7 +54,6 @@ export default function PlayerDataComponent({
       <div className={styles.section}>
         <div className={styles.sectionTitle}>Estado de la Nave</div>
         <div className={styles.gridRows}>
-          
           {/* Nivel del Motor */}
           <div className={styles.dataRow}>
             <div className={styles.labelWrapper}>
@@ -56,20 +68,23 @@ export default function PlayerDataComponent({
               </div>{" "}
               Motor
             </div>
-            
+
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div className={`${styles.valueBadge} ${styles.engineValue}`}>
                 {shipData.engine}
               </div>
-              {isAtSpaceStation && shipData.engine < 5 && cargoData.red>=1 && !shipData.upgradedEngine && (
-                <button 
-                  className={styles.upgradeButton}
-                  onClick={() => handleUpgrade("engine")}
-                  title="Mejorar Motor"
-                >
-                  +
-                </button>
-              )}
+              {isAtSpaceStation &&
+                shipData.engine < 5 &&
+                cargoData.red >= 1 &&
+                !shipData.upgradedEngine && (
+                  <button
+                    className={styles.upgradeButton}
+                    onClick={() => handleUpgrade("engine")}
+                    title="Mejorar Motor"
+                  >
+                    +
+                  </button>
+                )}
             </div>
           </div>
 
@@ -87,20 +102,22 @@ export default function PlayerDataComponent({
               </div>{" "}
               Taladro
             </div>
-            
+
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div className={`${styles.valueBadge} ${styles.drillValue}`}>
                 {shipData.drill}
               </div>
-              {isAtSpaceStation && shipData.drill < 10 && cargoData.green>=1 &&(
-                <button 
-                  className={styles.upgradeButton}
-                  onClick={() => handleUpgrade("drill")}
-                  title="Mejorar Taladro"
-                >
-                  +
-                </button>
-              )}
+              {isAtSpaceStation &&
+                shipData.drill < 10 &&
+                cargoData.green >= 1 && (
+                  <button
+                    className={styles.upgradeButton}
+                    onClick={() => handleUpgrade("drill")}
+                    title="Mejorar Taladro"
+                  >
+                    +
+                  </button>
+                )}
             </div>
           </div>
 
@@ -118,20 +135,22 @@ export default function PlayerDataComponent({
               </div>{" "}
               Escudo
             </div>
-            
+
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div className={`${styles.valueBadge} ${styles.shieldValue}`}>
                 {shipData.shield}
               </div>
-              {isAtSpaceStation && shipData.shield < 10 && cargoData.green>=1 &&(
-                <button 
-                  className={styles.upgradeButton}
-                  onClick={() => handleUpgrade("shield")}
-                  title="Mejorar Escudo"
-                >
-                  +
-                </button>
-              )}
+              {isAtSpaceStation &&
+                shipData.shield < 10 &&
+                cargoData.green >= 1 && (
+                  <button
+                    className={styles.upgradeButton}
+                    onClick={() => handleUpgrade("shield")}
+                    title="Mejorar Escudo"
+                  >
+                    +
+                  </button>
+                )}
             </div>
           </div>
         </div>
@@ -144,15 +163,17 @@ export default function PlayerDataComponent({
           {/* Mineral Verde */}
           <div className={styles.dataRow}>
             <div className={styles.labelWrapper}>
-              {isAtSpaceStation && cargoData.green>=7 && cargoData.red<10 &&(
-                <button 
-                  className={styles.changeToRed}
-                  onClick={() => handleChange("green-to-red")}
-                  title="Cambiar materiales verdes a rojos"
-                >
-                  ▼
-                </button>
-              )}
+              {isAtSpaceStation &&
+                cargoData.green >= 7 &&
+                cargoData.red < 10 && (
+                  <button
+                    className={styles.changeToRed}
+                    onClick={() => handleChange("green-to-red")}
+                    title="Cambiar materiales verdes a rojos"
+                  >
+                    ▼
+                  </button>
+                )}
               <div className={styles.iconWrapper}>
                 <Image
                   src="/images/icons/green-mineral.png"
@@ -170,15 +191,17 @@ export default function PlayerDataComponent({
           {/* Mineral Rojo */}
           <div className={styles.dataRow}>
             <div className={styles.labelWrapper}>
-              {isAtSpaceStation && cargoData.red>=1 && cargoData.green<18 &&(
-                <button 
-                  className={styles.changeToGreen}
-                  onClick={() => handleChange("red-to-green")}
-                  title="Cambiar materiales rojos a verdes"
-                >
-                  ▲
-                </button>
-              )}
+              {isAtSpaceStation &&
+                cargoData.red >= 1 &&
+                cargoData.green < 18 && (
+                  <button
+                    className={styles.changeToGreen}
+                    onClick={() => handleChange("red-to-green")}
+                    title="Cambiar materiales rojos a verdes"
+                  >
+                    ▲
+                  </button>
+                )}
               <div className={styles.iconWrapper}>
                 <Image
                   src="/images/icons/red-mineral.png"
@@ -188,15 +211,17 @@ export default function PlayerDataComponent({
                   style={{ objectFit: "contain" }}
                 />
               </div>{" "}
-              {isAtSpaceStation && cargoData.red>=5 && cargoData.yellow<10 &&(
-                <button 
-                  className={styles.changeToYellow}
-                  onClick={() => handleChange("red-to-yellow")}
-                  title="Cambiar materiales rojos a amarillos"
-                >
-                  ▼
-                </button>
-              )}
+              {isAtSpaceStation &&
+                cargoData.red >= 5 &&
+                cargoData.yellow < 10 && (
+                  <button
+                    className={styles.changeToYellow}
+                    onClick={() => handleChange("red-to-yellow")}
+                    title="Cambiar materiales rojos a amarillos"
+                  >
+                    ▼
+                  </button>
+                )}
               Mineral Rojo
             </div>
             <div className={styles.valueBadge}>{cargoData.red}</div>
@@ -205,15 +230,17 @@ export default function PlayerDataComponent({
           {/* Mineral Amarillo */}
           <div className={styles.dataRow}>
             <div className={styles.labelWrapper}>
-              {isAtSpaceStation && cargoData.yellow>=1 && cargoData.red<10 &&(
-                <button 
-                  className={styles.changeToRed}
-                  onClick={() => handleChange("yellow-to-red")}
-                  title="Cambiar materiales amarillos a rojos"
-                >
-                  ▲
-                </button>
-              )}
+              {isAtSpaceStation &&
+                cargoData.yellow >= 1 &&
+                cargoData.red < 10 && (
+                  <button
+                    className={styles.changeToRed}
+                    onClick={() => handleChange("yellow-to-red")}
+                    title="Cambiar materiales amarillos a rojos"
+                  >
+                    ▲
+                  </button>
+                )}
               <div className={styles.iconWrapper}>
                 <Image
                   src="/images/icons/yellow-mineral.png"
@@ -231,42 +258,62 @@ export default function PlayerDataComponent({
       </div>
 
       {/* --- BLOQUE 3: CARTAS DEL JUGADOR --- */}
-<div className={styles.section}>
-  <div className={styles.sectionTitle}>Cartas del Jugador</div>
-  
-  {/* 1. Renderizamos las cartas reales que ya tiene el jugador */}
-  {cardsData?.map((card, index) => (
-    <div className={styles.dataRow} key={`card-${index}`}>
-      <div className={styles.playerCardName}>
-        {CARD_DATA[card.type].name}
-      </div>
-      <button
-        style={{
-          marginLeft: "10px",
-          padding: "6px 12px",
-          backgroundColor: "#00FF00",
-          color: "#000",
-          border: "none",
-          borderRadius: "6px",
-          fontSize: "0.75rem",
-          fontWeight: "bold",
-          textTransform: "uppercase",
-          cursor: "pointer",
-        }}
-        onClick={() => alert(`Usando carta: ${card.type}`)}
-      >
-        Usar
-      </button>
-    </div>
-  ))}
+      <div className={styles.section}>
+        <div className={styles.sectionTitle}>Cartas del Jugador</div>
 
-  {/* 2. 🌟 Rellenamos dinámicamente los huecos vacíos hasta llegar a 3 */}
-  {Array.from({ length: Math.max(0, 3 - (cardsData?.length ?? 0)) }).map((_, index) => (
-    <div className={styles.emptyCardSlot} key={`empty-${index}`}>
-      <span className={styles.emptyCardText}>Ranura de carta vacía</span>
-    </div>
-  ))}
-</div>
+        {/* 1. Renderizamos las cartas reales que ya tiene el jugador */}
+        {cardsData?.map((card, index) => (
+          <div className={styles.dataRow} key={`card-${index}`}>
+            <div className={styles.playerCardName}>
+              {CARD_DATA[card.type].name}
+            </div>
+            <button
+              style={{
+                marginLeft: "10px",
+                padding: "6px 12px",
+                backgroundColor: "#00FF00",
+                color: "#000",
+                border: "none",
+                borderRadius: "6px",
+                fontSize: "0.75rem",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                cursor: "pointer",
+              }}
+              onClick={() => alert(`Usando carta: ${card.type}`)}
+            >
+              Usar
+            </button>
+          </div>
+        ))}
+
+        {Array.from({ length: Math.max(0, 3 - (cardsData?.length ?? 0)) }).map(
+          (_, index) => (
+            <div className={styles.emptyCardSlot} key={`empty-${index}`}>
+              <span className={styles.emptyCardText}>
+                Ranura de carta vacía
+              </span>
+            </div>
+          ),
+        )}
+      </div>
+      {shipData.externalId.includes("planet") && actualTile.drillAttempts > 0 && shipData.drill > 0 && shipData.drill >= drillPrice[actualTile.type.toString()] && (
+        <button
+              style={{
+                padding: "6px 12px",
+                backgroundColor: "#ff0000",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "6px",
+                fontSize: "0.75rem",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                cursor: "pointer",
+              }}
+              onClick={() => handleDrill()}
+      >
+        Excavar
+      </button>)}
     </div>
   );
 }
