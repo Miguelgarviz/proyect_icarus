@@ -5,6 +5,7 @@ export interface PlayerDTO {
   movement: number;
   storageId: number;
   shipId: number;
+  isDead: boolean;
 }
 export interface PlayerChipDTO {
   id: string;

@@ -41,4 +41,14 @@ export class ShipService {
             }
         });
     }
+
+    async decreaseShield(id: number, shieldCost: number, shield: number){
+        return this.prisma.ship.update({
+            where: {id},
+            data: {
+                shield: (shield - shieldCost >= 0) ? { decrement: shieldCost}:0
+            }
+        })
+
+    }
 }

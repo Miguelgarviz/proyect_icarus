@@ -416,4 +416,5 @@ async calculateMaxDistance(player: Player, ship: Ship, gameId: number, otherPlay
             }
         })
     }
+
 }

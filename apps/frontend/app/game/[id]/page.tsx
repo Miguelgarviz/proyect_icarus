@@ -5,7 +5,7 @@ import Image from "next/image";
 import BoardGrid from "./BoardGrid";
 import EntitiesLayer from "./EntitiesLayer";
 import styles from "./game.module.css";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { PlayerDTO, PlayerChipDTO } from "../../../lib/dto/playerDTO";
 import { ShipDTO } from "../../../lib/dto/shipDTO";
 import { CardDTO } from "../../../lib/dto/storeDTO";
@@ -26,6 +26,7 @@ interface DrillResponse {
 }
 
 export default function GamePage() {
+  const router = useRouter();
   const params = useParams();
   const [game, setGame] = useState<GameDTO>();
   const [currentPlayer, setCurrentPlayer] = useState<PlayerDTO>();
@@ -42,7 +43,9 @@ export default function GamePage() {
   const [isDrillModalOpen, setIsDrillModalOpen] = useState<boolean>(false);
   const [drillResult, setDrillResult] = useState<DrillResponse | null>(null);
   const [drillDeeper, setDrillDeeper] = useState<boolean>(false);
-  
+  const [isGameOverDeathModalOpen, setIsGameOverDeathModalOpen] = useState<boolean>(false);
+  const [isGameOverExplosionModalOpen, setIsGameOverExplosionModalOpen] = useState<boolean>(false);
+
   const gameId = params.id;
 
   useEffect(() => {
@@ -179,7 +182,7 @@ export default function GamePage() {
   function calculatePlayerChips(playersData: PlayerDTO[], shipsData: ShipDTO[]) {
     const newChips: PlayerChipDTO[] = [];
     const limit = Math.min(playersData.length, shipsData.length);
-    
+
     for (let i = 0; i < limit; i++) {
       newChips.push({
         id: playersData[i].id,
@@ -194,14 +197,26 @@ export default function GamePage() {
 
   async function nextPlayer() {
     try {
-      await fetch(`http://localhost:4000/api/v1/game/${gameId}/next-turn`, {
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/next-turn`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" }
       });
-      await fetchActualPlayer();
-      await fetchPlayersCards();
-      await fetchMaxDistance();
-      await fetchActualTile();
+      const result = await response.json();
+      if (result.defeat) {
+        if(result.type === "death"){
+          setIsGameOverDeathModalOpen(true)
+        }else if(result.type === "explote"){
+          setIsGameOverExplosionModalOpen(true)
+        }
+      } else {
+        await fetchActualPlayer();
+        await fetchShips();
+        await fetchStorages();
+        await fetchPlayersCards();
+        await fetchMaxDistance();
+        await fetchActualTile();
+        await fetchGame();
+      }
     } catch (error) {
       console.error(error);
     }
@@ -273,7 +288,6 @@ export default function GamePage() {
     }
   };
 
-  // 🌟 REFACTORIZADO: Lógica de excavación con control de estados para el Modal
   async function handleDrill(){
     try {
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/drill`, {
@@ -328,6 +342,12 @@ export default function GamePage() {
     } catch (error) {
       console.error("Error en la perforación:", error);
     }
+  }
+
+  async function handleResetGame(){
+    setIsGameOverDeathModalOpen(false);
+    setIsGameOverExplosionModalOpen(false);
+    router.push(`http://localhost:3000`);
   }
 
   return !loading ? (
@@ -408,13 +428,13 @@ export default function GamePage() {
               overflow: "hidden",
             }}
           >
-            <StoreComponent
+            {!currentPlayer?.isDead && <StoreComponent
               cards={storeCards.slice(0, 3)}
               handleBuy={handleBuy}
               externalId={ships.find((s) => s.id===currentPlayer?.shipId)?.externalId!}
               redMinerals={storages.find((s) => s.id === currentPlayer?.storageId)?.red!}
               numPlayerCards={playerCards.length}
-            />
+            />}
           </div>
 
           <button
@@ -488,7 +508,7 @@ export default function GamePage() {
               backgroundColor: "rgba(0,0,0,0.3)",
             }}
           >
-            {currentPlayer && (
+            {currentPlayer && !currentPlayer.isDead &&(
               <PlayerDataComponent
                 shipData={ships.find(
                   (s) => s.id === Number(currentPlayer.shipId),
@@ -600,6 +620,50 @@ export default function GamePage() {
         Confirmar Informe
       </button>
 
+    </div>
+  </div>
+  
+)}
+{/* MODAL 1: TODOS LOS JUGADORES MUERTOS (CALAVERA) */}
+{isGameOverDeathModalOpen && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalContentGameOver}>
+      <div className={styles.modalBodyGameOver}>
+        <div className={`${styles.resultIcon} ${styles.iconDeath}`}>💀</div>
+        <h3 className={styles.modalTitleGameOver}>Misión Fracasada</h3>
+        <p className={styles.gameOverDescription}>
+          Los sistemas vitales de todas las naves se han extinguido. Ningún tripulante ha sobrevivido a los peligros del sector Icaro.
+        </p>
+      </div>
+      
+      <button 
+        className={styles.modalRetryButton}
+        onClick={() => handleResetGame()}
+      >
+        Volver al Menú Principal
+      </button>
+    </div>
+  </div>
+)}
+
+{/* MODAL 2: EXPLOSIÓN DEL SISTEMA (SOL / SUPERNOVA) */}
+{isGameOverExplosionModalOpen && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalContentGameOver}>
+      <div className={styles.modalBodyGameOver}>
+        <div className={`${styles.resultIcon} ${styles.iconExplosion}`}>☀️</div>
+        <h3 className={styles.modalTitleGameOver}>Sistema Destruido</h3>
+        <p className={styles.gameOverDescription}>
+          La estabilidad estelar ha llegado a su límite crítico. El sol del sistema ha colapsado en una supernova, desintegrando todo a su paso.
+        </p>
+      </div>
+      
+      <button 
+        className={styles.modalRetryButton}
+        onClick={() => handleResetGame()}
+      >
+        Volver al Menú Principal
+      </button>
     </div>
   </div>
 )}

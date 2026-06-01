@@ -707,3 +707,88 @@
   text-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
 }
 .resourceDisplay.yellow { border-color: rgba(245, 158, 11, 0.4); }
+
+/* Contenedor específico para el Fin de Partida */
+.modalContentGameOver {
+  background-color: #0b0f19;
+  border: 2px solid #1e293b;
+  border-radius: 12px;
+  padding: 40px 30px;
+  width: 450px;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px; /* Separa el bloque de texto del botón inferior */
+}
+
+.modalBodyGameOver {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px; /* Separa el icono, el título y la descripción verticalmente */
+}
+
+.modalTitleGameOver {
+  font-size: 1.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.gameOverDescription {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Efectos de brillo personalizados para cada icono */
+.iconDeath {
+  font-size: 3.5rem;
+  animation: pulseGhost 2s infinite ease-in-out;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.iconExplosion {
+  font-size: 3.5rem;
+  animation: pulseSupernova 2s infinite ease-in-out;
+  text-shadow: 0 0 25px rgba(245, 158, 11, 0.6);
+}
+
+/* Botón de reinicio / volver */
+.modalRetryButton {
+  background-color: transparent;
+  border: 2px solid #64748b;
+  color: #94a3b8;
+  padding: 12px 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.modalRetryButton:hover {
+  background-color: #ffffff;
+  border-color: #ffffff;
+  color: #0b0f19;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+/* Animaciones ambientales */
+@keyframes pulseGhost {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+@keyframes pulseSupernova {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.5)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.8)); }
+}

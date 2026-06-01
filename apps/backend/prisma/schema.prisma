@@ -30,6 +30,8 @@ model Player {
   storage Storage? @relation(fields: [storageId], references:[id])
   storageId Int? @unique
 
+  isDead Boolean @default(false)
+
   @@unique([name, lobbyId])
   @@unique([color, lobbyId])
 }

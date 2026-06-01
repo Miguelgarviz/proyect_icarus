@@ -58,5 +58,31 @@ export class PlayerService {
         });
     }
 
-
+    async setPlayerDeath(player: Player){
+        await this.prisma.player.update({
+            where: {id: player.id},
+            data: { isDead: true }
+        })
+        await this.prisma.ship.update({
+            where: {id: player.shipId!},
+            data: {
+                engine: 0,
+                drill: 0
+            }
+        })
+        await this.prisma.storage.update({
+            where: {id: player.storageId!},
+            data: {
+                red: 0,
+                green: 0,
+                yellow: 0
+            }
+        })
+        await this.prisma.card.updateMany({
+            where: { playerId: player.id },
+            data: {
+                playerId: null
+            }
+        })
+    }
 }

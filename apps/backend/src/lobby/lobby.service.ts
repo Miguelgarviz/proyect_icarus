@@ -20,7 +20,9 @@ export class LobbyService {
 
     async getPlayersInLobby(lobbyWhereUniqueInput: Prisma.LobbyWhereUniqueInput): Promise<Player[]>{
         return this.prisma.player.findMany({
-            where: { lobbyId: lobbyWhereUniqueInput.id },
+            where: { 
+                lobbyId: lobbyWhereUniqueInput.id
+            },
             orderBy: { turnOrder: 'asc' }
         })
     }
