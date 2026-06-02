@@ -25,6 +25,7 @@ interface DrillResponse {
   drillCard?: DrillCardDTO; // Solo vendrá si el tipo es "card"
 }
 
+
 export default function GamePage() {
   const router = useRouter();
   const params = useParams();
@@ -38,6 +39,7 @@ export default function GamePage() {
   const [reachableTiles, setReachableTiles] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [actualTile, setActualTile] = useState<TileDTO>();
+  const [achiveGoal, setAchiveGoal] = useState<boolean>(false)
   
   // 🌟 NUEVOS ESTADOS: Para controlar la visibilidad y el contenido del modal de excavación
   const [isDrillModalOpen, setIsDrillModalOpen] = useState<boolean>(false);
@@ -45,6 +47,7 @@ export default function GamePage() {
   const [drillDeeper, setDrillDeeper] = useState<boolean>(false);
   const [isGameOverDeathModalOpen, setIsGameOverDeathModalOpen] = useState<boolean>(false);
   const [isGameOverExplosionModalOpen, setIsGameOverExplosionModalOpen] = useState<boolean>(false);
+  const [isVictoryModalOpen, setIsVictoryModalOpen] = useState<boolean>(false);
 
   const gameId = params.id;
 
@@ -116,6 +119,14 @@ export default function GamePage() {
       if (!response.ok) throw new Error("Error al cargar almacenamiento");
       const storageData = await response.json();
       setStorages(storageData);
+
+      const responseGoal = await fetch(`http://localhost:4000/api/v1/game/${gameId}/goal`);
+      if(!responseGoal.ok) throw new Error("Error al cargar el goal");
+      const goalData = await responseGoal.json();
+      console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+      console.log(goalData)
+      setAchiveGoal(goalData)
+
       return storageData;
     } catch (error) {
       console.error(error);
@@ -235,6 +246,7 @@ export default function GamePage() {
       await fetchGame();
       await fetchActualPlayer();
       await fetchMaxDistance();
+      await fetchStorages();
       await fetchActualTile();
 
       if (players && freshShips) {
@@ -350,6 +362,11 @@ export default function GamePage() {
     router.push(`http://localhost:3000`);
   }
 
+  async function handleVictory(){
+    setIsVictoryModalOpen(true)
+  }
+
+  console.log(achiveGoal , "initial_"+(currentPlayer?.turnOrder!+1))
   return !loading ? (
     <main
       className={styles.pageContainer}
@@ -437,7 +454,7 @@ export default function GamePage() {
             />}
           </div>
 
-          <button
+          {!(achiveGoal && actualTile?.externalId === "initial_"+(currentPlayer?.turnOrder! + 1))?(<button
             onClick={async () => await nextPlayer()}
             style={{
               border: "3px solid #00FF00",
@@ -452,10 +469,27 @@ export default function GamePage() {
             }}
           >
             Pasar Turno
-          </button>
+          </button>):
+          (<button
+            onClick={async () => await handleVictory()}
+            style={{
+              border: "3px solid #c300ff",
+              height: "65px",
+              borderRadius: "8px",
+              backgroundColor: "#c300ff31",
+              color: "#de72ff",
+              fontWeight: "bold",
+              cursor: "pointer",
+              textTransform: "uppercase",
+              flexShrink: 0,
+            }}
+          >
+            Salir del sistema
+          </button>)}
         </div>
 
         {/* TABLERO CENTRAL */}
+        
         <div
           className={styles.boardWrapper}
           style={{
@@ -495,9 +529,11 @@ export default function GamePage() {
             <EntitiesLayer 
               playersData={playersChips}
             />
+            
           </svg>
         </div>
 
+            
         {/* COLUMNA DERECHA */}
         <div style={{ width: "320px", flexShrink: 0 }}>
           <div
@@ -525,6 +561,7 @@ export default function GamePage() {
             )}
           </div>
         </div>
+        
       </div>
 
       {/* ========================================================================= */}
@@ -663,6 +700,35 @@ export default function GamePage() {
         onClick={() => handleResetGame()}
       >
         Volver al Menú Principal
+      </button>
+    </div>
+  </div>
+)}
+{isVictoryModalOpen && currentPlayer && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalContentVictory}>
+      <div className={styles.modalBodyVictory}>
+        <div className={styles.iconVictory}>🏆</div>
+        <h3 className={styles.modalTitleVictory}>¡Misión Cumplida!</h3>
+        
+        <div className={styles.victoryPilotBadge}>
+          Comandante: <span className={styles.victoryPilotName}>{currentPlayer.name}</span>
+        </div>
+
+        <p className={styles.victoryDescription}>
+          Los recolectores de carga informan de un éxito absoluto. Has asegurado los minerales necesarios y has iniciado la secuencia de salto hiperespacial justo a tiempo. 
+        </p>
+        
+        <p className={styles.victoryLore}>
+          La nave rompe la gravedad del sector Ícaro dejando atrás el colapso estelar. Tu nombre será recordado en los confines de la Galaxia.
+        </p>
+      </div>
+      
+      <button 
+        className={styles.modalVictoryButton}
+        onClick={() => handleResetGame()}
+      >
+        Regresar al Centro de Mando
       </button>
     </div>
   </div>

@@ -1,6 +1,6 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { Prisma, Game, Tile, Ship, Player, Storage, DrillCard } from '@backend/generated/prisma/client';
+import { Prisma, Game, Tile, Ship, Player, Storage, DrillCard, Lobby } from '@backend/generated/prisma/client';
 import { TileService } from '../tile/tile.service';
 
 const spaceStationLandings: Record<string, string[]> = {
@@ -17,6 +17,20 @@ const spaceStationLandings: Record<string, string[]> = {
     "space_station_11": ["green_planet_8"],
     "space_station_12": ["red_planet_3"],
 };
+
+const goalValues: Record<string, number[]> = {
+    "BEGINNER_I":[0,2,0],
+    "BEGINNER_II":[2,2,0],
+    "EASY_I":[0,0,1],
+    "EASY_II":[1,1,1],
+    "MEDIUM_I":[0,0,2],
+    "MEDIUM_II":[0,2,2],
+    "HARD_I":[2,2,2],
+    "HARD_II":[0,3,3],
+    "EXTREME_I":[0,4,4],
+    "EXTREME_II":[0,0,6],
+    "IMPOSSIBLE":[0,0,8]
+}
 
 @Injectable()
 export class GameService {
@@ -417,4 +431,14 @@ async calculateMaxDistance(player: Player, ship: Ship, gameId: number, otherPlay
         })
     }
 
+    async haveAchivedGoal(lobby: Lobby, storage: Storage){
+        const goal = goalValues[lobby.dificulty.toString()]
+        const storageValues:[number,number,number] = [storage.green,storage.red,storage.yellow]
+
+        const greenGoal = goal[0]=== 0 || storage.green >= goal[0];
+        const redGoal = goal[1]=== 0 || storage.red >= goal[1];
+        const yellowGoal = goal[2]=== 0 || storage.yellow >= goal[2];
+
+        return greenGoal && redGoal && yellowGoal;
+    }
 }

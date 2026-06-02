@@ -411,4 +411,15 @@ export class GameController {
         return {drillCard: null, empty: false, valid: false, type: ""}
     }
 
+    @Get('/:id/goal')
+    async haveAchivedGoal(@Param('id') gameId: string){
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        const lobby = await this.lobbyService.getLobby({id: game.lobbyId!})
+        const player = await this.playerService.getPlayer({id: game.actualPlayerId})
+        const storage = await this.storageService.getStorage(player.storageId!)
+
+        const goal =  await this.gameService.haveAchivedGoal(lobby,storage)
+        return goal
+    }
+
 }
