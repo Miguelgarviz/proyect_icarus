@@ -14,22 +14,26 @@ export default function PlayerDataComponent({
   cardsData,
   actualTile,
   playerMovement,
+  initialHelp,
   adjacentPlayers,
   handleUpgrade,
   handleChange,
   handleDrill,
-  handleCard
+  handleCard,
+  handleInitialHelp
 }: {
   shipData: ShipDTO | undefined;
   cargoData: StorageDTO | undefined;
   cardsData: CardDTO[] | undefined;
   actualTile: TileDTO;
   playerMovement: number;
+  initialHelp: boolean;
   adjacentPlayers: PlayerChipDTO[];
   handleUpgrade: (system: string) => void;
   handleChange: (system: string) => void;
   handleDrill: () => void;
   handleCard: (card: CardDTO) => void;
+  handleInitialHelp: ()=> void;
 }) {
   // Si los datos aún no se han cargado del backend, evitamos que rompa mostrando un loader
   if (!shipData || !cargoData) {
@@ -205,6 +209,21 @@ export default function PlayerDataComponent({
               Mineral Verde
             </div>
             <div className={styles.valueBadge}>{cargoData.green}</div>
+            {initialHelp && isAtSpaceStation &&
+                shipData.drill === 0 &&
+                cargoData.green === 0 && 
+                cargoData.red === 0 &&
+                cargoData.yellow === 0 &&(<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              {(
+                  <button
+                    className={styles.upgradeButton}
+                    onClick={() => handleInitialHelp()}
+                    title="Conseguir Ayuda Inicial"
+                  >
+                    +
+                  </button>
+                )}
+            </div>)}
           </div>
 
           {/* Mineral Rojo */}

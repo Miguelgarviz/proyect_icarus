@@ -431,6 +431,18 @@ export default function GamePage() {
     setIsVictoryModalOpen(true)
   }
 
+  async function handleInitialHelp(){
+    try{
+      await fetch(`http://localhost:4000/api/v1/game/${gameId}/initial-help`,{
+        method:"PUT",
+        headers: { "Content-Type": "application/json" }
+      })
+      await fetchActualPlayer();
+      await fetchStorages();
+    }catch(error){
+      console.error(error)
+    }
+  }
   return !loading ? (
     <main
       className={styles.pageContainer}
@@ -619,11 +631,13 @@ export default function GamePage() {
                 cardsData={playerCards}
                 actualTile={actualTile!}
                 playerMovement={currentPlayer.movement}
+                initialHelp = {currentPlayer.initialHelp}
                 adjacentPlayers={adjacentPlayers}
                 handleUpgrade={handleUpgradeShip}
                 handleChange={handleChangeMinerals}
                 handleDrill={handleDrill}
                 handleCard={handleGetCard}
+                handleInitialHelp={handleInitialHelp}
               />
             )}
           </div>

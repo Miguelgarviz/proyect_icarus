@@ -7,6 +7,7 @@ export interface PlayerDTO {
   shipId: number;
   turnOrder: number;
   isDead: boolean;
+  initialHelp: boolean;
 }
 export interface PlayerChipDTO {
   id: string;

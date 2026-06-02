@@ -514,4 +514,16 @@ export class GameController {
         }
         return adjacentPlayers
     }
+
+    @Put('/:id/initial-help')
+    async giveInitialHelp(@Param('id') gameId: string){
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        const player = await this.playerService.getPlayer({id: game.actualPlayerId})
+        const storage = await this.storageService.getStorage(player.storageId!)
+        const ship = await this.shipService.getShipById(player.shipId!)
+
+        if(storage.green === 0 && storage.red === 0 && storage.yellow === 0 && ship.drill === 0 && player.initialHelp){
+            await this.storageService.giveInitialHelp(storage,player)
+        }
+    }
 }

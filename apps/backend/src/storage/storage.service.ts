@@ -1,5 +1,5 @@
 import { PrismaService } from '../prisma/prisma.service';
-import { DrillCard, Prisma, Storage } from '../generated/prisma/client';
+import { DrillCard, Player, Prisma, Storage } from '../generated/prisma/client';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -80,6 +80,21 @@ export class StorageService {
             where:{id: storage.id},
             data:{
                 yellow: (storage.yellow + drillCard.yellowResources <= 10)?{increment:drillCard.yellowResources}:1
+            }
+        })
+    }
+
+    async giveInitialHelp(storage: Storage, player: Player){
+        await this.prisma.storage.update({
+            where:{id: storage.id},
+            data:{
+                green: {increment:3}
+            }
+        })
+        await this.prisma.player.update({
+            where: {id: player.id},
+            data: {
+                initialHelp: false
             }
         })
     }

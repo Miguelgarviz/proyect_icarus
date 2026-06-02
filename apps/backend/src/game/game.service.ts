@@ -441,4 +441,5 @@ async calculateMaxDistance(player: Player, ship: Ship, gameId: number, otherPlay
 
         return greenGoal && redGoal && yellowGoal;
     }
+
 }
