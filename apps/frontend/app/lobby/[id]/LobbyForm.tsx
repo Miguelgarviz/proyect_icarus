@@ -59,7 +59,7 @@ export default function LobbyForm({
               <button
                 key={c.value}
                 type="button"
-                disabled={isOccupied}
+                disabled={!c ||isOccupied}
                 onClick={() => setSelectedColor(c.value)}
                 style={{
                   backgroundColor: c.value,

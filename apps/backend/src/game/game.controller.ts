@@ -458,11 +458,13 @@ export class GameController {
                     await this.cardService.applyRocketThrustersCard(player)
                     break;
                 case 'SLINGSHOT':
-                    const otherPlayerId = Number(effect.replace("swap-player_",""))
-                    const otherPlayer = await this.playerService.getPlayer({id: Number(otherPlayerId)})
-                    const otherShip = await this.shipService.getShipById(otherPlayer.shipId!)
-                    const otherTile = await this.tileService.getTileByExternalId(otherShip.externalId!, game.id)
-                    await this.cardService.applySlingShotCard(ship,otherShip, player, otherPlayer, actualTile, otherTile)
+                    if(effect.includes("swap-player_") && player.movement >= 2){
+                        const otherPlayerId = Number(effect.replace("swap-player_",""))
+                        const otherPlayer = await this.playerService.getPlayer({id: Number(otherPlayerId)})
+                        const otherShip = await this.shipService.getShipById(otherPlayer.shipId!)
+                        const otherTile = await this.tileService.getTileByExternalId(otherShip.externalId!, game.id)
+                        await this.cardService.applySlingShotCard(ship,otherShip, player, otherPlayer, actualTile, otherTile)
+                    }
                     break;
                 case 'TEMPORARY_PATCH':
                     if(effect == "repair_drill" || effect == "repair_shield") await this.cardService.applyTemporaryPatchCard(ship, effect)

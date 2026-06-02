@@ -3,15 +3,18 @@ import styles from "./game.module.css";
 import { StorageDTO } from "../../../lib/dto/storageDTO";
 import { ShipDTO } from "../../../lib/dto/shipDTO";
 import Image from "next/image";
-import { CardDTO } from "../../../lib/dto/storeDTO";
+import { CardDTO, CardTypeDTO } from "../../../lib/dto/storeDTO";
 import { CARD_DATA } from "./StoreComponent";
 import { TileDTO } from "../../../lib/dto/tileDTO";
+import { PlayerChipDTO } from "../../../lib/dto/playerDTO";
 
 export default function PlayerDataComponent({
   shipData,
   cargoData,
   cardsData,
   actualTile,
+  playerMovement,
+  adjacentPlayers,
   handleUpgrade,
   handleChange,
   handleDrill,
@@ -21,6 +24,8 @@ export default function PlayerDataComponent({
   cargoData: StorageDTO | undefined;
   cardsData: CardDTO[] | undefined;
   actualTile: TileDTO;
+  playerMovement: number;
+  adjacentPlayers: PlayerChipDTO[];
   handleUpgrade: (system: string) => void;
   handleChange: (system: string) => void;
   handleDrill: () => void;
@@ -40,10 +45,25 @@ export default function PlayerDataComponent({
     shipData.externalId?.includes("space_station") ?? false;
 
   const drillPrice: Record<string,number> = {
-            "GREEN":1,
-            "RED":2,
-            "YELLOW":3
-        }
+    "GREEN":1,
+    "RED":2,
+    "YELLOW":3
+  }
+
+  function validUseCard(card: CardDTO): boolean{
+    switch (card.type.toString()){
+      case "TEMPORARY_PATCH":
+        return shipData?.drill! < 10 || shipData?.shield! < 10
+      case "NEW_DRILL":
+        return shipData?.drill! < 10
+      case "BACKUP_POWER":
+        return shipData?.shield! < 10
+      case "SLINGSHOT":
+        return playerMovement >= 2 && adjacentPlayers.length > 0;
+      default:
+        return true
+    }
+  }
 
   return (
     <div className={styles.dashboardContainer}>
@@ -266,7 +286,7 @@ export default function PlayerDataComponent({
             <div className={styles.playerCardName}>
               {CARD_DATA[card.type].name}
             </div>
-            <button
+            {validUseCard(card) && (<button
               style={{
                 marginLeft: "10px",
                 padding: "6px 12px",
@@ -282,7 +302,7 @@ export default function PlayerDataComponent({
               onClick={() => handleCard(card)}
             >
               Usar
-            </button>
+            </button>)}
           </div>
         ))}
 
@@ -303,7 +323,7 @@ export default function PlayerDataComponent({
                 backgroundColor: "#ff0000",
                 color: "#ffffff",
                 border: "none",
-                borderRadius: "6px",
+                borderRadius: "4px",
                 fontSize: "0.75rem",
                 fontWeight: "bold",
                 textTransform: "uppercase",

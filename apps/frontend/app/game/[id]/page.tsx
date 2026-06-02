@@ -225,6 +225,7 @@ export default function GamePage() {
           setIsGameOverExplosionModalOpen(true)
         }
       } else {
+        await getAdjacentPlayers();
         await fetchActualPlayer();
         await fetchShips();
         await fetchStorages();
@@ -248,6 +249,7 @@ export default function GamePage() {
       
       const players = await fetchPlayers();
       const freshShips = await fetchShips();
+      await getAdjacentPlayers();
       await fetchGame();
       await fetchActualPlayer();
       await fetchMaxDistance();
@@ -399,6 +401,17 @@ export default function GamePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify( {cardId: card.id, effect: option} )
       })
+
+      setScannerOptions([])
+
+      getAdjacentPlayers
+      fetchActualPlayer();
+      fetchActualTile();
+      fetchStorages();
+      fetchShips();
+      fetchMaxDistance();
+      fetchPlayersCards();
+
       setIsPlayCardModalOpen(false);
       setIsScannerModalOpen(false);
       setIsSwapCardModalOpen(false);
@@ -605,6 +618,8 @@ export default function GamePage() {
                 )}
                 cardsData={playerCards}
                 actualTile={actualTile!}
+                playerMovement={currentPlayer.movement}
+                adjacentPlayers={adjacentPlayers}
                 handleUpgrade={handleUpgradeShip}
                 handleChange={handleChangeMinerals}
                 handleDrill={handleDrill}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import LobbyForm from './LobbyForm';
 
 const PRESET_COLORS = ["#ef4444", "#3b82f6", "#eab308", "#22c55e"];
@@ -47,35 +48,44 @@ const difficultyToDisplayName: Record<Difficulty, string> = {
     [Difficulty.impossible]: "Impossible",  
 };
 
+const difficultyImages: Record<string, string> = {
+    "beginner_i": "/images/goals/Beginner_i.png",
+    "beginner_ii": "/images/goals/Beginner_ii.png",
+    "easy_i": "/images/goals/Easy_i.png",
+    "easy_ii": "/images/goals/Easy_ii.png",
+    "medium_i": "/images/goals/Medium_i.png",
+    "medium_ii": "/images/goals/Medium_ii.png",
+    "hard_i": "/images/goals/Hard_i.png",
+    "hard_ii": "/images/goals/Hard_ii.png",
+    "extreme_i": "/images/goals/Extreme_i.png",
+    "extreme_ii": "/images/goals/Extreme_ii.png",
+    "impossible": "/images/goals/Impossible_i.png",  
+};
+
 export default function Lobby() {
   const params = useParams();
   const router = useRouter();
-  const idLobby = params.id; // Obtenemos el ID de la URL
+  const idLobby = params.id;
 
   const [players, setPlayers] = useState<Player[]>([]); 
   const [joined, setJoined] = useState(false);
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [loading, setLoading] = useState(false);
   
-  // Estados Creación
   const [name, setName] = useState("");
-  const [color, setColor] = useState(PRESET_COLORS[0]);
+  const [color, setColor] = useState<string|null>(PRESET_COLORS[0]);
 
-  // Estados Edición
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editColor, setEditColor] = useState("");
 
   const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.beginner_i);
 
-  // URLs ajustadas a tu controlador
   const PLAYER_API = "http://localhost:4000/api/v1/player";
   const LOBBY_API = `http://localhost:4000/api/v1/lobby`;
 
-  // 1. Cargar jugadores específicos de este lobby
   const fetchPlayers = async () => {
     try {
-      // Usamos el nuevo endpoint que filtra por ID de lobby
       const response = await fetch(`${LOBBY_API}/players/${idLobby}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" }
@@ -111,9 +121,6 @@ export default function Lobby() {
     }
   }, [idLobby, players]);
 
-
-  
-  // 2. Añadir jugador al lobby específico
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -126,6 +133,7 @@ export default function Lobby() {
       
       if (response.ok) {
         setName("");
+        setColor(null);
         fetchPlayers();
       }
     } catch (error) {
@@ -138,7 +146,7 @@ export default function Lobby() {
   const handleDifficultyChange = async (newDifficulty: Difficulty) => {
     try {
       await fetch(`${LOBBY_API}/${idLobby}/difficulty`, {
-        method: "PUT", // O PUT, según tu controlador
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ difficulty: newDifficulty }), 
       });
@@ -196,6 +204,7 @@ export default function Lobby() {
       });
       if (response.ok) {
         setEditingId(null);
+        setColor(null);
         fetchPlayers();
       }
     } catch (error) {
@@ -203,7 +212,6 @@ export default function Lobby() {
     }
   };
 
-  // 4. Eliminar (DELETE)
   const handleDelete = async (id: string) => {
     try {
       const response = await fetch(`${LOBBY_API}/${id}/remove-player`, { method: "PUT" });
@@ -214,172 +222,232 @@ export default function Lobby() {
   };
 
   return (
-  <div className="relative min-h-screen w-full bg-background p-8 font-sans">
+  <div className="relative min-h-screen w-full bg-[#030712] p-8 font-mono text-zinc-300 overflow-x-hidden selection:bg-cyan-500 selection:text-black">
     
-    <div className="flex justify-end gap-4 mb-8 ml-80"> 
-      <div className="bg-card border border-border p-4 rounded-xl shadow-sm min-w-[200px]">
-        <h3 className="text-sm font-bold mb-2">Dificultad del Juego</h3>
+    {/* Rejilla de fondo sutil tipo radar */}
+    <div className="absolute inset-0 z-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:40px_40px]" />
+
+    {/* SECCIÓN CONFIGURACIÓN SUPERIOR */}
+    <div className="relative z-10 flex flex-wrap justify-end gap-4 mb-12 max-w-5xl mx-auto"> 
+      {/* Selector de Dificultad */}
+      <div className="bg-black/40 backdrop-blur-md border border-cyan-500/30 p-4 rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.05)] min-w-[220px]">
+        <h3 className="text-xs font-bold tracking-widest text-cyan-400 uppercase mb-2">// Nivel de Dificultad</h3>
         <select 
           value={difficulty} 
           onChange={(e) => handleDifficultyChange(e.target.value as Difficulty)}
-          className="w-full rounded-md border border-input bg-white px-3 py-1 text-black outline-none focus:ring-2 focus:ring-foreground"
+          className="w-full rounded border border-cyan-500/40 bg-zinc-950 px-3 py-1.5 text-xs text-cyan-300 font-mono outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 cursor-pointer"
         >
           {Object.values(Difficulty).map((value) => (
-          <option key={value} value={value}>
-            {difficultyToDisplayName[value]}
-          </option>
+            <option key={value} value={value} className="bg-zinc-950 text-zinc-300">
+              {difficultyToDisplayName[value].toUpperCase()}
+            </option>
           ))}
         </select>
       </div>
 
-      <div className="bg-card border border-border p-4 rounded-xl shadow-sm min-w-[150px] flex flex-col items-center justify-center">
-        <h3 className="text-sm font-bold mb-1">Estado del Lobby</h3>
-        <div className="text-2xl font-black text-foreground">
-          {lobby?.numPlayers || 0} / 4
+      {/* Contador de Estado */}
+      <div className="bg-black/40 backdrop-blur-md border border-cyan-500/30 p-4 rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.05)] min-w-[180px] flex flex-col items-center justify-center text-center">
+        <h3 className="text-xs font-bold tracking-widest text-cyan-400 uppercase mb-1">// Número de Naves</h3>
+        <div className="text-3xl font-black text-white tracking-wider animate-pulse">
+          {lobby?.numPlayers || 0}<span className="text-zinc-600">/</span>4
         </div>
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Jugadores listos</p>
+        <p className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold mt-1">Naves Listas</p>
       </div>
     </div>
 
-    {(lobby && lobby.numPlayers < 4) && (
-      <div className="absolute left-8 top-8 w-72 rounded-xl border border-border p-6 shadow-sm bg-card">
-        <h2 className="mb-4 text-lg font-bold text-center">Nuevo Jugador</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <div> {/* Contenedor para el input y error de nombre */}
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nombre"
-              className={`w-full rounded-md border bg-transparent px-3 py-2 text-sm focus:ring-2 focus:ring-foreground outline-none ${
-                // NUEVO: Borde rojo si el nombre ya existe
-                players.some(p => p.name.toLowerCase() === name.trim().toLowerCase()) ? 'border-red-500' : 'border-input'
-              }`}
-              required
-            />
-            {/* NUEVO: Mensaje de error de nombre */}
-            {players.some(p => p.name.toLowerCase() === name.trim().toLowerCase()) && (
-              <p className="text-[10px] text-red-500 mt-1 font-bold">Este nombre ya existe</p>
-            )}
+    {/* CONTENEDOR CENTRAL DE INTERFAZ TRIPLE COLUMNA */}
+    <div className="relative z-10 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-[280px_1fr_240px] gap-8 items-start">
+      
+      {/* PANEL IZQUIERDO: NUEVO JUGADOR */}
+      {(lobby && lobby.numPlayers < 4) ? (
+        <div className="w-full rounded-lg border border-zinc-800 bg-zinc-950/70 backdrop-blur-md p-6 shadow-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+            <h2 className="text-xs font-black tracking-widest text-cyan-400 uppercase">Añadir Piloto</h2>
           </div>
           
-          <div className="flex justify-center gap-3">
-            {PRESET_COLORS.map((c) => {
-              // NUEVO: Comprobar si el color ya está usado por otro jugador
-              const isColorTaken = players.some(p => p.color === c);
-              
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  disabled={isColorTaken} // NUEVO: Deshabilitar si está usado
-                  onClick={() => setColor(c)}
-                  className={`h-10 w-10 rounded-lg border-2 transition-all ${
-                    color === c 
-                      ? 'scale-110 border-foreground shadow-md' 
-                      : 'border-transparent opacity-70'
-                  } ${
-                    // NUEVO: Estilo visual para color ocupado
-                    isColorTaken ? 'opacity-10 grayscale cursor-not-allowed' : 'hover:scale-105'
-                  }`}
-                  style={{ backgroundColor: c }}
-                  title={isColorTaken ? "Color ocupado" : ""}
-                />
-              );
-            })}
-          </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <div>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="INGRESAR NOMBRE..."
+                className={`w-full rounded border bg-black px-3 py-2 text-xs font-mono tracking-wide placeholder-zinc-700 outline-none transition-colors focus:ring-1 ${
+                  players.some(p => p.name.toLowerCase() === name.trim().toLowerCase()) 
+                    ? 'border-red-500 text-red-400 focus:ring-red-500' 
+                    : 'border-zinc-800 text-zinc-200 focus:border-cyan-500 focus:ring-cyan-500'
+                }`}
+                required
+              />
+              {players.some(p => p.name.toLowerCase() === name.trim().toLowerCase()) && (
+                <p className="text-[10px] text-red-400 mt-1 font-bold tracking-tight">⚠️ REGISTRO DUPLICADO EN EL LOBBY</p>
+              )}
+            </div>
+            
+            {/* Selector de Colores Frecuencia */}
+            <div className="space-y-2">
+              <span className="text-[10px] text-zinc-500 uppercase tracking-widest block">Asignar Color:</span>
+              <div className="flex justify-between gap-2">
+                {PRESET_COLORS.map((c) => {
+                  const isColorTaken = players.some(p => p.color === c);
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      disabled={isColorTaken}
+                      onClick={() => setColor(c)}
+                      className={`h-8 flex-1 rounded border transition-all relative ${
+                        color === c 
+                          ? 'border-white scale-105 shadow-[0_0_10px_rgba(255,255,255,0.2)]' 
+                          : 'border-zinc-900 opacity-60'
+                      } ${
+                        isColorTaken ? 'opacity-10 grayscale cursor-not-allowed border-transparent' : 'hover:opacity-100 hover:scale-105'
+                      }`}
+                      style={{ backgroundColor: c }}
+                      title={isColorTaken ? "Frecuencia Bloqueada" : "Frecuencia Disponible"}
+                    >
+                      {isColorTaken && <span className="absolute inset-0 flex items-center justify-center text-[10px] text-black font-bold">X</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            // NUEVO: Deshabilitar botón si el nombre o color ya existen
-            disabled={
-              loading || 
-              !name.trim() || 
-              !color || 
-              players.some(p => p.name.toLowerCase() === name.trim().toLowerCase())
-            }
-            className="h-10 w-full rounded-full bg-foreground text-background text-sm font-bold hover:opacity-90 disabled:opacity-30 transition-opacity"
-          >
-            {loading ? "Entrando..." : "Añadir al Lobby"}
-          </button>
-        </form>
-      </div>
-    )}
+            <button
+              type="submit"
+              disabled={
+                loading || 
+                !name.trim() || 
+                !color || 
+                players.some(p => p.name.toLowerCase() === name.trim().toLowerCase())
+              }
+              className="h-10 w-full rounded border border-cyan-500 bg-cyan-950/20 text-xs font-bold uppercase tracking-widest text-cyan-400 transition-colors hover:bg-cyan-500 hover:text-black disabled:opacity-20 disabled:pointer-events-none"
+            >
+              {loading ? "Sincronizando..." : "Añadir al lobby"}
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div className="w-full rounded-lg border border-red-500/30 bg-red-950/10 p-6 text-center text-xs tracking-widest text-red-400 font-bold uppercase">
+          ⚠️ Capacidad Máxima de Naves Alcanzada
+        </div>
+      )}
 
-    {/* Lista de Jugadores */}
-    <div className="flex flex-col items-center pt-10">
-       {/* ... resto de la lista igual ... */}
-       <h1 className="text-4xl font-bold mb-2">Lobby</h1>
-       <p className="text-muted-foreground mb-10 text-sm">Esperando a los demás jugadores...</p>
-       
-       <div className="w-full max-w-2xl space-y-3">
-         {players.length === 0 ? (
-           <div className="text-center p-10 border-2 border-dashed rounded-xl text-muted-foreground">
-             No hay jugadores todavía
-           </div>
-         ) : (
-           players.map((player) => (
-             <div key={player.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-4 shadow-sm">
-               {/* ... contenido del player igual ... */}
-               {editingId === player.id ? (
-                  <div className="flex w-full flex-col gap-3">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        className="flex-1 rounded-md border px-3 py-1 text-sm bg-background"
-                      />
-                      <button onClick={() => handleUpdate(player.id)} className="bg-green-600 text-white px-4 py-1 rounded-md text-xs font-bold">OK</button>
-                      <button onClick={() => setEditingId(null)} className="px-2 text-xs">X</button>
-                    </div>
-                    <div className="flex gap-2">
-                      {PRESET_COLORS.map((c) => (
-                        <button
-                          key={c}
-                          onClick={() => setEditColor(c)}
-                          className={`h-6 w-6 rounded border ${editColor === c ? 'border-black scale-110' : 'border-transparent'}`}
-                          style={{ backgroundColor: c }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-4">
-                      <div className="h-8 w-8 rounded-lg border shadow-sm" style={{ backgroundColor: player.color }} />
-                      <span className="font-bold text-lg tracking-tight">{player.name}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => { setEditingId(player.id); setEditName(player.name); setEditColor(player.color); }} 
-                        className="px-3 py-1.5 text-xs font-medium border rounded-md hover:bg-muted transition-colors"
-                      >
-                        Editar
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(player.id)} 
-                        className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </>
-                )}
+      {/* PANEL CENTRAL: CONSOLA LOBBY & JUGADORES */}
+      <div className="w-full bg-zinc-950/40 border border-zinc-950 rounded-lg p-2">
+         <div className="text-center md:text-left mb-8 px-4">
+            <h1 className="text-3xl font-black tracking-widest text-white uppercase flex items-center justify-center md:justify-start gap-3">
+              <span className="text-cyan-500">&gt;</span> Lobby
+            </h1>
+         </div>
+         
+         <div className="space-y-3">
+           {players.length === 0 ? (
+             <div className="text-center p-12 border border-dashed border-zinc-800 rounded-lg text-zinc-600 text-xs uppercase tracking-widest">
+               [ No hay naves detectadas ]
              </div>
-           ))
-         )}
-       </div>
+           ) : (
+             players.map((player) => (
+               <div 
+                 key={player.id} 
+                 className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border border-zinc-800 bg-black/60 p-4 shadow-md gap-4 transition-all hover:border-zinc-700"
+               >
+                 {editingId === player.id ? (
+                    <div className="flex w-full flex-col gap-3">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          className="flex-1 rounded border border-zinc-700 px-3 py-1.5 text-xs bg-black text-white font-mono outline-none focus:border-cyan-500"
+                        />
+                        <button 
+                          onClick={() => handleUpdate(player.id)} 
+                          className="bg-emerald-600 text-white px-4 py-1 rounded text-xs font-bold uppercase tracking-wider hover:bg-emerald-700"
+                        >
+                          Confirmar
+                        </button>
+                        <button 
+                          onClick={() => setEditingId(null)} 
+                          className="px-3 border border-zinc-700 rounded text-xs hover:bg-zinc-900"
+                        >
+                          Anular
+                        </button>
+                      </div>
+                      <div className="flex gap-2">
+                        {PRESET_COLORS.map((c) => (
+                          <button
+                            key={c}
+                            onClick={() => setEditColor(c)}
+                            className={`h-5 flex-1 rounded border ${editColor === c ? 'border-white scale-105' : 'border-transparent opacity-60'}`}
+                            style={{ backgroundColor: c }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-4">
+                        <div className="h-6 w-6 rounded border border-black/40 shadow-inner relative flex items-center justify-center shrink-0" style={{ backgroundColor: player.color }}>
+                          <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-ping" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-base tracking-wide text-zinc-100 uppercase">{player.name}</span>
+                          <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Estatus: Nave lista</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <button 
+                          onClick={() => { setEditingId(player.id); setEditName(player.name); setEditColor(player.color); }} 
+                          className="px-3 py-1 text-[11px] font-bold uppercase tracking-widest border border-zinc-700 rounded text-zinc-400 hover:bg-zinc-900 hover:text-white transition-colors"
+                        >
+                          Modificar
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(player.id)} 
+                          className="px-3 py-1 text-[11px] font-bold uppercase tracking-widest bg-red-950/30 border border-red-900/40 text-red-400 rounded hover:bg-red-900 hover:text-white transition-colors"
+                        >
+                          Expulsar
+                        </button>
+                      </div>
+                    </>
+                  )}
+               </div>
+             ))
+           )}
+         </div>
+      </div>
+
+      {/* 🖼️ PANEL DERECHO: EXCLUSIVAMENTE LA IMAGEN REACTIVA */}
+      <div className="w-full aspect-square md:aspect-[3/4] rounded-lg border border-cyan-500/20 bg-zinc-950/50 backdrop-blur-md p-3 shadow-xl flex items-center justify-center relative overflow-hidden group">
+        {/* Efecto HUD: Barrido de escaneo láser */}
+        <div className="absolute inset-x-0 h-[1.5px] bg-cyan-400/20 top-0 animate-[bounce_4s_infinite] pointer-events-none z-10" />
+        
+        <div className="relative w-full h-full min-h-[200px]">
+          <Image 
+            src={difficultyImages[difficulty.toString().toLocaleLowerCase()]} 
+            alt={`Dificultad ${difficulty}`}
+            fill
+            className="object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+            priority
+          />
+        </div>
+      </div>
+
     </div>
+
+    {/* BOTÓN DE IGNICIÓN CENTRAL DE ABAJO */}
     {players.length >= 1 && (
-      <div className="flex justify-center pb-20 mt-12">
+      <div className="flex flex-col items-center justify-center pb-20 mt-16 relative z-10">
         <button
           onClick={handleStartGame}
-          className="group relative inline-flex items-center justify-center px-12 py-4 font-bold text-white transition-all duration-200 bg-green-600 font-pj rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 hover:bg-green-700 shadow-xl hover:scale-105 active:scale-95"
+          className="group relative inline-flex items-center justify-center px-16 py-4 font-mono font-black tracking-widest text-black transition-all duration-300 bg-cyan-400 rounded uppercase overflow-hidden hover:bg-cyan-300 shadow-[0_0_30px_rgba(34,211,238,0.2)] hover:shadow-[0_0_40px_rgba(34,211,238,0.4)] active:scale-95"
         >
-          START GAME
+          <div className="absolute inset-0 w-1/2 h-full bg-white/20 transform -skew-x-12 -translate-x-full group-hover:animate-[shine_1s_ease-in-out]" />
+          INICIAR SALTO (START)
           <svg 
-            className="w-5 h-5 ml-2 -mr-1 transition-all duration-200 group-hover:translate-x-1" 
+            className="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" 
             fill="currentColor" 
             viewBox="0 0 20 20" 
             xmlns="http://www.w3.org/2000/svg"
@@ -387,7 +455,8 @@ export default function Lobby() {
             <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
           </svg>
         </button>
-      </div>)}
+      </div>
+    )}
   </div>
 );
 }
