@@ -1,4 +1,3 @@
-// apps/frontend/app/game/BoardGrid.tsx
 "use client";
 
 import {
@@ -17,7 +16,7 @@ import styles from "./game.module.css";
 interface BoardGridProps {
   onNodeClick: (id: string) => void;
   currentRound: number;
-  allowedNodes: string[]; // 🚀 NUEVO: Array con los IDs de las casillas iluminadas (ej: ['void_1', 'green_planet_2'])
+  allowedNodes: string[]; 
 }
 
 export default function BoardGrid({
@@ -27,7 +26,6 @@ export default function BoardGrid({
 }: BoardGridProps) {
   const renderTiles = (tileList: TileMap[]) => {
     return tileList.map((node) => {
-      // 🌟 Comprobamos si este nodo en concreto debe estar iluminado
       const isAllowed = allowedNodes.includes(node.id);
 
       return (
@@ -37,7 +35,6 @@ export default function BoardGrid({
           cy={node.cy}
           rx={node.rx}
           ry={node.ry}
-          // 🚀 Si está permitido, le sumamos la clase styles.nodeHighlighted
           className={`${styles.interactable} ${isAllowed ? styles.nodeHighlighted : ""}`}
           onClick={() => onNodeClick(node.id)}
         />
@@ -59,7 +56,6 @@ export default function BoardGrid({
         height={rect.h}
         rx={4}
         ry={4}
-        // 🌟 Si está activa aplica novaTrackActive, si no, novaTrackStatic (ahora negra)
         className={isActive ? styles.novaTrackActive : styles.novaTrackStatic}
       />
     );
@@ -68,15 +64,13 @@ export default function BoardGrid({
 
   return (
     <>
-      {/* Renderizamos los planetas dinámicamente */}
       {renderTiles(greenPlanetNodes)}
       {renderTiles(redPlanetNodes)}
       {renderTiles(yellowPlanetNodes)}
       {renderTiles(initialNodes)}
       {renderTiles(stationNodes)}
       {renderTiles(voidNodes)}
-
-      {/* Renderizamos el track de la supernova */}
+      
       {renderTracks(novaTracks)}
     </>
   );

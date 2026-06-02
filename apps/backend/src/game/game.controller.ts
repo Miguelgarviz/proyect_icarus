@@ -224,7 +224,7 @@ export class GameController {
                     if(ship.externalId.includes("space_station") && ship.engine < 5 && storage.red >= 1 && !ship.engineUpgraded) await this.gameService.upgradeEngine(ship, storage)
                     break;
                 default: 
-                    console.log("Valor system no valido")
+                    break;
             }
         }
     }
@@ -251,7 +251,7 @@ export class GameController {
                     if(ship.externalId.includes("space_station") && storage.yellow>=1 && storage.red<10) await this.storageService.changeMineralsYellowToRed(storage)
                     break;
                 default:
-                    console.log("Valor system no valido")
+                    break;
             }
         }
     }
@@ -497,7 +497,6 @@ export class GameController {
         const adjacentPlayers: {id: number, name: string, color: string, coordX: number, coordY: number, externalId: string}[] = []
         for(const p of players){
             if(p.id !== player.id || !p.isDead){
-                console.log(p)
                 const maxPlanetNum = [32, 16, 10];
                 const ship = await this.shipService.getShipById(p.shipId!)
 
@@ -506,7 +505,6 @@ export class GameController {
                 const distanceX = Math.abs(ship.positionX - playerShip.positionX) % maxPositions
                 const landingTile = (spaceStationLandings[playerShip.externalId]) ? spaceStationLandings[playerShip.externalId][ship.positionY=== 1 ? 0 : ship.positionY === 0? 0: 1] : null
 
-                console.log(distanceY, distanceX, landingTile)
                 if((landingTile && distanceY == 1 && playerShip.externalId.includes("space_station") && ship.externalId === landingTile) || distanceX == 1){
                     adjacentPlayers.push({id: p.id, name: p.name, color: p.color, coordX: ship.positionX, coordY: ship.positionY, externalId: ship.externalId})
                 }

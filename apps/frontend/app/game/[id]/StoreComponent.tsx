@@ -78,16 +78,15 @@ export default function StoreComponent({ cards, handleBuy, externalId, redMinera
               border: '2px solid #FFD700',
               borderRadius: '12px',
               display: 'flex',
-              flexDirection: 'column', // CAMBIO A VERTICAL
+              flexDirection: 'column',
               overflow: 'hidden',
               boxShadow: '0 4px 10px rgba(0,0,0,0.5)'
             }}>
               
-              {/* 1. IMAGEN (Ocupa la parte superior) */}
               <div style={{ 
                 position: 'relative', 
                 width: '100%', 
-                height: '140px', // Imagen bastante alta
+                height: '140px', 
                 backgroundColor: 'rgba(0,0,0,0.4)',
                 borderBottom: '1px solid rgba(255, 215, 0, 0.3)'
               }}>
@@ -100,7 +99,6 @@ export default function StoreComponent({ cards, handleBuy, externalId, redMinera
                 />
               </div>
 
-              {/* 2. TÍTULO Y DESCRIPCIÓN */}
               <div style={{ padding: '12px', flex: 1 }}>
                 <div style={{ 
                   fontSize: '0.95rem', 
@@ -123,7 +121,6 @@ export default function StoreComponent({ cards, handleBuy, externalId, redMinera
                 </div>
               </div>
 
-              {/* 3. PRECIO Y COMPRA (Parte inferior) */}
               <div style={{ 
                 padding: '10px 12px',
                 backgroundColor: 'rgba(255, 215, 0, 0.05)',

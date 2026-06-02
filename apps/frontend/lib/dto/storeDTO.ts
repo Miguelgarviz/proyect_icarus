@@ -15,8 +15,8 @@ export interface StoreDTO {
 
 export interface CardDTO {
     id: string;
-    playerId: string;
-    storeId: string;
+    playerId: string | null;
+    storeId: string | null;
     cost: number;
     type: CardTypeDTO;
 }

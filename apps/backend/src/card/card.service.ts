@@ -67,7 +67,6 @@ export class CardService {
         
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(random() * (i + 1));
-            // Intercambio de posiciones (Fisher-Yates Shuffle)
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
         

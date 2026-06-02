@@ -92,7 +92,6 @@ async movePlayer(tile: Tile, actualPlayer: Player) {
     
     const originTile = await this.tileService.getTilesByCoordinates(tile.gameId!, ship.positionX, ship.positionY);
 
-    // --- CASO 1: MOVIMIENTO EN LA MISMA ÓRBITA ---
     if (tile.positionY === ship.positionY) {
         const start = { x: ship.positionX!, y: ship.positionY! };
         const end = { x: tile.positionX!, y: tile.positionY! };
@@ -102,7 +101,6 @@ async movePlayer(tile: Tile, actualPlayer: Player) {
         
         validMove = distance <= actualPlayer.movement;
     } 
-    // --- CASO 2: TRANSBORDO DESDE ESTACIÓN ESPACIAL A OTRA ÓRBITA ---
     else if (ship.externalId.includes("space_station")) {
         const landingTilesId = spaceStationLandings[ship.externalId] || [];
         let connectionTileExternalId: string | undefined;
@@ -120,9 +118,7 @@ async movePlayer(tile: Tile, actualPlayer: Player) {
             const start = { x: startTile.positionX!, y: startTile.positionY! };
             const end = { x: tile.positionX!, y: tile.positionY! };
             
-            // 1 punto base por cambiar de órbita + distancia en la nueva órbita
             distance = 1 + await this.calculateDistance(start, end);
-            // checkStartTile = true porque entramos desde la estación a esa casilla y puede estar ocupada
             distance = distance + await this.calculateNumberOfPlayersBetween(start, end, tile.gameId!, true);
             
             validMove = distance <= actualPlayer.movement;
@@ -182,7 +178,6 @@ async calculateNumberOfPlayersBetween(
     const maxPositions = maxPlanetNum[start.y];
     let numPlayers = 0;
 
-    // Si es la misma casilla exacta pero venimos de transbordo (checkStartTile = true)
     if (start.x === end.x) {
         if (checkStartTile) {
             const targetTile = await this.tileService.getTilesByCoordinates(gameId, start.x, start.y);
@@ -200,7 +195,6 @@ async calculateNumberOfPlayersBetween(
     const isClockwise = clockwiseDistance <= counterClockwiseDistance;
     const steps = isClockwise ? clockwiseDistance : counterClockwiseDistance;
 
-    // 1. Evaluar de forma extraordinaria la casilla inicial si entramos desde fuera (transbordo)
     if (checkStartTile) {
         const targetTile = await this.tileService.getTilesByCoordinates(gameId, start.x, start.y);
         if (targetTile && targetTile.ocupiedByPlayerId !== null) {
@@ -208,7 +202,6 @@ async calculateNumberOfPlayersBetween(
         }
     }
 
-    // 2. Recorrer el resto de las casillas intermedias
     for (let i = 1; i <= steps; i++) {
         let currentX = start.x;
         if (isClockwise) {
@@ -234,10 +227,8 @@ async calculateMaxDistance(player: Player, ship: Ship, gameId: number, otherPlay
 
     if (player.movement === 0) return [];
 
-    // Conjunto para guardar las coordenadas X válidas en la órbita actual
     const validXPositions = new Set<number>();
 
-    // --- 1. SIMULACIÓN HACIA ADELANTE (SENTIDO HORARIO) ---
     let currentMovementClockwise = player.movement;
     let nextXClockwise = (ship.positionX + 1) % maxPositions;
 
@@ -245,27 +236,22 @@ async calculateMaxDistance(player: Player, ship: Ship, gameId: number, otherPlay
         const targetTile = await this.tileService.getTilesByCoordinates(gameId, nextXClockwise, ship.positionY);
         const isOccupied = targetTile && targetTile.ocupiedByPlayerId !== null;
 
-        // Coste básico de moverte a la casilla = 1
         let cost = 1;
-        // Si hay una nave en medio, saltarla cuesta +1 de movimiento adicional (Total = 2)
         if (isOccupied) {
             cost += 1;
         }
 
         if (currentMovementClockwise >= cost) {
-            // Si no está ocupada, es un destino válido donde la nave puede terminar su turno
             if (!isOccupied) {
                 validXPositions.add(nextXClockwise);
             }
             currentMovementClockwise -= cost;
             nextXClockwise = (nextXClockwise + 1) % maxPositions;
         } else {
-            // No queda suficiente movimiento para pagar esta casilla/salto
             break;
         }
     }
 
-    // --- 2. SIMULACIÓN HACIA ATRÁS (SENTIDO ANTIHORARIO) ---
     let currentMovementCounter = player.movement;
     let nextXCounter = (ship.positionX - 1 + maxPositions) % maxPositions;
 
@@ -289,14 +275,11 @@ async calculateMaxDistance(player: Player, ship: Ship, gameId: number, otherPlay
         }
     }
 
-    // --- 3. RECOLECTAR LAS BALDOSAS DE LA ÓRBITA ACTUAL ---
     for (const x of validXPositions) {
         const tile = await this.tileService.getTilesByCoordinates(gameId, x, ship.positionY);
         if (tile) reachableTiles.push(tile);
     }
 
-    // --- 4. CONEXIÓN CON ESTACIONES ESPACIALES ---
-    // (Esta sección se queda exactamente igual a como la tenías en tu código original o en la última versión, ya que el problema estaba solo en el movimiento lineal de órbita)
     if (ship.externalId.includes("space_station")) {
         const landingTilesId = spaceStationLandings[ship.externalId] || [];
         

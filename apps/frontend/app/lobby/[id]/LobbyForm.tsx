@@ -1,4 +1,3 @@
-// apps/frontend/app/lobby/[id]/JoinLobbyForm.tsx
 "use client";
 import { useState } from 'react';
 
@@ -24,7 +23,6 @@ export default function LobbyForm({
   const [name, setName] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
 
-  // Validaciones en tiempo real
   const isNameTaken = existingPlayers.some(
     (p) => p.name.toLowerCase() === name.trim().toLowerCase()
   );

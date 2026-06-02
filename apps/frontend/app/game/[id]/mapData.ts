@@ -1,4 +1,3 @@
-// apps/frontend/app/game/mapData.ts
 export interface TileMap {
   id: string;
   cx: number;

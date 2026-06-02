@@ -49,7 +49,7 @@ describe('GameService', () => {
       jest.spyOn(service, 'createGame').mockResolvedValue(createdGame);
       
       const result = await service.createGame(mockGame);
-      expect(result).toEqual(createdGame); // ¿El resultado es el que inventamos?
+      expect(result).toEqual(createdGame); 
       expect(service.createGame).toHaveBeenCalledWith(mockGame);
     })
     it('should throw an error if the game cannot be created', async() => {

@@ -33,24 +33,15 @@ export default function Home() {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#030712] font-sans p-6 overflow-hidden">
       
-      {/* 🌌 EFECTO DE GALAXIA / NEBULOSA DE FONDO */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        {/* Estrellas estáticas tenues */}
         <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:32px_32px]" />
-        
-        {/* Nebulosa cuántica superior izquierda (Azul) */}
         <div className="absolute -top-40 -left-40 w-[700px] h-[700px] rounded-full bg-blue-600/10 blur-[130px] mix-blend-screen animate-pulse" style={{ animationDuration: '9s' }} />
-        
-        {/* Nebulosa cuántica inferior derecha (Cian/Morado) */}
         <div className="absolute -bottom-40 -right-40 w-[800px] h-[800px] rounded-full bg-cyan-500/10 blur-[160px] mix-blend-screen animate-pulse" style={{ animationDuration: '14s' }} />
       </div>
 
-      {/* CONTENEDOR VERTICAL QUE SEPARA EL LOGO DE LA CAJA */}
       <div className="relative z-10 flex flex-col items-center gap-10 w-full max-w-xl">
         
-        {/* 🚀 LOGO ENORME FUERA DE LA CAJA (CON EFECTO DE RESPLANDOR MEJORADO) */}
         <div className="relative w-full aspect-[5/1] group transition-transform duration-700 hover:scale-[1.02]">
-          {/* Brillo de fondo expandido */}
           <div className="absolute inset-x-4 inset-y-0 rounded-full bg-gradient-to-r from-cyan-500/20 via-blue-600/20 to-transparent blur-2xl group-hover:opacity-70 transition duration-1000" />
           
           <Image
@@ -63,10 +54,8 @@ export default function Home() {
           />
         </div>
 
-        {/* 🎴 CAJA DEL MENÚ (MÁS ESTILIZADA Y ENFOCADA SÓLO AL LOBBY) */}
         <main className="flex flex-col items-center gap-8 text-center w-full max-w-sm px-6 py-10 rounded-xl border border-zinc-800/60 bg-black/50 backdrop-blur-lg shadow-2xl shadow-black/90">
           
-          {/* TEXTOS MENÚ */}
           <div className="space-y-2">
             <h1 className="text-3xl font-black uppercase tracking-widest bg-gradient-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">
               Sala de Control
@@ -76,7 +65,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* 🔘 BOTÓN DE ACTIVACIÓN */}
           <button
             onClick={handleCreateLobby}
             disabled={loading}
@@ -91,12 +79,10 @@ export default function Home() {
               {loading ? "Estableciendo nexo..." : "Crear Vestíbulo"}
             </span>
             
-            {/* Detalles HUD estéticos */}
             <div className="absolute top-0 left-2 right-2 h-[1px] bg-cyan-400/30 group-hover:bg-black/40" />
             <div className="absolute bottom-0 left-2 right-2 h-[1px] bg-cyan-400/30 group-hover:bg-black/40" />
           </button>
 
-          {/* DETALLE DE RED INTERFAZ (HUD) */}
           <div className="text-[9px] uppercase font-mono tracking-widest text-zinc-600 select-none">
             Sector Link: Online // v1.0.0
           </div>

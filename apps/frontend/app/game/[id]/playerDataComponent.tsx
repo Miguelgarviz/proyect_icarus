@@ -35,7 +35,6 @@ export default function PlayerDataComponent({
   handleCard: (card: CardDTO) => void;
   handleInitialHelp: ()=> void;
 }) {
-  // Si los datos aún no se han cargado del backend, evitamos que rompa mostrando un loader
   if (!shipData || !cargoData) {
     return (
       <div className={styles.dashboardContainer}>
@@ -44,7 +43,6 @@ export default function PlayerDataComponent({
     );
   }
 
-  // 🌟 Condición: ¿La nave está actualmente en una estación espacial?
   const isAtSpaceStation =
     shipData.externalId?.includes("space_station") ?? false;
 
@@ -57,11 +55,11 @@ export default function PlayerDataComponent({
   function validUseCard(card: CardDTO): boolean{
     switch (card.type.toString()){
       case "TEMPORARY_PATCH":
-        return shipData?.drill! < 10 || shipData?.shield! < 10
+        return (shipData?.drill ?? 0) < 10 || (shipData?.shield ?? 0)< 10
       case "NEW_DRILL":
-        return shipData?.drill! < 10
+        return (shipData?.drill?? 0) < 10
       case "BACKUP_POWER":
-        return shipData?.shield! < 10
+        return (shipData?.shield?? 0) < 10
       case "SLINGSHOT":
         return playerMovement >= 2 && adjacentPlayers.length > 0;
       default:
@@ -77,7 +75,6 @@ export default function PlayerDataComponent({
       <div className={styles.section}>
         <div className={styles.sectionTitle}>Estado de la Nave</div>
         <div className={styles.gridRows}>
-          {/* Nivel del Motor */}
           <div className={styles.dataRow}>
             <div className={styles.labelWrapper}>
               <div className={styles.iconWrapper}>
@@ -111,7 +108,6 @@ export default function PlayerDataComponent({
             </div>
           </div>
 
-          {/* Nivel del Taladro */}
           <div className={styles.dataRow}>
             <div className={styles.labelWrapper}>
               <div className={styles.iconWrapper}>
@@ -144,7 +140,6 @@ export default function PlayerDataComponent({
             </div>
           </div>
 
-          {/* Nivel del Escudo */}
           <div className={styles.dataRow}>
             <div className={styles.labelWrapper}>
               <div className={styles.iconWrapper}>
@@ -183,7 +178,7 @@ export default function PlayerDataComponent({
       <div className={styles.section}>
         <div className={styles.sectionTitle}>Almacén de Minerales</div>
         <div className={styles.gridRows}>
-          {/* Mineral Verde */}
+
           <div className={styles.dataRow}>
             <div className={styles.labelWrapper}>
               {isAtSpaceStation &&
@@ -226,7 +221,6 @@ export default function PlayerDataComponent({
             </div>)}
           </div>
 
-          {/* Mineral Rojo */}
           <div className={styles.dataRow}>
             <div className={styles.labelWrapper}>
               {isAtSpaceStation &&
@@ -265,7 +259,6 @@ export default function PlayerDataComponent({
             <div className={styles.valueBadge}>{cargoData.red}</div>
           </div>
 
-          {/* Mineral Amarillo */}
           <div className={styles.dataRow}>
             <div className={styles.labelWrapper}>
               {isAtSpaceStation &&
@@ -299,7 +292,6 @@ export default function PlayerDataComponent({
       <div className={styles.section}>
         <div className={styles.sectionTitle}>Cartas del Jugador</div>
 
-        {/* 1. Renderizamos las cartas reales que ya tiene el jugador */}
         {cardsData?.map((card, index) => (
           <div className={styles.dataRow} key={`card-${index}`}>
             <div className={styles.playerCardName}>

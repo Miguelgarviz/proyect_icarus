@@ -11,18 +11,17 @@ import { ShipDTO } from "../../../lib/dto/shipDTO";
 import { CardDTO, CardTypeDTO } from "../../../lib/dto/storeDTO";
 import { StorageDTO } from "../../../lib/dto/storageDTO";
 import { GameDTO } from "../../../lib/dto/gameDTO";
-import { TileDTO } from "../../../lib/dto/tileDTO";
+import { TileDTO, TileTypeDTO } from "../../../lib/dto/tileDTO";
 import { DrillCardDTO } from "../../../lib/dto/drillCardDTO";
 import StoreComponent, { CARD_DATA } from "./StoreComponent";
 import PlayerDataComponent from "./playerDataComponent";
 
-// 🌟 Definimos una interfaz limpia para estructurar lo que responde tu backend al excavar
 interface DrillResponse {
   empty: boolean;
   valid: boolean;
   type: "green" | "red" | "yellow" | "supernova" | "";
 
-  drillCard?: DrillCardDTO; // Solo vendrá si el tipo es "card"
+  drillCard?: DrillCardDTO; 
 }
 
 
@@ -44,7 +43,6 @@ export default function GamePage() {
   const [scannerOptions, setScannerOptions] = useState<DrillCardDTO[]>([]);
   const [adjacentPlayers, setAdjacentPlayers] = useState<PlayerChipDTO[]>([])
   
-  // 🌟 NUEVOS ESTADOS: Para controlar la visibilidad y el contenido del modal de excavación
   const [isPlayCardModalOpen, setIsPlayCardModalOpen] = useState<boolean>(false);
   const [isScannerModalOpen, setIsScannerModalOpen] = useState<boolean>(false);
   const [isDrillModalOpen, setIsDrillModalOpen] = useState<boolean>(false);
@@ -192,7 +190,6 @@ export default function GamePage() {
     }
   }
 
-  // --- FUNCIONES DE LÓGICA Y ACCIONES ---
 
   function calculatePlayerChips(playersData: PlayerDTO[], shipsData: ShipDTO[]) {
     const newChips: PlayerChipDTO[] = [];
@@ -310,7 +307,7 @@ export default function GamePage() {
   async function handleDrill(){
     try {
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/drill`, {
-        method: "PUT", // O PUT, dependiendo de cómo lo tengas configurado
+        method: "PUT", 
         headers: { "Content-Type": "application/json" }
       });
       
@@ -318,10 +315,8 @@ export default function GamePage() {
       
       const data: DrillResponse = await response.json();
       
-      // 1. Guardamos la telemetría devuelta por el servidor en el estado
       if(data.valid){
         setDrillResult(data);
-        // 2. Desplegamos el modal en pantalla
         setIsDrillModalOpen(true);
         await fetchStorages();
         await fetchGame();
@@ -338,7 +333,7 @@ export default function GamePage() {
   async function handleDrillDeeper(){
     try {
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/drill-deeper`, {
-        method: "PUT", // O PUT, dependiendo de cómo lo tengas configurado
+        method: "PUT", 
         headers: { "Content-Type": "application/json" }
       });
       
@@ -346,10 +341,8 @@ export default function GamePage() {
       
       const data: DrillResponse = await response.json();
       
-      // 1. Guardamos la telemetría devuelta por el servidor en el estado
       if(data.valid){
         setDrillResult(data);
-        // 2. Desplegamos el modal en pantalla
         setIsDrillModalOpen(true);
         await fetchStorages();
         await fetchGame();
@@ -397,7 +390,7 @@ export default function GamePage() {
   async function handlePlayCardEffect(card: CardDTO, option: string){
     try{
       await fetch(`http://localhost:4000/api/v1/game/${gameId}/use-card`, {
-        method: "PUT", // O PUT, dependiendo de cómo lo tengas configurado
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify( {cardId: card.id, effect: option} )
       })
@@ -598,7 +591,7 @@ export default function GamePage() {
             }}
           >
             <BoardGrid
-              currentRound={game?.supernovaLvL!}
+              currentRound={game?.supernovaLvL??0}
               onNodeClick={handleMovePlayer}
               allowedNodes={reachableTiles}
             />
@@ -629,7 +622,7 @@ export default function GamePage() {
                   (s) => s.id === Number(currentPlayer.storageId),
                 )}
                 cardsData={playerCards}
-                actualTile={actualTile!}
+                actualTile={actualTile??{id:"999",externalId:"externalId", type: TileTypeDTO.EMPTY, positionX: 0, positionY: 0, drillAttempts: 0, gameId: 99} as TileDTO}
                 playerMovement={currentPlayer.movement}
                 initialHelp = {currentPlayer.initialHelp}
                 adjacentPlayers={adjacentPlayers}
@@ -645,19 +638,14 @@ export default function GamePage() {
         
       </div>
 
-      {/* ========================================================================= */}
-      {/* 🌟 ESQUEMA DEL MODAL DE EXCAVACIÓN (RENDERIZADO CONDICIONAL)             */}
-      {/* ========================================================================= */}
       {isDrillModalOpen && drillResult && drillResult.valid && (
   <div className={styles.modalOverlay}>
     <div className={styles.modalContent}>
       
-      {/* CABECERA GENERAL DEL MODAL */}
       <h3 className={styles.modalTitle}>Resultado de la excavación</h3>
       
       <div className={styles.modalBody}>
         
-        {/* CASO 1: SECTOR VACÍO */}
         {drillResult.empty && (
           <div className={styles.resultEmpty}>
             <div className={styles.resultIcon}>🌌</div>
@@ -668,7 +656,6 @@ export default function GamePage() {
           </div>
         )}
 
-        {/* CASO 2: EVENTO SUPERNOVA (Solo si viene la carta Y tiene el flag activo) */}
         {drillResult.drillCard && drillResult.drillCard.isSupernovaCard && !drillResult.empty && (
           <div className={styles.resultSupernova}>
             <div className={styles.resultIcon}>💥</div>
@@ -679,7 +666,6 @@ export default function GamePage() {
           </div>
         )}
 
-        {/* CASO 3: RECOMPENSA DE CARTA DE RECURSOS (Solo si NO es supernova y NO está vacío) */}
         {drillResult.drillCard && !drillResult.drillCard.isSupernovaCard && !drillResult.empty && (
           <div className={styles.resultCard}>
             <div className={styles.resultIcon}>⭐</div>
@@ -688,7 +674,6 @@ export default function GamePage() {
               Sistemas de carga estables. Se han refinado los siguientes materiales del subsuelo:
             </p>
             
-            {/* Contenedor visual del recurso extraído */}
             <div className={`${styles.resourceDisplay} ${styles[drillResult.type]}`}>
               <span className={styles.resourceAmount}>
                 {(() => {
@@ -715,7 +700,6 @@ export default function GamePage() {
 
       </div>
 
-      {/* BOTÓN DE CIERRE */}
       {(drillResult.type === "red" || drillResult.type === "yellow" || drillResult.empty) && !drillDeeper && 
               <button
                 className={styles.modalDrillDeeperButton}
@@ -742,7 +726,6 @@ export default function GamePage() {
   </div>
   
 )}
-{/* MODAL 1: TODOS LOS JUGADORES MUERTOS (CALAVERA) */}
 {isGameOverDeathModalOpen && (
   <div className={styles.modalOverlay}>
     <div className={styles.modalContentGameOver}>
@@ -764,7 +747,6 @@ export default function GamePage() {
   </div>
 )}
 
-{/* MODAL 2: EXPLOSIÓN DEL SISTEMA (SOL / SUPERNOVA) */}
 {isGameOverExplosionModalOpen && (
   <div className={styles.modalOverlay}>
     <div className={styles.modalContentGameOver}>
@@ -814,7 +796,6 @@ export default function GamePage() {
     </div>
   </div>
 )}
-{/* MODAL: JUGAR CARTA DE ACCIÓN */}
 {isPlayCardModalOpen && selectedCardToPlay && (
   <div className={styles.modalOverlay}>
     <div className={styles.modalContentCardAction}>
@@ -835,7 +816,6 @@ export default function GamePage() {
         </p>
       </div>
 
-      {/* CONTENEDOR DE OPCIONES DINÁMICAS SEGÚN LA CARTA */}
       <div className={styles.cardActionButtonsContainer}>
         
         {selectedCardToPlay.type.toString() === "SLINGSHOT" && (
@@ -860,7 +840,6 @@ export default function GamePage() {
           </>
         )}
 
-        {/* CASO 1: PARCHE TEMPORAL (Dos opciones mutuamente excluyentes) */}
         {selectedCardToPlay.type.toString() === "TEMPORARY_PATCH" && (
           <>
             <button 
@@ -878,7 +857,6 @@ export default function GamePage() {
           </>
         )}
 
-        {/* CASO 2: TALADRO NUEVO */}
         {selectedCardToPlay.type.toString() === "NEW_DRILL" && (
           <button 
             className={`${styles.actionButton} ${styles.btnDrillMax}`}
@@ -888,7 +866,6 @@ export default function GamePage() {
           </button>
         )}
 
-        {/* CASO 3: ENERGÍA DE RESERVA */}
         {selectedCardToPlay.type.toString() === "BACKUP_POWER" && (
           <button 
             className={`${styles.actionButton} ${styles.btnShieldMax}`}
@@ -898,7 +875,6 @@ export default function GamePage() {
           </button>
         )}
 
-        {/* CASO 4: PROPULSORES COHETE */}
         {selectedCardToPlay.type.toString() === "ROCKET_THRUSTERS" && (
           <button 
             className={`${styles.actionButton} ${styles.btnMovement}`}
@@ -910,7 +886,6 @@ export default function GamePage() {
 
       </div>
 
-      {/* BOTÓN PARA CANCELAR Y VOLVER */}
       <button 
         className={styles.modalCancelCardButton}
         onClick={() => {
@@ -924,7 +899,6 @@ export default function GamePage() {
     </div>
   </div>
 )}
-{/* MODAL: SELECCIÓN DE RECURSO (ENHANCED_SCANNER) */}
 {isScannerModalOpen && scannerOptions.length > 0 && (
   <div className={styles.modalOverlay}>
     <div className={styles.modalContentScanner}>
@@ -937,14 +911,13 @@ export default function GamePage() {
         </p>
       </div>
 
-      {/* CONTENEDOR DE LAS 3 CARTAS VISUALES */}
       <div className={styles.scannerCardsGrid}>
         {scannerOptions.map((card, index) => {
           return (
             <div 
               key={index} 
               className={styles.scannerCardReward}
-              onClick={() => handlePlayCardEffect(selectedCardToPlay!, "resource-card_"+card.id.toString())}
+              onClick={() => handlePlayCardEffect(selectedCardToPlay??{id:"999", playerId: null, storeId: null, cost: 2, type: CardTypeDTO.BACKUP_POWER} as CardDTO, "resource-card_"+card.id.toString())}
             >
               <div className={styles.cardRewardGlow} />
               
@@ -1014,7 +987,6 @@ export default function GamePage() {
         <div className={styles.swapIcon}>🌀</div>
         <h3 className={styles.modalTitleSwap}>Disruptor de Posición</h3>
         
-        {/* Coste de la acción destacado */}
         <div className={styles.swapActionCost}>
           ⚠️ Coste de Activación: <span className={styles.costHighlight}>2 Puntos de Movimiento</span>
         </div>
@@ -1024,20 +996,18 @@ export default function GamePage() {
         </p>
       </div>
 
-      {/* LISTA DE JUGADORES DISPONIBLES (1 A 3) */}
       <div className={styles.swapPlayersList}>
         {adjacentPlayers.map((player) => (
           <button
             key={player.id}
             className={styles.swapPlayerCardButton}
-            onClick={() => handlePlayCardEffect(selectedCardToPlay!, "swap-player_" + player.id.toString())}
+            onClick={() => handlePlayCardEffect(selectedCardToPlay ?? {id:"999", playerId: null, storeId: null, cost: 2, type: CardTypeDTO.BACKUP_POWER} as CardDTO, "swap-player_" + player.id.toString())}
           >
             <div className={styles.playerMainInfo}>
               
-              {/* NUEVO: Imagen dinámica de la nave según el color del jugador */}
               <div className={styles.playerShipIconWrapper}>
                 <Image
-                  src={PLAYER_IMAGES[player.color] || "/images/jugador_azul.png"} /* Fallback por si acaso */
+                  src={PLAYER_IMAGES[player.color] || "/images/jugador_azul.png"} 
                   alt={`Nave de ${player.name}`}
                   fill
                   sizes="32px"
@@ -1062,7 +1032,6 @@ export default function GamePage() {
         ))}
       </div>
 
-      {/* BOTÓN PARA ABORTAR */}
       <button 
         className={styles.modalCancelSwapButton}
         onClick={() => {

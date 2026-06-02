@@ -1,4 +1,4 @@
-enum TileTypeDTO {
+export enum TileTypeDTO {
     EMPTY,
     GREEN,
     RED,
