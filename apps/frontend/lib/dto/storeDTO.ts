@@ -1,4 +1,4 @@
-enum CardTypeDTO {
+export enum CardTypeDTO {
   TEMPORARY_PATCH,
   NEW_DRILL,
   BACKUP_POWER,

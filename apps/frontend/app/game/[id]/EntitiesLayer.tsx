@@ -2,7 +2,7 @@ import { PlayerChipDTO } from "../../../lib/dto/playerDTO";
 import { nodeCoordinates } from "./mapData";
 
 // Mapeo de colores a archivos en public/images/
-const PLAYER_IMAGES: Record<string, string> = {
+export const PLAYER_IMAGES: Record<string, string> = {
   "#ef4444": "/images/jugador_rojo.png",
   "#3b82f6": "/images/jugador_azul.png",
   "#22c55e": "/images/jugador_verde.png",

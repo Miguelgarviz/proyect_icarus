@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, Game, Tile, Ship, Player, Storage, DrillCard, Lobby } from '@backend/generated/prisma/client';
 import { TileService } from '../tile/tile.service';
 
-const spaceStationLandings: Record<string, string[]> = {
+export const spaceStationLandings: Record<string, string[]> = {
     "space_station_1": ["void_16"],
     "space_station_2": ["red_planet_1"],
     "space_station_3": ["void_17"],

@@ -3,17 +3,17 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import BoardGrid from "./BoardGrid";
-import EntitiesLayer from "./EntitiesLayer";
+import EntitiesLayer, { PLAYER_IMAGES } from "./EntitiesLayer";
 import styles from "./game.module.css";
 import { useParams, useRouter } from "next/navigation";
 import { PlayerDTO, PlayerChipDTO } from "../../../lib/dto/playerDTO";
 import { ShipDTO } from "../../../lib/dto/shipDTO";
-import { CardDTO } from "../../../lib/dto/storeDTO";
+import { CardDTO, CardTypeDTO } from "../../../lib/dto/storeDTO";
 import { StorageDTO } from "../../../lib/dto/storageDTO";
 import { GameDTO } from "../../../lib/dto/gameDTO";
 import { TileDTO } from "../../../lib/dto/tileDTO";
 import { DrillCardDTO } from "../../../lib/dto/drillCardDTO";
-import StoreComponent from "./StoreComponent";
+import StoreComponent, { CARD_DATA } from "./StoreComponent";
 import PlayerDataComponent from "./playerDataComponent";
 
 // 🌟 Definimos una interfaz limpia para estructurar lo que responde tu backend al excavar
@@ -40,13 +40,19 @@ export default function GamePage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [actualTile, setActualTile] = useState<TileDTO>();
   const [achiveGoal, setAchiveGoal] = useState<boolean>(false)
+  const [selectedCardToPlay, setSelectedCardToPlay] = useState<CardDTO | null>();
+  const [scannerOptions, setScannerOptions] = useState<DrillCardDTO[]>([]);
+  const [adjacentPlayers, setAdjacentPlayers] = useState<PlayerChipDTO[]>([])
   
   // 🌟 NUEVOS ESTADOS: Para controlar la visibilidad y el contenido del modal de excavación
+  const [isPlayCardModalOpen, setIsPlayCardModalOpen] = useState<boolean>(false);
+  const [isScannerModalOpen, setIsScannerModalOpen] = useState<boolean>(false);
   const [isDrillModalOpen, setIsDrillModalOpen] = useState<boolean>(false);
   const [drillResult, setDrillResult] = useState<DrillResponse | null>(null);
   const [drillDeeper, setDrillDeeper] = useState<boolean>(false);
   const [isGameOverDeathModalOpen, setIsGameOverDeathModalOpen] = useState<boolean>(false);
   const [isGameOverExplosionModalOpen, setIsGameOverExplosionModalOpen] = useState<boolean>(false);
+  const [isSwapCardModalOpen, setIsSwapCardModalOpen] = useState<boolean>(false);
   const [isVictoryModalOpen, setIsVictoryModalOpen] = useState<boolean>(false);
 
   const gameId = params.id;
@@ -123,8 +129,6 @@ export default function GamePage() {
       const responseGoal = await fetch(`http://localhost:4000/api/v1/game/${gameId}/goal`);
       if(!responseGoal.ok) throw new Error("Error al cargar el goal");
       const goalData = await responseGoal.json();
-      console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-      console.log(goalData)
       setAchiveGoal(goalData)
 
       return storageData;
@@ -197,6 +201,7 @@ export default function GamePage() {
     for (let i = 0; i < limit; i++) {
       newChips.push({
         id: playersData[i].id,
+        name: playersData[i].name,
         color: playersData[i].color,
         coordX: shipsData[i].positionX,
         coordY: shipsData[i].positionY,
@@ -356,6 +361,53 @@ export default function GamePage() {
     }
   }
 
+  async function handleGetCard(card: CardDTO){
+    if(!currentPlayer?.isDead && card.playerId && card.playerId===currentPlayer?.id){
+      setSelectedCardToPlay(card),
+      setIsPlayCardModalOpen(true)
+    }
+  }
+
+  async function getResourcesCardsForEHCard(){
+    try{
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/get-resource-cards`)
+      if(!response.ok) throw new Error("Error al cargar las cartas de recursos para la carta del jugador");
+      const resourcesDrillData = await response.json();
+      setScannerOptions(resourcesDrillData)
+      setIsScannerModalOpen(true)
+    }catch(error){
+      console.error(error)
+    }
+  }
+
+  async function getAdjacentPlayers(){
+    try{
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/adjacent-players`)
+      if(!response.ok) throw new Error("Error al cargar las cartas de recursos para la carta del jugador");
+      const adjacentPlayersData = await response.json();
+      setAdjacentPlayers(adjacentPlayersData)
+      setIsSwapCardModalOpen(true)
+    }catch(error){
+      console.error(error)
+    }
+  }
+
+  async function handlePlayCardEffect(card: CardDTO, option: string){
+    try{
+      await fetch(`http://localhost:4000/api/v1/game/${gameId}/use-card`, {
+        method: "PUT", // O PUT, dependiendo de cómo lo tengas configurado
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify( {cardId: card.id, effect: option} )
+      })
+      setIsPlayCardModalOpen(false);
+      setIsScannerModalOpen(false);
+      setIsSwapCardModalOpen(false);
+      setSelectedCardToPlay(null);
+    }catch(error){
+      console.error(error)
+    }
+  }
+
   async function handleResetGame(){
     setIsGameOverDeathModalOpen(false);
     setIsGameOverExplosionModalOpen(false);
@@ -366,7 +418,6 @@ export default function GamePage() {
     setIsVictoryModalOpen(true)
   }
 
-  console.log(achiveGoal , "initial_"+(currentPlayer?.turnOrder!+1))
   return !loading ? (
     <main
       className={styles.pageContainer}
@@ -556,7 +607,8 @@ export default function GamePage() {
                 actualTile={actualTile!}
                 handleUpgrade={handleUpgradeShip}
                 handleChange={handleChangeMinerals}
-                handleDrill={handleDrill} // Pasamos la función actualizada
+                handleDrill={handleDrill}
+                handleCard={handleGetCard}
               />
             )}
           </div>
@@ -730,6 +782,268 @@ export default function GamePage() {
       >
         Regresar al Centro de Mando
       </button>
+    </div>
+  </div>
+)}
+{/* MODAL: JUGAR CARTA DE ACCIÓN */}
+{isPlayCardModalOpen && selectedCardToPlay && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalContentCardAction}>
+      
+      <div className={styles.modalBodyCardAction}>
+        <div className={styles.cardActionIcon}>🃏</div>
+        <h3 className={styles.modalTitleCardAction}>Activar Tarjeta</h3>
+        <p className={styles.cardActionSubtitle}>
+          Estás a punto de consumir la carta: <strong className={styles.cardHighlightName}>{CARD_DATA[selectedCardToPlay.type].name}</strong>
+        </p>
+        <p className={styles.cardActionDescription}>
+          {selectedCardToPlay.type.toString() === "TEMPORARY_PATCH" && "Carga un parche de emergencia para reestabilizar uno de los sistemas críticos dañados de tu nave."}
+          {selectedCardToPlay.type.toString() === "NEW_DRILL" && "Sincroniza los calibradores de aleación cuántica para llevar la potencia de minado a su umbral máximo."}
+          {selectedCardToPlay.type.toString() === "BACKUP_POWER" && "Desvía la energía residual de las baterías secundarias directamente a las celdas defensivas."}
+          {selectedCardToPlay.type.toString() === "ROCKET_THRUSTERS" && "Sobrecarga los inyectores de combustible para exprimir un impulso gravitatorio extra este turno."}
+          {selectedCardToPlay.type.toString() === "ENHANCED_SCANNER" && "Abrir contenedor de minerales comprado a comerciantes independientes"}
+          {selectedCardToPlay.type.toString() === "SLINGSHOT" && "Usa el intercambiador cuántico para poder intercambiar la posición de tu nave con la de otro"}
+        </p>
+      </div>
+
+      {/* CONTENEDOR DE OPCIONES DINÁMICAS SEGÚN LA CARTA */}
+      <div className={styles.cardActionButtonsContainer}>
+        
+        {selectedCardToPlay.type.toString() === "SLINGSHOT" && (
+          <>
+            <button 
+              className={`${styles.actionButton} ${styles.btnDrill}`}
+              onClick={() => getAdjacentPlayers()}
+            >
+              🌀 Ver posibles intercambios
+            </button>
+          </>
+        )}
+
+        {selectedCardToPlay.type.toString() === "ENHANCED_SCANNER" && (
+          <>
+            <button 
+              className={`${styles.actionButton} ${styles.btnDrill}`}
+              onClick={() => getResourcesCardsForEHCard()}
+            >
+              📼 Abrir caja de recursos
+            </button>
+          </>
+        )}
+
+        {/* CASO 1: PARCHE TEMPORAL (Dos opciones mutuamente excluyentes) */}
+        {selectedCardToPlay.type.toString() === "TEMPORARY_PATCH" && (
+          <>
+            <button 
+              className={`${styles.actionButton} ${styles.btnDrill}`}
+              onClick={() => handlePlayCardEffect(selectedCardToPlay, "repair_drill")}
+            >
+              🔧 Reparar Taladro (+5)
+            </button>
+            <button 
+              className={`${styles.actionButton} ${styles.btnShield}`}
+              onClick={() => handlePlayCardEffect(selectedCardToPlay, "repair_shield")}
+            >
+              🛡️ Reforzar Escudo (+5)
+            </button>
+          </>
+        )}
+
+        {/* CASO 2: TALADRO NUEVO */}
+        {selectedCardToPlay.type.toString() === "NEW_DRILL" && (
+          <button 
+            className={`${styles.actionButton} ${styles.btnDrillMax}`}
+            onClick={() => handlePlayCardEffect(selectedCardToPlay, "new_drill")}
+          >
+            ⚡ Calibrar Taladro al Máximo
+          </button>
+        )}
+
+        {/* CASO 3: ENERGÍA DE RESERVA */}
+        {selectedCardToPlay.type.toString() === "BACKUP_POWER" && (
+          <button 
+            className={`${styles.actionButton} ${styles.btnShieldMax}`}
+            onClick={() => handlePlayCardEffect(selectedCardToPlay, "max_shield")}
+          >
+            🔋 Sobrecargar Escudos al Máximo
+          </button>
+        )}
+
+        {/* CASO 4: PROPULSORES COHETE */}
+        {selectedCardToPlay.type.toString() === "ROCKET_THRUSTERS" && (
+          <button 
+            className={`${styles.actionButton} ${styles.btnMovement}`}
+            onClick={() => handlePlayCardEffect(selectedCardToPlay, "more_movement")}
+          >
+            🚀 Activar Postquemadores (+1 Movimiento)
+          </button>
+        )}
+
+      </div>
+
+      {/* BOTÓN PARA CANCELAR Y VOLVER */}
+      <button 
+        className={styles.modalCancelCardButton}
+        onClick={() => {
+          setIsPlayCardModalOpen(false);
+          setSelectedCardToPlay(null);
+        }}
+      >
+        Abortar Acción
+      </button>
+
+    </div>
+  </div>
+)}
+{/* MODAL: SELECCIÓN DE RECURSO (ENHANCED_SCANNER) */}
+{isScannerModalOpen && scannerOptions.length > 0 && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalContentScanner}>
+      
+      <div className={styles.modalBodyScanner}>
+        <div className={styles.scannerIcon}>📡</div>
+        <h3 className={styles.modalTitleScanner}>Escaneo Mejorado</h3>
+        <p className={styles.scannerDescription}>
+          Has abierto el contenedor de minerales comprado a mercaderes independientes, que materiales consigues de este contenedor? (Solo se puede elegir una opción)
+        </p>
+      </div>
+
+      {/* CONTENEDOR DE LAS 3 CARTAS VISUALES */}
+      <div className={styles.scannerCardsGrid}>
+        {scannerOptions.map((card, index) => {
+          return (
+            <div 
+              key={index} 
+              className={styles.scannerCardReward}
+              onClick={() => handlePlayCardEffect(selectedCardToPlay!, "resource-card_"+card.id.toString())}
+            >
+              <div className={styles.cardRewardGlow} />
+              
+              <div className={styles.rewardStats}>
+                {card.greenResources > 0 && (
+                  <div className={`${styles.resourceRow} ${styles.resourceGreen}`}>
+                    <div className={styles.mineralIconWrapper}>
+                      <Image
+                        src="/images/icons/green-mineral.png"
+                        alt="Mineral Verde"
+                        fill
+                        sizes="22px"
+                        style={{ objectFit: "contain" }}
+                      />
+                    </div>
+                    <span>+{card.greenResources} Verde</span>
+                  </div>
+                )}
+                
+                {card.redResources > 0 && (
+                  <div className={`${styles.resourceRow} ${styles.resourceRed}`}>
+                    <div className={styles.mineralIconWrapper}>
+                      <Image
+                        src="/images/icons/red-mineral.png"
+                        alt="Mineral Rojo"
+                        fill
+                        sizes="22px"
+                        style={{ objectFit: "contain" }}
+                      />
+                    </div>
+                    <span>+{card.redResources} Rojo</span>
+                  </div>
+                )}
+                
+                {card.yellowResources > 0 && (
+                  <div className={`${styles.resourceRow} ${styles.resourceYellow}`}>
+                    <div className={styles.mineralIconWrapper}>
+                      <Image
+                        src="/images/icons/yellow-mineral.png"
+                        alt="Mineral Amarillo"
+                        fill
+                        sizes="22px"
+                        style={{ objectFit: "contain" }}
+                      />
+                    </div>
+                    <span>+{card.yellowResources} Amarillo</span>
+                  </div>
+                )}
+              </div>
+              
+              <button className={styles.selectRewardButton}>
+                Refinar
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+    </div>
+  </div>
+)}
+{isSwapCardModalOpen && adjacentPlayers.length > 0 && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalContentSwap}>
+      
+      <div className={styles.modalBodySwap}>
+        <div className={styles.swapIcon}>🌀</div>
+        <h3 className={styles.modalTitleSwap}>Disruptor de Posición</h3>
+        
+        {/* Coste de la acción destacado */}
+        <div className={styles.swapActionCost}>
+          ⚠️ Coste de Activación: <span className={styles.costHighlight}>2 Puntos de Movimiento</span>
+        </div>
+
+        <p className={styles.swapDescription}>
+          Sobrecarga los motores de curvatura para entrelazar tu signatura cuántica con una nave adyacente. Selecciona el objetivo para intercambiar vuestras coordenadas:
+        </p>
+      </div>
+
+      {/* LISTA DE JUGADORES DISPONIBLES (1 A 3) */}
+      <div className={styles.swapPlayersList}>
+        {adjacentPlayers.map((player) => (
+          <button
+            key={player.id}
+            className={styles.swapPlayerCardButton}
+            onClick={() => handlePlayCardEffect(selectedCardToPlay!, "swap-player_" + player.id.toString())}
+          >
+            <div className={styles.playerMainInfo}>
+              
+              {/* NUEVO: Imagen dinámica de la nave según el color del jugador */}
+              <div className={styles.playerShipIconWrapper}>
+                <Image
+                  src={PLAYER_IMAGES[player.color] || "/images/jugador_azul.png"} /* Fallback por si acaso */
+                  alt={`Nave de ${player.name}`}
+                  fill
+                  sizes="32px"
+                  style={{ objectFit: "contain" }}
+                />
+              </div>
+
+              <div className={styles.playerTextData}>
+                <span className={styles.playerNameText}>{player.name}</span>
+                <span className={styles.playerPlanetText}>
+                  Ubicación: <strong className={styles.planetHighlight}>{player.externalId.replaceAll("_"," ") || "Sector Desconocido"}</strong>
+                </span>
+                <span className={styles.playerCoordinatesText}>
+                  Cuadrante: <span className={styles.coordinatesHighlight}>[X: {player.coordX}, Y: {player.coordY}]</span>
+                </span>
+              </div>
+            </div>
+            <div className={styles.swapActionIndicator}>
+              Intercambiar 🔄
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* BOTÓN PARA ABORTAR */}
+      <button 
+        className={styles.modalCancelSwapButton}
+        onClick={() => {
+          setIsSwapCardModalOpen(false);
+          setSelectedCardToPlay(null);
+        }}
+      >
+        Cancelar Teletransporte
+      </button>
+
     </div>
   </div>
 )}

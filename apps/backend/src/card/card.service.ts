@@ -1,5 +1,5 @@
 import { connect } from 'http2';
-import { Prisma, Card, CardType, Store, Player, Storage } from '../generated/prisma/client';
+import { Prisma, Card, CardType, Store, Player, Storage, Ship, DrillCard, Tile } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 
@@ -35,7 +35,8 @@ export class CardService {
         const cards = await this.prisma.card.findMany({
             where:{
                 storeId:storeId,
-                inFrontStore: false
+                inFrontStore: false,
+                isDiscarded: false
             },
             orderBy:{id:'asc'}
         })
@@ -112,6 +113,111 @@ export class CardService {
             where: {id: store.id},
             data:{
                 numCards: {decrement: 1}
+            }
+        })
+    }
+
+    async applyBackupPowerCard(ship: Ship){
+        await this.prisma.ship.update({
+            where: {id: ship.id},
+            data: {
+                shield: 10
+            }
+        })
+    }
+
+    async applyNewDrillCard(ship: Ship){
+        await this.prisma.ship.update({
+            where: {id: ship.id},
+            data:{
+                drill: 10
+            }
+        })
+    }
+
+    async applyRocketThrustersCard(player: Player){
+        await this.prisma.player.update({
+            where: {id: player.id},
+            data:{
+                movement: {increment: 1}
+            }
+        })
+    }
+
+    async applyTemporaryPatchCard(ship:Ship, effect: string){
+        if(effect == "repair_drill"){
+            await this.prisma.ship.update({
+                where:{id: ship.id},
+                data:{
+                    drill: (ship.drill + 5 <= 10) ? {increment: 5}:10
+                }
+            })
+        }else if(effect == "repair_shield"){
+            await this.prisma.ship.update({
+                where:{id: ship.id},
+                data:{
+                    shield: (ship.shield + 5 <= 10) ? {increment: 5}:10
+                }
+            })
+        }
+    }
+
+    async applyEnhancedScannerCard(drillCard: DrillCard, storage: Storage){
+        await this.prisma.storage.update({
+            where:{id: storage.id},
+            data:{
+                green: (storage.green + drillCard.greenResources <= 18)?{increment:drillCard.greenResources}:18,
+                red: (storage.red + drillCard.redResources <= 10)?{increment:drillCard.redResources}:10,
+                yellow: (storage.yellow + drillCard.yellowResources <= 10)?{increment:drillCard.yellowResources}:10
+            }
+        })
+    }
+
+    async applySlingShotCard(myShip: Ship, otherShip: Ship, player: Player, otherPlayer: Player, actualTile: Tile, otherTile: Tile){
+        const myShipData = myShip;
+        await this.prisma.ship.update({
+            where:{id: myShip.id},
+            data:{
+                positionX: otherShip.positionX,
+                positionY: otherShip.positionY,
+                externalId: otherShip.externalId
+            }
+        })
+        await this.prisma.ship.update({
+            where:{id: otherShip.id},
+            data: {
+                positionX: myShipData.positionX,
+                positionY: myShipData.positionY,
+                externalId: myShipData.externalId
+            }
+        })
+        await this.prisma.player.update({
+            where:{id: player.id},
+            data:{
+                movement:{decrement: 2}
+            }
+        })
+        await this.prisma.tile.update({
+            where:{id: actualTile.id},
+            data:{
+                ocupiedByPlayerId: otherPlayer.id
+            }
+        })
+        await this.prisma.tile.update({
+            where:{id: otherTile.id},
+            data:{
+                ocupiedByPlayerId: player.id
+            }
+        })
+    }
+    async discardCard(card:Card){
+        await this.prisma.card.update({
+            where:{id: card.id},
+            data:{
+                playerId: null,
+                storeId: null,
+                inFrontStore: false,
+                isDiscarded: true
             }
         })
     }

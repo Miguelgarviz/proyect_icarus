@@ -10,6 +10,7 @@ export interface PlayerDTO {
 }
 export interface PlayerChipDTO {
   id: string;
+  name: string;
   color: string;
   coordX: number;
   coordY: number;

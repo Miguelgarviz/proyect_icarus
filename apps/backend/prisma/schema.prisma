@@ -87,6 +87,7 @@ model Card {
   type CardType
 
   inFrontStore Boolean @default(false)
+  isDiscarded Boolean @default(false)
 }
 
 model Store{

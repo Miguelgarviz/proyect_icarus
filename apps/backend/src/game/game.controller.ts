@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Put, Post, Body } from '@nestjs/common';
-import { GameService } from './game.service';
-import { Game, Prisma, Ship, Storage, CardType, Card, Store, TileType, DrillCard} from '../generated/prisma/browser';
+import { GameService, spaceStationLandings } from './game.service';
+import { Game, Prisma, Ship, Storage, CardType, Card, Store, TileType, DrillCard, Player} from '../generated/prisma/browser';
 import { LobbyService } from '../lobby/lobby.service';
 import { ShipService } from '../ship/ship.service';
 import { StorageService } from '../storage/storage.service';
@@ -36,11 +36,15 @@ export class GameController {
     
     @Post('/:id/create-store')
     async createStore(@Param('id') gameId: string): Promise<Store> {
-        const store= await this.storeService.createStore({numCards: 18});
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        const lobby = await this.lobbyService.getLobby({id: game.lobbyId!})
+        const numPlayers = lobby.numPlayers
+
+        const store= await this.storeService.createStore((numPlayers>1)?{numCards: 18}:{numCards:16});
         await this.cardService.createCardsForStore(store.id, 6, { type: CardType.TEMPORARY_PATCH, cost: 1 });
         await this.cardService.createCardsForStore(store.id, 3, { type: CardType.NEW_DRILL, cost: 2});
         await this.cardService.createCardsForStore(store.id, 3, { type: CardType.BACKUP_POWER, cost: 2});
-        await this.cardService.createCardsForStore(store.id, 2, {type: CardType.SLINGSHOT, cost: 2});
+        if(numPlayers>1) await this.cardService.createCardsForStore(store.id, 2, {type: CardType.SLINGSHOT, cost: 2});
         await this.cardService.createCardsForStore(store.id, 2, {type: CardType.ENHANCED_SCANNER, cost: 2});
         await this.cardService.createCardsForStore(store.id, 2, {type: CardType.ROCKET_THRUSTERS, cost: 2});
         await this.gameService.setGameStore({ id: Number(gameId) }, store.id);
@@ -422,4 +426,90 @@ export class GameController {
         return goal
     }
 
+    @Put('/:id/use-card')
+    async usePlayerCards(@Param('id') gameId: string, @Body('cardId') cardId: number, @Body('effect') effect: string){
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        const card = await this.cardService.getCard({id: cardId})
+        const player = await this.playerService.getPlayer({id: game.actualPlayerId})
+        const ship = await this.shipService.getShipById(player.shipId!)
+        const resourcesDrillCards = await this.drillCardsService.getResourceDrillCardsByGame(Number(gameId))
+        const storage = await this.storageService.getStorage(player.storageId!)
+        const actualTile = await this.tileService.getTileByExternalId(ship.externalId!, game.id)
+
+
+        if(!player.isDead && !card.inFrontStore && card.playerId && card.playerId===player.id && !card.isDiscarded){
+            switch(card.type){
+                case 'BACKUP_POWER':
+                    await this.cardService.applyBackupPowerCard(ship)
+                    break;
+                case 'ENHANCED_SCANNER':
+                    if(effect.includes("resource-card_")){
+                        const drillCardId = effect.replace("resource-card_", "")
+                        const drillCard = resourcesDrillCards.find((rs) => rs.id === Number(drillCardId))
+                        if(drillCard){
+                            await this.cardService.applyEnhancedScannerCard(drillCard,storage)
+                        }
+                    }
+                    break;
+                case 'NEW_DRILL':
+                    await this.cardService.applyNewDrillCard(ship)
+                    break;
+                case 'ROCKET_THRUSTERS':
+                    await this.cardService.applyRocketThrustersCard(player)
+                    break;
+                case 'SLINGSHOT':
+                    const otherPlayerId = Number(effect.replace("swap-player_",""))
+                    const otherPlayer = await this.playerService.getPlayer({id: Number(otherPlayerId)})
+                    const otherShip = await this.shipService.getShipById(otherPlayer.shipId!)
+                    const otherTile = await this.tileService.getTileByExternalId(otherShip.externalId!, game.id)
+                    await this.cardService.applySlingShotCard(ship,otherShip, player, otherPlayer, actualTile, otherTile)
+                    break;
+                case 'TEMPORARY_PATCH':
+                    if(effect == "repair_drill" || effect == "repair_shield") await this.cardService.applyTemporaryPatchCard(ship, effect)
+                    break;
+            }
+            await this.cardService.discardCard(card);
+        }
+    }
+
+    @Get('/:id/get-resource-cards')
+    async getResourcesCardsForEHCard(@Param('id') gameId: string){
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        const resourcesDrillCards = await this.drillCardsService.getResourceDrillCardsByGame(Number(gameId))
+        const player = await this.playerService.getPlayer({id: Number(gameId)})
+        const storage = await this.storageService.getStorage(player.storageId!)
+
+        const shuffledResourcesDrillCards1 = await this.drillCardsService.getShuffledDrillCard(resourcesDrillCards, storage.green + storage.red + storage.yellow + game.id + game.actualPlayerId + game.supernovaLvL +player.movement + 1)
+        const shuffledResourcesDrillCards2 = await this.drillCardsService.getShuffledDrillCard(resourcesDrillCards, storage.green + storage.red + storage.yellow + game.id + game.actualPlayerId + game.supernovaLvL +player.movement + 2)
+        const shuffledResourcesDrillCards3 = await this.drillCardsService.getShuffledDrillCard(resourcesDrillCards, storage.green + storage.red + storage.yellow + game.id + game.actualPlayerId + game.supernovaLvL +player.movement + 3)
+        return [shuffledResourcesDrillCards1, shuffledResourcesDrillCards2, shuffledResourcesDrillCards3]
+    }
+
+    @Get('/:id/adjacent-players')
+    async getAdjacentPlayers(@Param('id') gameId: string){
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        const player = await this.playerService.getPlayer({id: game.actualPlayerId})
+        const playerShip = await this.shipService.getShipById(player.shipId!)
+        const players = await this.lobbyService.getPlayersInLobby({id: game.lobbyId!})
+
+        const adjacentPlayers: {id: number, name: string, color: string, coordX: number, coordY: number, externalId: string}[] = []
+        for(const p of players){
+            if(p.id !== player.id || !p.isDead){
+                console.log(p)
+                const maxPlanetNum = [32, 16, 10];
+                const ship = await this.shipService.getShipById(p.shipId!)
+
+                const maxPositions = maxPlanetNum[ship.positionY];
+                const distanceY = Math.abs(ship.positionY - playerShip.positionY)
+                const distanceX = Math.abs(ship.positionX - playerShip.positionX) % maxPositions
+                const landingTile = (spaceStationLandings[playerShip.externalId]) ? spaceStationLandings[playerShip.externalId][ship.positionY=== 1 ? 0 : ship.positionY === 0? 0: 1] : null
+
+                console.log(distanceY, distanceX, landingTile)
+                if((landingTile && distanceY == 1 && playerShip.externalId.includes("space_station") && ship.externalId === landingTile) || distanceX == 1){
+                    adjacentPlayers.push({id: p.id, name: p.name, color: p.color, coordX: ship.positionX, coordY: ship.positionY, externalId: ship.externalId})
+                }
+            }
+        }
+        return adjacentPlayers
+    }
 }

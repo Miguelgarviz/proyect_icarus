@@ -14,7 +14,8 @@ export default function PlayerDataComponent({
   actualTile,
   handleUpgrade,
   handleChange,
-  handleDrill
+  handleDrill,
+  handleCard
 }: {
   shipData: ShipDTO | undefined;
   cargoData: StorageDTO | undefined;
@@ -23,6 +24,7 @@ export default function PlayerDataComponent({
   handleUpgrade: (system: string) => void;
   handleChange: (system: string) => void;
   handleDrill: () => void;
+  handleCard: (card: CardDTO) => void;
 }) {
   // Si los datos aún no se han cargado del backend, evitamos que rompa mostrando un loader
   if (!shipData || !cargoData) {
@@ -277,7 +279,7 @@ export default function PlayerDataComponent({
                 textTransform: "uppercase",
                 cursor: "pointer",
               }}
-              onClick={() => alert(`Usando carta: ${card.type}`)}
+              onClick={() => handleCard(card)}
             >
               Usar
             </button>

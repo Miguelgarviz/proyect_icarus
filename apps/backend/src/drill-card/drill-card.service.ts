@@ -55,6 +55,15 @@ export class DrillCardService {
         });
     }
 
+    async getResourceDrillCardsByGame(gameId: number){
+        return await this.prisma.drillCard.findMany({
+            where: { 
+                gameId: gameId,
+                isSupernovaCard: false
+             }
+        });
+    }
+
     private seededRandom(seed: number) {
             return function () {
                 let t = (seed += 0x6d2b79f5);
@@ -64,15 +73,17 @@ export class DrillCardService {
             };
         }
     
-        async getShuffledDrillCard(drillCards: DrillCard[], seed: number){
-            const shuffled = [...drillCards];
-            const rng = this.seededRandom(seed);
+    async getShuffledDrillCard(drillCards: DrillCard[], seed: number){
+        const shuffled = [...drillCards];
+        const rng = this.seededRandom(seed);
             
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(rng() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            
-            return shuffled[0];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(rng() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
+            
+        return shuffled[0];
+    }
+
+
 }
