@@ -16,4 +16,5 @@ export interface PlayerChipDTO {
   coordX: number;
   coordY: number;
   externalId: string;
+  isDead: boolean;
 }

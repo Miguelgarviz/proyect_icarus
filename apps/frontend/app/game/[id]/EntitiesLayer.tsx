@@ -24,7 +24,7 @@ export default function EntitiesLayer({
         return (
           <g key={player.id} style={{ transition: "all 0.5s ease" }}>
             <image
-              href={PLAYER_IMAGES[player.color]}
+              href={!player.isDead ? PLAYER_IMAGES[player.color]: "/images/dead_player.png"}
               x={coords.cx - imageSize / 2} 
               y={coords.cy - imageSize / 2}
               width={imageSize}

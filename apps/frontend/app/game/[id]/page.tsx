@@ -202,6 +202,7 @@ export default function GamePage() {
         color: playersData[i].color,
         coordX: shipsData[i].positionX,
         coordY: shipsData[i].positionY,
+        isDead: playersData[i].isDead,
         externalId: shipsData[i].externalId,
       });
     }
