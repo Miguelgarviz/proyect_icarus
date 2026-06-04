@@ -51,7 +51,7 @@ export class StorageService {
         await this.prisma.storage.update({
             where:{id:storage.id},
             data:{
-                red: (storage.red + 3 > 10)?{increment: 3}:10,
+                red: (storage.red + 3 <= 10)?{increment: 3}:10,
                 yellow: {decrement: 1}
             }
         })

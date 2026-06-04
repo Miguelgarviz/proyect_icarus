@@ -157,7 +157,8 @@ export class GameController {
         const players = await this.playerService.getPlayersInLobby(game.lobbyId!)
 
         let nextPlayerIndex = (actualPlayer.turnOrder + 1) % players.length
-        if(actualPlayer.turnOrder === players.length && nextPlayerIndex === 0){
+        if(actualPlayer.turnOrder === players.length - 1 && nextPlayerIndex === 0){
+
             await this.gameService.increaseSupernovaLvL(game)
             game = await this.gameService.getGame({id: Number(gameId)})
         }

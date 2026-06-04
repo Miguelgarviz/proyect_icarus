@@ -223,14 +223,19 @@ export default function GamePage() {
           setIsGameOverExplosionModalOpen(true)
         }
       } else {
-        await getAdjacentPlayers();
+        const players = await fetchPlayers();
+        const freshShips = await fetchShips();
+        await getAdjacentPlayers(false);
         await fetchActualPlayer();
-        await fetchShips();
         await fetchStorages();
         await fetchPlayersCards();
         await fetchMaxDistance();
         await fetchActualTile();
         await fetchGame();
+
+        if (players && freshShips) {
+          calculatePlayerChips(players, freshShips);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -247,7 +252,7 @@ export default function GamePage() {
       
       const players = await fetchPlayers();
       const freshShips = await fetchShips();
-      await getAdjacentPlayers();
+      await getAdjacentPlayers(false);
       await fetchGame();
       await fetchActualPlayer();
       await fetchMaxDistance();
@@ -270,6 +275,7 @@ export default function GamePage() {
         body: JSON.stringify({ system: system})
       });
       await fetchShips();
+      await fetchActualPlayer();
       await fetchStorages();
     }catch(error){
       console.error(error);
@@ -376,13 +382,13 @@ export default function GamePage() {
     }
   }
 
-  async function getAdjacentPlayers(){
+  async function getAdjacentPlayers(card: boolean){
     try{
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/adjacent-players`)
       if(!response.ok) throw new Error("Error al cargar las cartas de recursos para la carta del jugador");
       const adjacentPlayersData = await response.json();
       setAdjacentPlayers(adjacentPlayersData)
-      setIsSwapCardModalOpen(true)
+      if(card) setIsSwapCardModalOpen(true)
     }catch(error){
       console.error(error)
     }
@@ -398,7 +404,7 @@ export default function GamePage() {
 
       setScannerOptions([])
 
-      getAdjacentPlayers
+      getAdjacentPlayers(false);
       fetchActualPlayer();
       fetchActualTile();
       fetchStorages();
@@ -823,7 +829,7 @@ export default function GamePage() {
           <>
             <button 
               className={`${styles.actionButton} ${styles.btnDrill}`}
-              onClick={() => getAdjacentPlayers()}
+              onClick={() => getAdjacentPlayers(true)}
             >
               🌀 Ver posibles intercambios
             </button>

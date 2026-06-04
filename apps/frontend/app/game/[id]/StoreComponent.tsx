@@ -9,17 +9,17 @@ export const CARD_DATA: { [key: string]: { img: string, desc: string, name: stri
   'TEMPORARY_PATCH': {
     img: '/images/cards/Temporary_Patch_card.png',
     name: 'Parche Temporal',
-    desc: 'Restaura 5 puntos de escudo O de motores inmediatamente. Descartar luego de usar'
+    desc: 'Restaura 5 puntos de escudo O de escudos inmediatamente. Descartar luego de usar'
   },
   'BACKUP_POWER': {
     img: '/images/cards/Backup_Power_card.png',
     name: 'Energía de Reserva',
-    desc: 'Restaura el estado del escudo al maximo nivel posible. Descartar luego de usar'
+    desc: 'Restaura el estado del escudo al máximo nivel posible. Descartar luego de usar'
   },
   'NEW_DRILL': {
     img: '/images/cards/New_Drill_card.png',
     name: 'Taladro Nuevo',
-    desc: 'Restaura el estado del taladro al maximo nivel posible. Descartar luego de usar'
+    desc: 'Restaura el estado del taladro al máximo nivel posible. Descartar luego de usar'
   },
   'SLINGSHOT': {
     img: '/images/cards/Slingshot_card.png',
