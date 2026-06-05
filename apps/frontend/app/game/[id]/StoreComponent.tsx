@@ -9,7 +9,7 @@ export const CARD_DATA: { [key: string]: { img: string, desc: string, name: stri
   'TEMPORARY_PATCH': {
     img: '/images/cards/Temporary_Patch_card.png',
     name: 'Parche Temporal',
-    desc: 'Restaura 5 puntos de escudo O de escudos inmediatamente. Descartar luego de usar'
+    desc: 'Restaura 5 puntos de escudos O de taladros inmediatamente. Descartar luego de usar'
   },
   'BACKUP_POWER': {
     img: '/images/cards/Backup_Power_card.png',

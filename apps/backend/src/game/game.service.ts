@@ -52,7 +52,9 @@ export class GameService {
                 lobby:{
                     connect: { id: Number(data.lobby) }
                 },
-                actualPlayerId: data.actualPlayerId
+                actualPlayer: {
+                    connect: {id: Number(data.actualPlayer)}
+                }
             }
         });
     }

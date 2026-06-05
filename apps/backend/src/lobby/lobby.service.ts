@@ -1,6 +1,7 @@
 import { Prisma, Lobby, Player, Dificulty } from '@backend/generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { LookupAddress } from 'node:dns';
 
 @Injectable()
 export class LobbyService {
@@ -103,6 +104,13 @@ export class LobbyService {
                 dificulty: data.difficulty
             }
         });
+    }
+
+    async getGoalFromLobby(lobbyId:number){
+        const lobby = await this.prisma.lobby.findFirstOrThrow({
+            where:{id: lobbyId}
+        })
+        return lobby.dificulty
     }
 
 }

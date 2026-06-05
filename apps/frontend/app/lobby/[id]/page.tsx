@@ -163,7 +163,7 @@ export default function Lobby() {
       const response = await fetch(`http://localhost:4000/api/v1/game`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lobby: idLobby, actualPlayerId: players[0].id }),
+        body: JSON.stringify({ lobby: idLobby, actualPlayer: players[0].id }),
       });
       if (response.ok) {
         const game = await response.json();

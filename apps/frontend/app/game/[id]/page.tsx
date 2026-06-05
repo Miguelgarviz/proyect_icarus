@@ -24,6 +24,24 @@ interface DrillResponse {
   drillCard?: DrillCardDTO; 
 }
 
+interface GoalResponse {
+  difficulty: string
+}
+
+const difficultyImages: Record<string, string> = {
+  beginner_i: "/images/goals/Beginner_i.png",
+  beginner_ii: "/images/goals/Beginner_ii.png",
+  easy_i: "/images/goals/Easy_i.png",
+  easy_ii: "/images/goals/Easy_ii.png",
+  medium_i: "/images/goals/Medium_i.png",
+  medium_ii: "/images/goals/Medium_ii.png",
+  hard_i: "/images/goals/Hard_i.png",
+  hard_ii: "/images/goals/Hard_ii.png",
+  extreme_i: "/images/goals/Extreme_i.png",
+  extreme_ii: "/images/goals/Extreme_ii.png",
+  impossible: "/images/goals/Impossible_i.png",
+};
+
 
 export default function GamePage() {
   const router = useRouter();
@@ -52,6 +70,9 @@ export default function GamePage() {
   const [isGameOverExplosionModalOpen, setIsGameOverExplosionModalOpen] = useState<boolean>(false);
   const [isSwapCardModalOpen, setIsSwapCardModalOpen] = useState<boolean>(false);
   const [isVictoryModalOpen, setIsVictoryModalOpen] = useState<boolean>(false);
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+
+  const [goalImageUrl, setGoalImageUrl] = useState<string>();
 
   const gameId = params.id;
 
@@ -59,6 +80,7 @@ export default function GamePage() {
     async function loadAllGameData() {
       setLoading(true);
       try {
+        await getGoal();
         const players = await fetchPlayers();
         const freshShips = await fetchShips();
         await fetchGame();
@@ -68,6 +90,7 @@ export default function GamePage() {
         await fetchPlayersCards();
         await fetchActualTile();
         await fetchStoreCards();
+        
 
         if (players && freshShips) {
           calculatePlayerChips(players, freshShips);
@@ -93,6 +116,17 @@ export default function GamePage() {
     }
   }
 
+  async function getGoal(){
+    try{
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/get-goal`)
+      if(!response.ok) throw new Error("Error al cargar el goal")
+      const goal:GoalResponse = await response.json();
+      console.log(goal.difficulty)
+      setGoalImageUrl(goal.difficulty)
+    }catch(error){
+      console.error(error)
+    }
+  }
   async function fetchGame() {
     try {
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}`);
@@ -564,50 +598,65 @@ export default function GamePage() {
           </button>)}
         </div>
 
-        {/* TABLERO CENTRAL */}
         
+{/* TABLERO CENTRAL */}
         <div
-          className={styles.boardWrapper}
+        className={styles.boardWrapper}
+        style={{
+          flex: 1,
+          position: "relative",
+          height: "100%", 
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        {/* BOTÓN DE OBJETIVO (ESQUINA SUPERIOR IZQUIERDA) */}
+        <button 
+          className={styles.goalMenuButton}
+          onClick={() => setIsGoalModalOpen(true)}
+          title="Ver Objetivos de la Misión"
+        >
+          🎯 Misión
+        </button>
+
+        {/* CARTEL DE ALERTA UBICADO EN LA ESQUINA SUPERIOR DERECHA (TAMAÑO REDUCIDO) */}
+        {achiveGoal && (
+          <div className={styles.boardFloatingAlertMini}>
+            ⚠️ ¡Recursos listos! Puedes huir del sistema 🚀
+          </div>
+        )}
+
+        <Image
+          src="/images/tablero.png"
+          alt="Project Icarus"
+          fill
+          priority
+          sizes="(max-width: 768px) 90vw, (max-width: 1200px) 80vw, 1200px"
+          style={{ objectFit: "contain" }} 
+        />
+
+        <svg
+          viewBox="0 0 1790 1787"
+          className={styles.svgOverlay}
+          xmlns="http://www.w3.org/2000/svg"
           style={{
-            flex: 1,
-            position: "relative",
-            height: "100%", 
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            maxHeight: "100%", 
           }}
         >
-          <Image
-            src="/images/tablero.png"
-            alt="Project Icarus"
-            fill
-            priority
-            sizes="(max-width: 768px) 90vw, (max-width: 1200px) 80vw, 1200px"
-            style={{ objectFit: "contain" }} 
+          <BoardGrid
+            currentRound={game?.supernovaLvL??0}
+            onNodeClick={handleMovePlayer}
+            allowedNodes={reachableTiles}
           />
-
-          <svg
-            viewBox="0 0 1790 1787"
-            className={styles.svgOverlay}
-            xmlns="http://www.w3.org/2000/svg"
-            style={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              maxHeight: "100%", 
-            }}
-          >
-            <BoardGrid
-              currentRound={game?.supernovaLvL??0}
-              onNodeClick={handleMovePlayer}
-              allowedNodes={reachableTiles}
-            />
-            <EntitiesLayer 
-              playersData={playersChips}
-            />
-            
-          </svg>
-        </div>
+          <EntitiesLayer 
+            playersData={playersChips}
+          />
+        </svg>
+      </div>
 
             
         {/* COLUMNA DERECHA */}
@@ -633,6 +682,7 @@ export default function GamePage() {
                 playerMovement={currentPlayer.movement}
                 initialHelp = {currentPlayer.initialHelp}
                 adjacentPlayers={adjacentPlayers}
+                actualRound={game?.supernovaLvL!}
                 handleUpgrade={handleUpgradeShip}
                 handleChange={handleChangeMinerals}
                 handleDrill={handleDrill}
@@ -1052,6 +1102,35 @@ export default function GamePage() {
     </div>
   </div>
 )}
+{isGoalModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsGoalModalOpen(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button 
+              className={styles.modalCloseButton} 
+              onClick={() => setIsGoalModalOpen(false)}
+            >
+              &times;
+            </button>
+            <h3 className={styles.modalTitle}>Objetivo del Sistema</h3>
+            <div className={styles.modalImageContainer}>
+              {goalImageUrl ? (
+                <Image
+                  src={difficultyImages[goalImageUrl]}
+                  alt={`Objetivo ${goalImageUrl}`}
+                  fill
+                  sizes="(max-width: 768px) 80vw, 500px"
+                  style={{ objectFit: "contain" }}
+                  priority
+                />
+              ) : (
+                <div className={styles.noGoalText}>
+                  No se ha detectado ninguna directiva de misión para: "{goalImageUrl ?? "Desconocido"}"
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   ) : (
     <main>

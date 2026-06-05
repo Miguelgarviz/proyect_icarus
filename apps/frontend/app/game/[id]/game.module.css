@@ -1411,3 +1411,157 @@
   align-items: center;
   justify-content: center;
 }
+
+.boardFloatingAlertMini {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 40; /* Flota encima de la cuadrícula y de las capas del mapa */
+  
+  /* Fondo compacto y de alta visibilidad */
+  background-color: #12141a;
+  border: 1.5px solid #FFD700;
+  color: #FFD700;
+  
+  /* Dimensiones más ajustadas y discretas */
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  
+  /* Desactiva interacción para que puedas hacer clic al mapa de fondo tranquilamente */
+  pointer-events: none;
+  
+  /* Animación de pulso estelar elegante y sutil */
+  animation: subtleBlink 2s infinite ease-in-out;
+}
+
+@keyframes subtleBlink {
+  0%, 100% {
+    border-color: #FFD700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.25);
+  }
+  50% {
+    border-color: #a68c00;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Botón de acceso en la esquina superior izquierda del tablero */
+.goalMenuButton {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 40; /* Al mismo nivel que la alerta mini */
+  background-color: #12141a;
+  border: 1.5px solid #00e5ff;
+  color: #00e5ff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.15);
+}
+
+.goalMenuButton:hover {
+  background-color: #00e5ff;
+  color: #12141a;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+}
+
+/* Telón de fondo oscuro para el modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(5, 7, 12, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  alignItems: center;
+  z-index: 100; /* Por encima de cualquier interfaz */
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Contenedor del Modal */
+.modalContent {
+  background-color: #11141d;
+  border: 2px solid #333947;
+  border-radius: 12px;
+  padding: 24px;
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7), 0 0 1px 1px rgba(255, 255, 255, 0.05) inset;
+  animation: scaleUp 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Botón para cerrar (X) */
+.modalCloseButton {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #727b8e;
+  font-size: 1.6rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.modalCloseButton:hover {
+  color: #ff4d4d;
+}
+
+.modalTitle {
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #232834;
+  padding-bottom: 10px;
+}
+
+/* Contenedor para la imagen de la carta de objetivo */
+.modalImageContainer {
+  position: relative;
+  width: 100%;
+  height: 380px; /* Espacio ideal para ver la carta de objetivo */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.noGoalText {
+  color: #727b8e;
+  font-size: 0.85rem;
+  text-align: center;
+  font-style: italic;
+  border: 1px dashed #232834;
+  padding: 20px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

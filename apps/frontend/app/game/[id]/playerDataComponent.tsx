@@ -16,6 +16,7 @@ export default function PlayerDataComponent({
   playerMovement,
   initialHelp,
   adjacentPlayers,
+  actualRound,
   handleUpgrade,
   handleChange,
   handleDrill,
@@ -29,6 +30,7 @@ export default function PlayerDataComponent({
   playerMovement: number;
   initialHelp: boolean;
   adjacentPlayers: PlayerChipDTO[];
+  actualRound: number;
   handleUpgrade: (system: string) => void;
   handleChange: (system: string) => void;
   handleDrill: () => void;
@@ -67,6 +69,34 @@ export default function PlayerDataComponent({
     }
   }
 
+  // Lógica para calcular la penalización o valor negativo del escudo
+  const obtenerDesgasteEscudo = (): number => {
+    const basePosicion = (actualTile?.positionY ?? 0) + 1;
+    let bonoRonda = 0;
+
+    if (actualRound >= 9 && actualRound <= 14) {
+      bonoRonda = 1;
+    } else if (actualRound > 14 && actualRound <= 19) {
+      bonoRonda = 2;
+    }
+
+    return basePosicion + bonoRonda;
+  };
+
+  const valorDesgaste = obtenerDesgasteEscudo();
+
+  // Lógica para obtener el coste de excavación del taladro en el planeta actual
+  const obtenerCosteTaladro = (): number => {
+    if (!shipData.externalId?.includes("planet") || (actualTile?.drillAttempts ?? 0) <= 0) {
+      return 0;
+    }
+    return drillPrice[actualTile.type?.toString()] ?? 0;
+  };
+
+  const costeTaladro = obtenerCosteTaladro();
+  // Solo se muestra si el coste es mayor que 0 y el jugador tiene suficiente nivel para pagarlo sin bajar de 0
+  const mostrarCosteTaladro = costeTaladro > 0 && shipData.drill >= costeTaladro;
+
   return (
     <div className={styles.dashboardContainer}>
       <h2 className={styles.dashboardTitle}>Datos del Jugador</h2>
@@ -86,7 +116,7 @@ export default function PlayerDataComponent({
                   style={{ objectFit: "contain" }}
                 />
               </div>{" "}
-              Motor
+              Motores
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -119,13 +149,30 @@ export default function PlayerDataComponent({
                   style={{ objectFit: "contain" }}
                 />
               </div>{" "}
-              Taladro
+              Taladros
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div className={`${styles.valueBadge} ${styles.drillValue}`}>
                 {shipData.drill}
               </div>
+              
+              {/* Indicador dinámico de coste de excavación */}
+              {mostrarCosteTaladro && (
+                <span 
+                  style={{ 
+                    color: "#ff8c00", // Color naranja/alerta para diferenciarlo del desgaste del escudo
+                    fontWeight: "800", 
+                    fontSize: "1.15rem",
+                    marginLeft: "4px",
+                    textShadow: "0 0 6px rgba(255, 140, 0, 0.5)"
+                  }}
+                  title="Coste de excavación en este planeta"
+                >
+                  -{costeTaladro}
+                </span>
+              )}
+
               {isAtSpaceStation &&
                 shipData.drill < 10 &&
                 cargoData.green >= 1 && (
@@ -151,13 +198,28 @@ export default function PlayerDataComponent({
                   style={{ objectFit: "contain" }}
                 />
               </div>{" "}
-              Escudo
+              Escudos
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              {/* Valor actual del escudo */}
               <div className={`${styles.valueBadge} ${styles.shieldValue}`}>
                 {shipData.shield}
               </div>
+              
+              {/* Indicador dinámico de pérdida/desgaste */}
+              <span 
+                style={{ 
+                  color: "#ff3b3b", 
+                  fontWeight: "800", 
+                  fontSize: "1.15rem",
+                  marginLeft: "4px",
+                  textShadow: "0 0 6px rgba(255, 59, 59, 0.6)"
+                }}
+              >
+                -{valorDesgaste}
+              </span>
+
               {isAtSpaceStation &&
                 shipData.shield < 10 &&
                 cargoData.green >= 1 && (

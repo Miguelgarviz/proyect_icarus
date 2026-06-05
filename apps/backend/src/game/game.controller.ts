@@ -9,6 +9,7 @@ import { PlayerService } from '../player/player.service';
 import { CardService } from '../card/card.service';
 import { StoreService } from '../store/store.service';
 import { DrillCardService } from '../drill-card/drill-card.service';
+import { diff } from 'node:util';
 
 @Controller('game')
 export class GameController {
@@ -524,5 +525,13 @@ export class GameController {
         if(storage.green === 0 && storage.red === 0 && storage.yellow === 0 && ship.drill === 0 && player.initialHelp){
             await this.storageService.giveInitialHelp(storage,player)
         }
+    }
+
+    @Get('/:id/get-goal')
+    async getGoalFromGame(@Param('id') gameId: string){
+        const game = await this.gameService.getGame({id: Number(gameId)})
+        const difficulty = await this.lobbyService.getGoalFromLobby(game.lobbyId)
+
+        return {difficulty: difficulty.toString().toLowerCase()};
     }
 }
