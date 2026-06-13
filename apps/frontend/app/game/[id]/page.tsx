@@ -695,7 +695,7 @@ export default function GamePage() {
         
       </div>
 
-      {isDrillModalOpen && drillResult && drillResult.valid && (
+{isDrillModalOpen && drillResult && drillResult.valid && (
   <div className={styles.modalOverlay}>
     <div className={styles.modalContent}>
       
@@ -749,39 +749,40 @@ export default function GamePage() {
               <span className={styles.resourceLabel}>
                 Mineral {drillResult.type === "green" ? "Verde" : drillResult.type === "red" ? "Rojo" : "Amarillo"}
               </span>
-              
             </div>
-            
           </div>
         )}
 
       </div>
 
-      {(drillResult.type === "red" || drillResult.type === "yellow" || drillResult.empty) && !drillDeeper && 
-              <button
-                className={styles.modalDrillDeeperButton}
-                onClick={() => {
-                  setDrillDeeper(true);
-                  handleDrillDeeper()}
-                }
-              >
-                Excavar mas profundo
-              </button>}
-      
-      <button 
-        className={styles.modalCloseButton}
-        onClick={() => {
-          setIsDrillModalOpen(false);
-          setDrillResult(null);
-          setDrillDeeper(false);
-        }}
-      >
-        Confirmar Informe
-      </button>
+      {/* NUEVO CONTENEDOR PARA ARREGLAR LOS BOTONES */}
+      <div className={styles.modalActions}>
+        {(drillResult.type === "red" || drillResult.type === "yellow" || drillResult.empty) && !drillDeeper && (
+          <button
+            className={styles.modalDrillDeeperButton}
+            onClick={() => {
+              setDrillDeeper(true);
+              handleDrillDeeper();
+            }}
+          >
+            Excavar más profundo
+          </button>
+        )}
+        
+        <button 
+          className={styles.modalConfirmButton}
+          onClick={() => {
+            setIsDrillModalOpen(false);
+            setDrillResult(null);
+            setDrillDeeper(false);
+          }}
+        >
+          Confirmar Informe
+        </button>
+      </div>
 
     </div>
   </div>
-  
 )}
 {isGameOverDeathModalOpen && (
   <div className={styles.modalOverlay}>

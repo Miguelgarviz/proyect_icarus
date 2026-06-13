@@ -1565,3 +1565,84 @@
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+
+/* Contenedor de botones inferiores */
+.modalActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+  width: 100%;
+}
+
+/* Botón principal de Confirmar Informe */
+.modalConfirmButton {
+  width: 100%;
+  background-color: #238636; /* Verde interactivo estilo espacial/GitHub */
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  text-align: center;
+}
+
+.modalConfirmButton:hover {
+  background-color: #2ea043;
+}
+
+.modalConfirmButton:active {
+  transform: scale(0.98);
+}
+
+/* Botón secundario para Perforar más profundo */
+.modalDrillDeeperButton {
+  width: 100%;
+  background-color: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  text-align: center;
+}
+
+.modalDrillDeeperButton:hover {
+  background-color: #30363d;
+  border-color: #8b949e;
+}
+
+/* Estilos de soporte para el display de recursos dentro de la tarjeta */
+.resourceDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.resourceAmount {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.resourceLabel {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #8b949e;
+}
+
+/* Colores dinámicos del material */
+.green .resourceAmount { color: #39d353; }
+.red .resourceAmount { color: #f85149; }
+.yellow .resourceAmount { color: #f2cc60; }
