@@ -1,0 +1,170 @@
+/* ==========================================================================
+   1. CONTENEDOR PRINCIPAL DE LA TIENDA (Mismo estilo que el Dashboard)
+   ========================================================================== */
+
+.storeContainer {
+  background-color: #161b22;
+  border: 2px solid #30363d;
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
+  max-width: 380px; /* Ajustado al ancho del panel lateral */
+  box-sizing: border-box;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.storeTitle {
+  color: #ffffff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #21262d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+
+/* ==========================================================================
+   2. REJILLA EN COLUMNA (Para mantener las filas compactas)
+   ========================================================================== */
+
+.cardsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Tarjeta optimizada como fila de datos compacta (Estilo .dataRow) */
+.storeCard {
+  display: flex;
+  flex-direction: column; /* Cambiado a columna interna para albergar info + precio de forma limpia */
+  gap: 8px;
+  background-color: #0d1117;
+  border: 1px solid #21262d;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.storeCard:hover {
+  border-color: #30363d;
+}
+
+/* Fila superior que contiene Icono Pequeño + Nombre */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Contenedor adaptativo para que la imagen de la carta sea un icono pequeño de 22px */
+.cardImageWrapper {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  min-width: 22px; /* Evita que Next.js lo encoja */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f0f6fc;
+  margin: 0;
+}
+
+
+/* ==========================================================================
+   3. DESCRIPCIÓN DE LA CARTA (Pequeña e integrada)
+   ========================================================================== */
+
+.cardDescription {
+  font-size: 0.8rem;
+  color: #8b949e;
+  line-height: 1.4;
+  margin: 0;
+  padding-left: 32px; /* Alineado justo debajo del texto del nombre, saltándose el icono */
+}
+
+
+/* ==========================================================================
+   4. SECCIÓN DE COMPRA (PRECIO Y BOTÓN COSTE)
+   ========================================================================== */
+
+.buySection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid #21262d;
+  padding-left: 32px; /* Mantiene la simetría con la descripción */
+}
+
+/* Contenedor del precio en minerales */
+.priceDisplay {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* Icono del mineral rojo pequeño */
+.mineralIconWrapper {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* ==========================================================================
+   5. BOTÓN DE COMPRA Y ESTADOS EXCEPCIONALES
+   ========================================================================== */
+
+.buyButton {
+  background-color: #ffd700; /* Amarillo original */
+  color: #000000;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 4px 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background-color 0.15s ease;
+}
+
+.buyButton:hover {
+  background-color: #ffffff;
+}
+
+.outOfStockContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(22, 27, 34, 0.5);
+  border: 1px dashed #30363d;
+  border-radius: 8px;
+  height: 44px;
+}
+
+.outOfStockText {
+  color: #484f58;
+  font-size: 0.85rem;
+  font-style: italic;
+}

@@ -1,0 +1,87 @@
+/* ==========================================================================
+   3. PANEL DE CONTROL DE TURNO (HUD)
+   ========================================================================== */
+
+.turnContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #161b22;
+  border: 2px solid #30363d;
+  border-radius: 12px;
+  padding: 10px 14px;
+  min-height: 54px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.2s ease;
+  font-family: system-ui, -apple-system, sans-serif;
+  width: 100%;
+}
+
+.turnContainer:hover {
+  border-color: #48c4fd; /* Mismo destello azul sutil del resto del tablero */
+}
+
+/* Indicador LED de color de jugador */
+.turnLed {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--player-color, #ffffff);
+  box-shadow: 0 0 8px var(--player-color, #ffffff);
+  flex-shrink: 0;
+}
+
+/* Estructura interna de textos del turno (Alineación con .labelWrapper) */
+.turnTextWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-grow: 1;
+}
+
+.turnLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.turnPlayerName {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.turnLoading {
+  color: #58a6ff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-style: italic;
+  width: 100%;
+  text-align: center;
+}
+
+/* Marcador de movimientos estilo .valueBadge */
+.movementWrapper {
+  display: flex;
+  align-items: center;
+  background-color: #21262d;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  border: 1px solid #30363d;
+}
+
+.movementValue {
+  color: #58a6ff; /* Color azul de telemetría/motores */
+}
+
+.movementMax {
+  color: #8b949e;
+  font-weight: 500;
+  margin-left: 2px;
+}

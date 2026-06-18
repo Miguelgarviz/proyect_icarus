@@ -1,0 +1,291 @@
+/* ==========================================================================
+   1. PANEL PRINCIPAL (HUD) Y CONFIGURACIÓN BASE
+   ========================================================================== */
+
+.dashboardContainer {
+  background-color: #161b22;
+  border: 2px solid #30363d;
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
+  max-width: 380px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.dashboardTitle {
+  color: #ffffff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #21262d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Estado de carga de datos */
+.noDataText {
+  color: #58a6ff;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 40px 0;
+  letter-spacing: 1px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+
+/* ==========================================================================
+   2. SECCIONES Y FILAS DE DATOS (Nave, Almacén, Cartas)
+   ========================================================================== */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  color: #8b949e;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.gridRows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dataRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #0d1117;
+  border: 1px solid #21262d;
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-height: 44px;
+  box-sizing: border-box;
+  color: #c9d1d9;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease;
+}
+
+.dataRow:hover {
+  border-color: #30363d;
+}
+
+/* Estructura interna de los textos e iconos del juego */
+.labelWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-grow: 1;
+}
+
+.iconWrapper {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* ==========================================================================
+   3. MARCADORES DE VALOR (Badges) E INDICADORES DINÁMICOS
+   ========================================================================== */
+
+.valueBadge {
+  background-color: #21262d;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  min-width: 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  border: 1px solid #30363d;
+}
+
+/* Colores específicos de telemetría de la nave */
+.engineValue {
+  color: #58a6ff;
+  border-color: rgba(88, 166, 255, 0.3);
+  background-color: rgba(88, 166, 255, 0.05);
+}
+
+.drillValue {
+  color: #ff9800;
+  border-color: rgba(255, 152, 0, 0.3);
+  background-color: rgba(255, 152, 0, 0.05);
+}
+
+.shieldValue {
+  color: #238636;
+  border-color: rgba(57, 211, 83, 0.3);
+  background-color: rgba(57, 211, 83, 0.05);
+}
+
+/* Indicador dinámico de coste de perforación planetaria (Naranja) */
+.drillCostText {
+  color: #ff8c00;
+  font-weight: 800;
+  font-size: 1.15rem;
+  margin-left: 4px;
+  text-shadow: 0 0 6px rgba(255, 140, 0, 0.5);
+}
+
+/* Indicador dinámico de pérdida/desgaste de escudos atmosféricos (Rojo) */
+.shieldWearText {
+  color: #ff3b3b;
+  font-weight: 800;
+  font-size: 1.15rem;
+  margin-left: 4px;
+  text-shadow: 0 0 6px rgba(255, 59, 59, 0.6);
+}
+
+
+/* ==========================================================================
+   4. SISTEMA DE BOTONES (Mejoras e Intercambio en Estación)
+   ========================================================================== */
+
+.upgradeButton, .changeToRed, .changeToGreen, .changeToYellow {
+  background-color: #21262d;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.15s ease;
+}
+
+.upgradeButton:hover {
+  background-color: #2ea043;
+  color: #ffffff;
+  border-color: #39d353;
+  box-shadow: 0 0 8px rgba(57, 211, 83, 0.4);
+}
+
+.changeToRed:hover {
+  background-color: #da3637;
+  color: #ffffff;
+  border-color: #f85149;
+}
+
+.changeToGreen:hover {
+  background-color: #238636;
+  color: #ffffff;
+  border-color: #2ea043;
+}
+
+.changeToYellow:hover {
+  background-color: #bf9000;
+  color: #ffffff;
+  border-color: #d4a373;
+}
+
+
+/* ==========================================================================
+   5. CONTENEDORES Y ACCIONES DE CARTAS DE INVENTARIO
+   ========================================================================== */
+
+.playerCardName {
+  font-weight: 600;
+  color: #f0f6fc;
+}
+
+/* Ranura sin cartas equipadas */
+.emptyCardSlot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(22, 27, 34, 0.5);
+  border: 1px dashed #30363d;
+  border-radius: 8px;
+  height: 44px;
+}
+
+.emptyCardText {
+  color: #484f58;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* Botón interactivo "Usar" dentro de la ranura de carta */
+.useCardButton {
+  margin-left: 10px;
+  padding: 6px 12px;
+  background-color: #00ff00; /* Color original verde fosforito del juego */
+  color: #000000;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.useCardButton:hover {
+  filter: brightness(1.1);
+}
+
+.useCardButton:active {
+  transform: scale(0.96);
+}
+
+
+/* ==========================================================================
+   6. BOTÓN CRÍTICO DE ACCIÓN GLOBAL (Excavar)
+   ========================================================================== */
+
+.drillActionButton {
+  width: 100%;
+  padding: 12px;
+  background-color: #ff0000; /* Color original rojo de alerta */
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.2);
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.drillActionButton:hover {
+  background-color: #e60000;
+}
+
+.drillActionButton:active {
+  transform: scale(0.98);
+}
+
+
+/* ==========================================================================
+   7. ANIMACIONES DE SOPORTE SINTÁCTICO
+   ========================================================================== */
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}

@@ -5,6 +5,8 @@ import Image from "next/image";
 import BoardGrid from "./BoardGrid";
 import EntitiesLayer, { PLAYER_IMAGES } from "./EntitiesLayer";
 import styles from "./game.module.css";
+import modalStyles from "./styles/modal.module.css"
+import turnStyles from "./styles/turnPlayer.module.css"
 import { useParams, useRouter } from "next/navigation";
 import { PlayerDTO, PlayerChipDTO } from "../../../lib/dto/playerDTO";
 import { ShipDTO } from "../../../lib/dto/shipDTO";
@@ -15,6 +17,7 @@ import { TileDTO, TileTypeDTO } from "../../../lib/dto/tileDTO";
 import { DrillCardDTO } from "../../../lib/dto/drillCardDTO";
 import StoreComponent, { CARD_DATA } from "./StoreComponent";
 import PlayerDataComponent from "./playerDataComponent";
+import {DeathEndModal, DrillModal, GoalModal, NormalCardModal, ScannerCardModal, SuperNovaEndModal, SwapCardModal, VictoryModal} from "./modalComponents";
 
 interface DrillResponse {
   empty: boolean;
@@ -28,19 +31,7 @@ interface GoalResponse {
   difficulty: string
 }
 
-const difficultyImages: Record<string, string> = {
-  beginner_i: "/images/goals/Beginner_i.png",
-  beginner_ii: "/images/goals/Beginner_ii.png",
-  easy_i: "/images/goals/Easy_i.png",
-  easy_ii: "/images/goals/Easy_ii.png",
-  medium_i: "/images/goals/Medium_i.png",
-  medium_ii: "/images/goals/Medium_ii.png",
-  hard_i: "/images/goals/Hard_i.png",
-  hard_ii: "/images/goals/Hard_ii.png",
-  extreme_i: "/images/goals/Extreme_i.png",
-  extreme_ii: "/images/goals/Extreme_ii.png",
-  impossible: "/images/goals/Impossible_i.png",
-};
+
 
 
 export default function GamePage() {
@@ -509,52 +500,51 @@ export default function GamePage() {
             flexShrink: 0,
           }}
         >
-          <div className={styles.turnContainer}>
-            {currentPlayer ? (
-              <>
-                <div
-                  className={styles.turnLed}
-                  style={
-                    {
-                      "--player-color": currentPlayer.color || "#ffffff",
-                    } as React.CSSProperties
-                  }
-                />
+<div className={turnStyles.turnContainer}>
+  {currentPlayer ? (
+    <>
+      <div className={turnStyles.turnTextWrapper}>
+        {/* El LED circular alineado a la izquierda del texto */}
+        <div
+          className={turnStyles.turnLed}
+          style={
+            {
+              "--player-color": currentPlayer.color || "#ffffff",
+            } as React.CSSProperties
+          }
+        />
+        <div>
+          <span className={turnStyles.turnLabel}></span>
+          <span className={turnStyles.turnPlayerName}>
+            {currentPlayer.name}
+          </span>
+        </div>
+      </div>
 
-                <div className={styles.turnTextWrapper}>
-                  <span className={styles.turnLabel}>Turno Actual</span>
-                  <span className={styles.turnPlayerName}>
-                    {currentPlayer.name}
-                  </span>
-                </div>
+      {/* Bloque de movimientos con la aclaración textual integrada debajo */}
+      <div 
+        className={turnStyles.movementWrapper} 
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}
+      >
+        <div className={turnStyles.movementBadge} title="Movimientos disponibles / máximos">
+          <span className={turnStyles.movementValue}>
+            {currentPlayer.movement}
+            <span className={turnStyles.movementMax}>
+              /{ships.find((s) => s.id == currentPlayer.shipId)?.engine || 3}
+            </span>
+          </span>
+        </div>
+        <small style={{ color: '#8b949e', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          movimientos restantes
+        </small>
+      </div>
+    </>
+  ) : (
+    <span className={turnStyles.turnLoading}>Esperando jugadores...</span>
+  )}
+</div>
 
-                <div className={styles.movementWrapper}>
-                  <span className={styles.movementLabel}>MOVIMIENTOS</span>
-                  <span className={styles.movementValue}>
-                    {currentPlayer.movement}{" "}
-                    <span className={styles.movementMax}>
-                      /{" "}
-                      {ships.find((s) => s.id == currentPlayer.shipId)
-                        ?.engine || 3}
-                    </span>
-                  </span>
-                </div>
-              </>
-            ) : (
-              <span className={styles.turnLoading}>Esperando jugadores...</span>
-            )}
-          </div>
-
-          <div
-            style={{
-              border: "3px solid #FFD700",
-              flex: 1, 
-              minHeight: 0, 
-              borderRadius: "8px",
-              backgroundColor: "rgba(0,0,0,0.3)",
-              overflow: "hidden",
-            }}
-          >
+          <div>
             {!currentPlayer?.isDead && <StoreComponent
               cards={storeCards.slice(0, 3)}
               handleBuy={handleBuy}
@@ -613,7 +603,7 @@ export default function GamePage() {
       >
         {/* BOTÓN DE OBJETIVO (ESQUINA SUPERIOR IZQUIERDA) */}
         <button 
-          className={styles.goalMenuButton}
+          className={modalStyles.goalMenuButton}
           onClick={() => setIsGoalModalOpen(true)}
           title="Ver Objetivos de la Misión"
         >
@@ -622,7 +612,7 @@ export default function GamePage() {
 
         {/* CARTEL DE ALERTA UBICADO EN LA ESQUINA SUPERIOR DERECHA (TAMAÑO REDUCIDO) */}
         {achiveGoal && (
-          <div className={styles.boardFloatingAlertMini}>
+          <div className={modalStyles.boardFloatingAlertMini}>
             ⚠️ ¡Recursos listos! Puedes huir del sistema 🚀
           </div>
         )}
@@ -662,12 +652,6 @@ export default function GamePage() {
         {/* COLUMNA DERECHA */}
         <div style={{ width: "320px", flexShrink: 0 }}>
           <div
-            style={{
-              border: "3px solid #FF0000",
-              height: "100%",
-              borderRadius: "8px",
-              backgroundColor: "rgba(0,0,0,0.3)",
-            }}
           >
             {currentPlayer && !currentPlayer.isDead &&(
               <PlayerDataComponent
@@ -694,442 +678,86 @@ export default function GamePage() {
         </div>
         
       </div>
-
+{/*MODAL EXCAVAR */}
 {isDrillModalOpen && drillResult && drillResult.valid && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContent}>
-      
-      <h3 className={styles.modalTitle}>Resultado de la excavación</h3>
-      
-      <div className={styles.modalBody}>
-        
-        {drillResult.empty && (
-          <div className={styles.resultEmpty}>
-            <div className={styles.resultIcon}>🌌</div>
-            <h4>Excavación sin resultados</h4>
-            <p className={styles.resultDescription}>
-              Los escáneres térmicos confirman que el núcleo de este sector está completamente agotado.
-            </p>
-          </div>
-        )}
-
-        {drillResult.drillCard && drillResult.drillCard.isSupernovaCard && !drillResult.empty && (
-          <div className={styles.resultSupernova}>
-            <div className={styles.resultIcon}>💥</div>
-            <h4>¡Alerta de Supernova!</h4>
-            <p className={styles.resultDescription}>
-              La perforación ha desestabilizado el núcleo cuántico provocando una descarga crítica.
-            </p>
-          </div>
-        )}
-
-        {drillResult.drillCard && !drillResult.drillCard.isSupernovaCard && !drillResult.empty && (
-          <div className={styles.resultCard}>
-            <div className={styles.resultIcon}>⭐</div>
-            <h4>Excavación Exitosa</h4>
-            <p className={styles.resultDescription}>
-              Sistemas de carga estables. Se han refinado los siguientes materiales del subsuelo:
-            </p>
-            
-            <div className={`${styles.resourceDisplay} ${styles[drillResult.type]}`}>
-              <span className={styles.resourceAmount}>
-                {(() => {
-                  switch (drillResult.type) {
-                    case "green":
-                      return `+${drillResult.drillCard.greenResources ?? 0}`;
-                    case "red":
-                      return `+${drillResult.drillCard.redResources ?? 0}`;
-                    case "yellow":
-                      return `+${drillResult.drillCard.yellowResources ?? 0}`;
-                    default:
-                      return "0";
-                  }
-                })()}
-              </span>
-              <span className={styles.resourceLabel}>
-                Mineral {drillResult.type === "green" ? "Verde" : drillResult.type === "red" ? "Rojo" : "Amarillo"}
-              </span>
-            </div>
-          </div>
-        )}
-
-      </div>
-
-      {/* NUEVO CONTENEDOR PARA ARREGLAR LOS BOTONES */}
-      <div className={styles.modalActions}>
-        {(drillResult.type === "red" || drillResult.type === "yellow" || drillResult.empty) && !drillDeeper && (
-          <button
-            className={styles.modalDrillDeeperButton}
-            onClick={() => {
-              setDrillDeeper(true);
-              handleDrillDeeper();
-            }}
-          >
-            Excavar más profundo
-          </button>
-        )}
-        
-        <button 
-          className={styles.modalConfirmButton}
-          onClick={() => {
-            setIsDrillModalOpen(false);
-            setDrillResult(null);
-            setDrillDeeper(false);
-          }}
-        >
-          Confirmar Informe
-        </button>
-      </div>
-
-    </div>
+  <div>
+    <DrillModal
+      drillResult={drillResult}
+      drillDeeper={drillDeeper}
+      setDrillDeeper={setDrillDeeper}
+      setDrillResult={setDrillResult}
+      setIsDrillModalOpen={setIsDrillModalOpen}
+      handleDrillDeeper={handleDrillDeeper}
+    />
   </div>
 )}
+{/*MODAL DERROTA MUERTE */}
 {isGameOverDeathModalOpen && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContentGameOver}>
-      <div className={styles.modalBodyGameOver}>
-        <div className={`${styles.resultIcon} ${styles.iconDeath}`}>💀</div>
-        <h3 className={styles.modalTitleGameOver}>Misión Fracasada</h3>
-        <p className={styles.gameOverDescription}>
-          Los sistemas vitales de todas las naves se han extinguido. Ningún tripulante ha sobrevivido a los peligros del sector Icaro.
-        </p>
-      </div>
-      
-      <button 
-        className={styles.modalRetryButton}
-        onClick={() => handleResetGame()}
-      >
-        Volver al Menú Principal
-      </button>
-    </div>
+  <div>
+    <DeathEndModal
+      handleResetGame={handleResetGame}
+    />
   </div>
 )}
-
+{/*MODAL DERROTA SUPERNOVA */}
 {isGameOverExplosionModalOpen && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContentGameOver}>
-      <div className={styles.modalBodyGameOver}>
-        <div className={`${styles.resultIcon} ${styles.iconExplosion}`}>☀️</div>
-        <h3 className={styles.modalTitleGameOver}>Sistema Destruido</h3>
-        <p className={styles.gameOverDescription}>
-          La estabilidad estelar ha llegado a su límite crítico. El sol del sistema ha colapsado en una supernova, desintegrando todo a su paso.
-        </p>
-      </div>
-      
-      <button 
-        className={styles.modalRetryButton}
-        onClick={() => handleResetGame()}
-      >
-        Volver al Menú Principal
-      </button>
-    </div>
+  <div>
+    <SuperNovaEndModal
+      handleResetGame={handleResetGame}
+    />
   </div>
 )}
+{/*MODAL VICTORIA */}
 {isVictoryModalOpen && currentPlayer && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContentVictory}>
-      <div className={styles.modalBodyVictory}>
-        <div className={styles.iconVictory}>🏆</div>
-        <h3 className={styles.modalTitleVictory}>¡Misión Cumplida!</h3>
-        
-        <div className={styles.victoryPilotBadge}>
-          Comandante: <span className={styles.victoryPilotName}>{currentPlayer.name}</span>
-        </div>
-
-        <p className={styles.victoryDescription}>
-          Los recolectores de carga informan de un éxito absoluto. Has asegurado los minerales necesarios y has iniciado la secuencia de salto hiperespacial justo a tiempo. 
-        </p>
-        
-        <p className={styles.victoryLore}>
-          La nave rompe la gravedad del sector Ícaro dejando atrás el colapso estelar. Tu nombre será recordado en los confines de la Galaxia.
-        </p>
-      </div>
-      
-      <button 
-        className={styles.modalVictoryButton}
-        onClick={() => handleResetGame()}
-      >
-        Regresar al Centro de Mando
-      </button>
-    </div>
+  <div>
+    <VictoryModal
+      currentPlayer={currentPlayer}
+      handleResetGame={handleResetGame}
+    />
   </div>
 )}
+{/*MODAL CARTAS GENERAL */}
 {isPlayCardModalOpen && selectedCardToPlay && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContentCardAction}>
-      
-      <div className={styles.modalBodyCardAction}>
-        <div className={styles.cardActionIcon}>🃏</div>
-        <h3 className={styles.modalTitleCardAction}>Activar Tarjeta</h3>
-        <p className={styles.cardActionSubtitle}>
-          Estás a punto de consumir la carta: <strong className={styles.cardHighlightName}>{CARD_DATA[selectedCardToPlay.type].name}</strong>
-        </p>
-        <p className={styles.cardActionDescription}>
-          {selectedCardToPlay.type.toString() === "TEMPORARY_PATCH" && "Carga un parche de emergencia para reestabilizar uno de los sistemas críticos dañados de tu nave."}
-          {selectedCardToPlay.type.toString() === "NEW_DRILL" && "Sincroniza los calibradores de aleación cuántica para llevar la potencia de minado a su umbral máximo."}
-          {selectedCardToPlay.type.toString() === "BACKUP_POWER" && "Desvía la energía residual de las baterías secundarias directamente a las celdas defensivas."}
-          {selectedCardToPlay.type.toString() === "ROCKET_THRUSTERS" && "Sobrecarga los inyectores de combustible para exprimir un impulso gravitatorio extra este turno."}
-          {selectedCardToPlay.type.toString() === "ENHANCED_SCANNER" && "Abrir contenedor de minerales comprado a comerciantes independientes"}
-          {selectedCardToPlay.type.toString() === "SLINGSHOT" && "Usa el intercambiador cuántico para poder intercambiar la posición de tu nave con la de otro"}
-        </p>
-      </div>
-
-      <div className={styles.cardActionButtonsContainer}>
-        
-        {selectedCardToPlay.type.toString() === "SLINGSHOT" && (
-          <>
-            <button 
-              className={`${styles.actionButton} ${styles.btnDrill}`}
-              onClick={() => getAdjacentPlayers(true)}
-            >
-              🌀 Ver posibles intercambios
-            </button>
-          </>
-        )}
-
-        {selectedCardToPlay.type.toString() === "ENHANCED_SCANNER" && (
-          <>
-            <button 
-              className={`${styles.actionButton} ${styles.btnDrill}`}
-              onClick={() => getResourcesCardsForEHCard()}
-            >
-              📼 Abrir caja de recursos
-            </button>
-          </>
-        )}
-
-        {selectedCardToPlay.type.toString() === "TEMPORARY_PATCH" && (
-          <>
-            <button 
-              className={`${styles.actionButton} ${styles.btnDrill}`}
-              onClick={() => handlePlayCardEffect(selectedCardToPlay, "repair_drill")}
-            >
-              🔧 Reparar Taladro (+5)
-            </button>
-            <button 
-              className={`${styles.actionButton} ${styles.btnShield}`}
-              onClick={() => handlePlayCardEffect(selectedCardToPlay, "repair_shield")}
-            >
-              🛡️ Reforzar Escudo (+5)
-            </button>
-          </>
-        )}
-
-        {selectedCardToPlay.type.toString() === "NEW_DRILL" && (
-          <button 
-            className={`${styles.actionButton} ${styles.btnDrillMax}`}
-            onClick={() => handlePlayCardEffect(selectedCardToPlay, "new_drill")}
-          >
-            ⚡ Calibrar Taladro al Máximo
-          </button>
-        )}
-
-        {selectedCardToPlay.type.toString() === "BACKUP_POWER" && (
-          <button 
-            className={`${styles.actionButton} ${styles.btnShieldMax}`}
-            onClick={() => handlePlayCardEffect(selectedCardToPlay, "max_shield")}
-          >
-            🔋 Sobrecargar Escudos al Máximo
-          </button>
-        )}
-
-        {selectedCardToPlay.type.toString() === "ROCKET_THRUSTERS" && (
-          <button 
-            className={`${styles.actionButton} ${styles.btnMovement}`}
-            onClick={() => handlePlayCardEffect(selectedCardToPlay, "more_movement")}
-          >
-            🚀 Activar Postquemadores (+1 Movimiento)
-          </button>
-        )}
-
-      </div>
-
-      <button 
-        className={styles.modalCancelCardButton}
-        onClick={() => {
-          setIsPlayCardModalOpen(false);
-          setSelectedCardToPlay(null);
-        }}
-      >
-        Abortar Acción
-      </button>
-
-    </div>
+  <div>
+    <NormalCardModal
+      selectedCardToPlay={selectedCardToPlay}
+      getAdjacentPlayers={getAdjacentPlayers}
+      getResourcesCardsForEHCard={getResourcesCardsForEHCard}
+      handlePlayCardEffect={handlePlayCardEffect}
+      setIsPlayCardModalOpen={setIsPlayCardModalOpen}
+      setSelectedCardToPlay={setSelectedCardToPlay}
+    />
   </div>
 )}
-{isScannerModalOpen && scannerOptions.length > 0 && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContentScanner}>
-      
-      <div className={styles.modalBodyScanner}>
-        <div className={styles.scannerIcon}>📡</div>
-        <h3 className={styles.modalTitleScanner}>Escaneo Mejorado</h3>
-        <p className={styles.scannerDescription}>
-          Has abierto el contenedor de minerales comprado a mercaderes independientes, que materiales consigues de este contenedor? (Solo se puede elegir una opción)
-        </p>
-      </div>
-
-      <div className={styles.scannerCardsGrid}>
-        {scannerOptions.map((card, index) => {
-          return (
-            <div 
-              key={index} 
-              className={styles.scannerCardReward}
-              onClick={() => handlePlayCardEffect(selectedCardToPlay??{id:"999", playerId: null, storeId: null, cost: 2, type: CardTypeDTO.BACKUP_POWER} as CardDTO, "resource-card_"+card.id.toString())}
-            >
-              <div className={styles.cardRewardGlow} />
-              
-              <div className={styles.rewardStats}>
-                {card.greenResources > 0 && (
-                  <div className={`${styles.resourceRow} ${styles.resourceGreen}`}>
-                    <div className={styles.mineralIconWrapper}>
-                      <Image
-                        src="/images/icons/green-mineral.png"
-                        alt="Mineral Verde"
-                        fill
-                        sizes="22px"
-                        style={{ objectFit: "contain" }}
-                      />
-                    </div>
-                    <span>+{card.greenResources} Verde</span>
-                  </div>
-                )}
-                
-                {card.redResources > 0 && (
-                  <div className={`${styles.resourceRow} ${styles.resourceRed}`}>
-                    <div className={styles.mineralIconWrapper}>
-                      <Image
-                        src="/images/icons/red-mineral.png"
-                        alt="Mineral Rojo"
-                        fill
-                        sizes="22px"
-                        style={{ objectFit: "contain" }}
-                      />
-                    </div>
-                    <span>+{card.redResources} Rojo</span>
-                  </div>
-                )}
-                
-                {card.yellowResources > 0 && (
-                  <div className={`${styles.resourceRow} ${styles.resourceYellow}`}>
-                    <div className={styles.mineralIconWrapper}>
-                      <Image
-                        src="/images/icons/yellow-mineral.png"
-                        alt="Mineral Amarillo"
-                        fill
-                        sizes="22px"
-                        style={{ objectFit: "contain" }}
-                      />
-                    </div>
-                    <span>+{card.yellowResources} Amarillo</span>
-                  </div>
-                )}
-              </div>
-              
-              <button className={styles.selectRewardButton}>
-                Refinar
-              </button>
-            </div>
-          );
-        })}
-      </div>
-
-    </div>
+{/*MODAL CARTAS ESCANER */}
+{isScannerModalOpen && scannerOptions.length > 0 && selectedCardToPlay &&(
+  <div>
+    <ScannerCardModal
+      scannerOptions={scannerOptions}
+      handlePlayCardEffect={handlePlayCardEffect}
+      selectedCardToPlay={selectedCardToPlay}
+    />
   </div>
 )}
-{isSwapCardModalOpen && adjacentPlayers.length > 0 && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContentSwap}>
-      
-      <div className={styles.modalBodySwap}>
-        <div className={styles.swapIcon}>🌀</div>
-        <h3 className={styles.modalTitleSwap}>Disruptor de Posición</h3>
-        
-        <div className={styles.swapActionCost}>
-          ⚠️ Coste de Activación: <span className={styles.costHighlight}>2 Puntos de Movimiento</span>
-        </div>
-
-        <p className={styles.swapDescription}>
-          Sobrecarga los motores de curvatura para entrelazar tu signatura cuántica con una nave adyacente. Selecciona el objetivo para intercambiar vuestras coordenadas:
-        </p>
-      </div>
-
-      <div className={styles.swapPlayersList}>
-        {adjacentPlayers.map((player) => (
-          <button
-            key={player.id}
-            className={styles.swapPlayerCardButton}
-            onClick={() => handlePlayCardEffect(selectedCardToPlay ?? {id:"999", playerId: null, storeId: null, cost: 2, type: CardTypeDTO.BACKUP_POWER} as CardDTO, "swap-player_" + player.id.toString())}
-          >
-            <div className={styles.playerMainInfo}>
-              
-              <div className={styles.playerShipIconWrapper}>
-                <Image
-                  src={PLAYER_IMAGES[player.color] || "/images/jugador_azul.png"} 
-                  alt={`Nave de ${player.name}`}
-                  fill
-                  sizes="32px"
-                  style={{ objectFit: "contain" }}
-                />
-              </div>
-
-              <div className={styles.playerTextData}>
-                <span className={styles.playerNameText}>{player.name}</span>
-                <span className={styles.playerPlanetText}>
-                  Ubicación: <strong className={styles.planetHighlight}>{player.externalId.replaceAll("_"," ") || "Sector Desconocido"}</strong>
-                </span>
-                <span className={styles.playerCoordinatesText}>
-                  Cuadrante: <span className={styles.coordinatesHighlight}>[X: {player.coordX}, Y: {player.coordY}]</span>
-                </span>
-              </div>
-            </div>
-            <div className={styles.swapActionIndicator}>
-              Intercambiar 🔄
-            </div>
-          </button>
-        ))}
-      </div>
-
-      <button 
-        className={styles.modalCancelSwapButton}
-        onClick={() => {
-          setIsSwapCardModalOpen(false);
-          setSelectedCardToPlay(null);
-        }}
-      >
-        Cancelar Teletransporte
-      </button>
-
-    </div>
+{/*MODAL CARTA CAMBIO */}
+{isSwapCardModalOpen && adjacentPlayers.length > 0 && selectedCardToPlay &&(
+  <div>
+    <SwapCardModal
+      adjacentPlayers={adjacentPlayers}
+      selectedCardToPlay={selectedCardToPlay}
+      handlePlayCardEffect={handlePlayCardEffect}
+      setIsSwapCardModalOpen={setIsSwapCardModalOpen}
+      setSelectedCardToPlay={setSelectedCardToPlay}
+    />
   </div>
 )}
-{isGoalModalOpen && (
-        <div className={styles.modalOverlay} onClick={() => setIsGoalModalOpen(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button 
-              className={styles.modalCloseButton} 
-              onClick={() => setIsGoalModalOpen(false)}
-            >
-              &times;
-            </button>
-            <h3 className={styles.modalTitle}>Objetivo del Sistema</h3>
-            <div className={styles.modalImageContainer}>
-              {goalImageUrl ? (
-                <Image
-                  src={difficultyImages[goalImageUrl]}
-                  alt={`Objetivo ${goalImageUrl}`}
-                  fill
-                  sizes="(max-width: 768px) 80vw, 500px"
-                  style={{ objectFit: "contain" }}
-                  priority
-                />
-              ) : (
-                <div className={styles.noGoalText}>
-                  No se ha detectado ninguna directiva de misión para: "{goalImageUrl ?? "Desconocido"}"
-                </div>
-              )}
-            </div>
-          </div>
+{/*MODAL OBJETIVO */}
+{isGoalModalOpen && goalImageUrl && (
+        <div>
+          <GoalModal
+            goalImageUrl={goalImageUrl}
+            setIsGoalModalOpen={setIsGoalModalOpen}
+          />
         </div>
       )}
     </main>

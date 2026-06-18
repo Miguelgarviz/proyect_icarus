@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./game.module.css";
+import styles from "./styles/playerData.module.css";
 import { StorageDTO } from "../../../lib/dto/storageDTO";
 import { ShipDTO } from "../../../lib/dto/shipDTO";
 import Image from "next/image";

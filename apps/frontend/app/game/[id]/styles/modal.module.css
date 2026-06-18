@@ -1,0 +1,902 @@
+/* ============================================================
+   RESULT (icono / título / descripción genéricos de resultado)
+   ============================================================ */
+.resultIcon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.resultBoxBase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.resultCard,
+.resultEmpty,
+.resultSupernova {
+  display: flex;
+  flex-direction: column;
+}
+
+.resultEmpty h4 { color: #94a3b8; }
+.resultSupernova h4 { color: #ef4444; text-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+.resultCard h4 { color: #10b981; text-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+
+.resultDescription {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   MODAL BODY (genérico) — antes definido en .modalBody suelto
+   ============================================================ */
+.modalBody {
+  margin: 24px 0;
+}
+
+/* ============================================================
+   CONTENEDOR PRINCIPAL DE MODAL — BASE + MODIFICADORES
+   Estructura común a GameOver / Victory / CardAction / Scanner / Swap:
+   border-radius, flex column, text-align center, border 2px.
+   Cada modificador solo aporta lo que cambia (color, tamaño, sombra).
+   ============================================================ */
+.modalContentGameOver,
+.modalContentVictory,
+.modalContentCardAction,
+.modalContentScanner,
+.modalContentSwap {
+  border-radius: 12px;
+  border-width: 2px;
+  border-style: solid;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  max-width: 92%;
+}
+
+.modalContentGameOver {
+  background-color: #0b0f19;
+  border-color: #1e293b;
+  padding: 40px 30px;
+  width: 450px;
+  max-width: 90%;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 0, 0, 0.6);
+  align-items: center;
+  gap: 24px; /* Separa el bloque de texto del botón inferior */
+}
+
+.modalContentVictory {
+  background-color: #051410; /* Tono verde/esmeralda muy oscuro de fondo */
+  border-color: #10b981;
+  padding: 45px 35px;
+  width: 480px;
+  max-width: 90%;
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.3), inset 0 0 25px rgba(0, 0, 0, 0.7);
+  align-items: center;
+  gap: 28px;
+}
+
+.modalContentCardAction {
+  background-color: #0d111a;
+  border-color: #3b82f6; /* Azul tecnológico de la tienda */
+  padding: 35px 25px;
+  width: 440px;
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.25), inset 0 0 15px rgba(0, 0, 0, 0.7);
+  gap: 24px;
+}
+
+/* Contenedor del Modal del Escáner (Estilo Amarillo Estático) */
+.modalContentScanner {
+  background-color: #080d16;
+  border-color: #f59e0b; /* Borde amarillo estático para todo el modal */
+  padding: 40px 30px;
+  width: 680px;
+  max-width: 95%;
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.8);
+  gap: 28px;
+}
+
+/* Contenedor del Modal de Intercambio */
+.modalContentSwap {
+  background-color: #0b0714; /* Fondo morado extremadamente oscuro */
+  border-color: #a855f7; /* Borde morado cuántico */
+  padding: 35px 25px;
+  width: 460px;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.8);
+  gap: 24px;
+}
+
+/* ============================================================
+   MODAL BODY (interno de cada variante) — BASE + MODIFICADORES
+   Todas comparten flex column + align-items center; solo cambia el gap.
+   ============================================================ */
+.modalBodyGameOver,
+.modalBodyVictory,
+.modalBodyCardAction,
+.modalBodyScanner,
+.modalBodySwap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modalBodyGameOver { gap: 16px; } /* Separa el icono, el título y la descripción verticalmente */
+.modalBodyVictory { gap: 18px; }
+.modalBodyCardAction { gap: 12px; }
+.modalBodyScanner { gap: 12px; }
+.modalBodySwap { gap: 12px; }
+
+/* ============================================================
+   MODAL TITLE (interno de cada variante) — BASE + MODIFICADORES
+   Todas comparten weight/uppercase/letter-spacing/margin;
+   solo cambian color y font-size.
+   ============================================================ */
+.modalTitleGameOver,
+.modalTitleVictory,
+.modalTitleCardAction,
+.modalTitleScanner,
+.modalTitleSwap {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.modalTitleGameOver { font-size: 1.8rem; color: #f8fafc; }
+.modalTitleVictory { font-size: 2.2rem; letter-spacing: 0.07em; color: #10b981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
+.modalTitleCardAction { font-size: 1.6rem; font-weight: 800; color: #f8fafc; }
+.modalTitleScanner { font-size: 1.8rem; color: #f59e0b; } /* Título amarillo */
+.modalTitleSwap { font-size: 1.8rem; color: #a855f7; }
+
+/* ============================================================
+   GAME OVER — elementos propios
+   ============================================================ */
+.gameOverDescription {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.modalRetryButton {
+  background-color: transparent;
+  border: 2px solid #64748b;
+  color: #94a3b8;
+  padding: 12px 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.modalRetryButton:hover {
+  background-color: #ffffff;
+  border-color: #ffffff;
+  color: #0b0f19;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================================
+   VICTORY — elementos propios
+   ============================================================ */
+.iconVictory {
+  font-size: 4rem;
+  animation: victoryGlow 2.5s infinite ease-in-out;
+  filter: drop-shadow(0 0 15px #f59e0b);
+}
+
+.victoryPilotBadge {
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.victoryPilotName {
+  color: #fbbf24; /* Dorado para destacar el nombre */
+  font-weight: bold;
+}
+
+.victoryDescription {
+  font-size: 1rem;
+  color: #e2e8f0;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.victoryLore {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-style: italic;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Botón de salida glorioso */
+.modalVictoryButton {
+  background-color: #10b981;
+  border: none;
+  color: #ffffff;
+  padding: 14px 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.modalVictoryButton:hover {
+  background-color: #059669;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Animación de pulsación festiva */
+@keyframes victoryGlow {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px #f59e0b) rotate(0deg); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 25px #fbbf24) rotate(5deg); }
+}
+
+/* ============================================================
+   CARD ACTION — elementos propios
+   ============================================================ */
+.cardActionIcon {
+  font-size: 3rem;
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
+}
+
+.cardActionSubtitle {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.cardHighlightName {
+  color: #3b82f6;
+}
+
+.cardActionDescription {
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 5px 0 0 0;
+}
+
+/* Contenedor de las opciones de la carta actual */
+.cardActionButtonsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Separa los botones en vertical si hay más de uno (como en TEMPORARY_PATCH) */
+  width: 100%;
+}
+
+/* Botón base para las acciones estelares */
+.actionButton {
+  background-color: #111827;
+  border: 2px solid #374151;
+  color: #f8fafc;
+  padding: 14px 20px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.actionButton:hover {
+  border-color: #60a5fa;
+  transform: translateY(-1px);
+}
+
+.btnDrill {
+  border-color: #ff0000;
+  background-color: rgb(141, 0, 0);
+}
+
+.btnShield {
+  border-color: #0051ff;
+  background-color: #002981;
+}
+
+.btnMovement {
+  border-color: #2bff00;
+  background-color: #168500;
+}
+
+/* ============================================================
+   SCANNER — elementos propios
+   ============================================================ */
+.scannerIcon {
+  font-size: 3.5rem;
+  filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.5));
+  animation: radarPulse 2s infinite ease-in-out;
+}
+
+.scannerDescription {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 500px;
+}
+
+/* Grid horizontal */
+.scannerCardsGrid {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Tarjeta de recompensa estática (Borde amarillo tenue que brilla al hacer hover) */
+.scannerCardReward {
+  background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+  border: 2px solid #334155; /* Borde neutro apagado por defecto */
+  border-radius: 8px;
+  padding: 24px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 200px;
+}
+
+.scannerCardReward:hover {
+  border-color: #f59e0b; /* Al pasar el ratón, el borde se ilumina en el amarillo del modal */
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  transform: translateY(-5px);
+}
+
+.rewardIconContainer {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.rewardIcon {
+  font-size: 2rem;
+}
+
+/* Botón interno que adopta el color amarillo del modal en el hover */
+.selectRewardButton {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.scannerCardReward:hover .selectRewardButton {
+  background-color: #f59e0b;
+  color: #020617;
+  border-color: #f59e0b;
+}
+
+.scannerFootnote {
+  font-size: 0.8rem;
+  color: #475569;
+  font-style: italic;
+  margin: 0;
+}
+
+@keyframes radarPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.7)); }
+}
+
+/* Contenedor principal de las estadísticas dentro de la carta */
+.rewardStats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  align-items: center; /* Centra las filas de recursos horizontalmente en la tarjeta */
+}
+
+.resourceRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Separación horizontal entre la imagen y el texto */
+  font-size: 1.1rem;
+  font-weight: bold;
+  width: 100%;
+}
+
+/* Contenedor indispensable para que Next.js Image fill funcione con tamaños controlados */
+.mineralIconWrapper {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0; /* Evita que la imagen se colapse o deforme */
+}
+
+/* Clases de colores solo para las tipografías correspondientes */
+.resourceGreen { color: #10b981; }
+.resourceRed { color: #ef4444; }
+.resourceYellow { color: #fbbf24; }
+
+.dangerText {
+  color: #f43f5e;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   SWAP — elementos propios
+   ============================================================ */
+.swapIcon {
+  font-size: 3.5rem;
+  filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.6));
+  animation: spinQuantum 6s infinite linear;
+}
+
+/* Alerta de coste de movimiento */
+.swapActionCost {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #fca5a5;
+  font-weight: bold;
+}
+
+.costHighlight {
+  color: #ef4444;
+  text-transform: uppercase;
+}
+
+.swapDescription {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 4px 0 0 0;
+}
+
+/* Lista vertical de objetivos */
+.swapPlayersList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Fila/Botón de cada jugador */
+.swapPlayerCardButton {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.swapPlayerCardButton:hover {
+  border-color: #a855f7;
+  background: rgba(168, 85, 247, 0.08);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+  transform: scale(1.01);
+}
+
+.playerMainInfo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.playerIcon {
+  font-size: 1.6rem;
+}
+
+.playerTextData {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.playerNameText {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #f8fafc;
+}
+
+.playerPlanetText {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.planetHighlight {
+  color: #38bdf8; /* Cian para resaltar el planeta actual del rival */
+}
+
+/* Indicador de acción a la derecha */
+.swapActionIndicator {
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.swapPlayerCardButton:hover .swapActionIndicator {
+  background-color: #a855f7;
+  color: #ffffff;
+}
+
+@keyframes spinQuantum {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   BOTÓN "CANCELAR / CERRAR SIN HACER NADA" — UNIFICADO
+   Antes: modalCancelCardButton, modalCancelSwapButton y
+   modalCancelButton eran tres clases idénticas. Se deja una sola
+   clase compartida por las 3 variantes (Card Action, Swap, genérico).
+   ============================================================ */
+.modalCancelCardButton,
+.modalCancelSwapButton,
+.modalCancelButton {
+  background-color: transparent;
+  border: 1px dashed #475569;
+  color: #64748b;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+  align-self: center;
+  width: auto;
+}
+
+.modalCancelCardButton:hover,
+.modalCancelSwapButton:hover,
+.modalCancelButton:hover {
+  border-color: #f1f5f9;
+  color: #f1f5f9;
+}
+
+/* ============================================================
+   HUD / TABLERO — coordenadas, nave del jugador, alertas flotantes
+   ============================================================ */
+
+/* Texto secundario para las coordenadas del rival */
+.playerCoordinatesText {
+  font-size: 0.8rem;
+  color: #475569; /* Gris oscuro para dar menor jerarquía que el nombre/planeta */
+  font-family: monospace; /* Fuente monoespaciada opcional para que parezcan datos de radar */
+  margin-top: 1px;
+}
+
+/* Resaltado de los números de los ejes X e Y */
+.coordinatesHighlight {
+  color: #cbd5e1; /* Gris claro/blanco tenue para destacar los números */
+  font-weight: bold;
+}
+
+/* Contenedor para el token de imagen de la nave del jugador */
+.playerShipIconWrapper {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0; /* Evita que la imagen se deforme si el texto es muy largo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.boardFloatingAlertMini {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 40; /* Flota encima de la cuadrícula y de las capas del mapa */
+
+  /* Fondo compacto y de alta visibilidad */
+  background-color: #12141a;
+  border: 1.5px solid #FFD700;
+  color: #FFD700;
+
+  /* Dimensiones más ajustadas y discretas */
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+
+  /* Desactiva interacción para que puedas hacer clic al mapa de fondo tranquilamente */
+  pointer-events: none;
+
+  /* Animación de pulso estelar elegante y sutil */
+  animation: subtleBlink 2s infinite ease-in-out;
+}
+
+@keyframes subtleBlink {
+  0%, 100% {
+    border-color: #FFD700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.25);
+  }
+  50% {
+    border-color: #a68c00;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Botón de acceso en la esquina superior izquierda del tablero */
+.goalMenuButton {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 40; /* Al mismo nivel que la alerta mini */
+  background-color: #12141a;
+  border: 1.5px solid #00e5ff;
+  color: #00e5ff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.15);
+}
+
+.goalMenuButton:hover {
+  background-color: #00e5ff;
+  color: #12141a;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+}
+
+/* ============================================================
+   MODAL GENÉRICO (overlay, contenedor base, título, cierre, etc.)
+   ============================================================ */
+
+/* Telón de fondo oscuro para el modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(5, 7, 12, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+/* Contenedor del Modal */
+.modalContent {
+  background-color: #11141d;
+  border: 2px solid #333947;
+  border-radius: 12px;
+  padding: 24px;
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7), 0 0 1px 1px rgba(255, 255, 255, 0.05) inset;
+  animation: scaleUp 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Botón para cerrar (X) */
+.modalCloseButton {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #727b8e;
+  font-size: 1.6rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.modalCloseButton:hover {
+  color: #ff4d4d;
+}
+
+.modalTitle {
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #232834;
+  padding-bottom: 10px;
+}
+
+/* Contenedor para la imagen de la carta de objetivo */
+.modalImageContainer {
+  position: relative;
+  width: 100%;
+  height: 380px; /* Espacio ideal para ver la carta de objetivo */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.noGoalText {
+  color: #727b8e;
+  font-size: 0.85rem;
+  text-align: center;
+  font-style: italic;
+  border: 1px dashed #232834;
+  padding: 20px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Contenedor de botones inferiores */
+.modalActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+  width: 100%;
+}
+
+/* Botón principal de Confirmar Informe */
+.modalConfirmButton {
+  width: 100%;
+  background-color: #238636; /* Verde interactivo estilo espacial/GitHub */
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  text-align: center;
+}
+
+.modalConfirmButton:hover {
+  background-color: #2ea043;
+}
+
+.modalConfirmButton:active {
+  transform: scale(0.98);
+}
+
+/* Botón secundario para Perforar más profundo */
+.modalDrillDeeperButton {
+  width: 100%;
+  background-color: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  text-align: center;
+}
+
+.modalDrillDeeperButton:hover {
+  background-color: #30363d;
+  border-color: #8b949e;
+}
+
+/* ============================================================
+   RECURSOS — display de cantidades dentro de la tarjeta
+   ============================================================ */
+.resourceDisplay {
+  display: inline-flex; /* Cambiado de 'flex' a 'inline-flex' */
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px auto 0 auto; /* Añadido 'auto' a izquierda y derecha para centrarlo */
+  padding: 12px 24px; /* Un padding más equilibrado para cuando es compacto */
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  width: fit-content; /* Asegura que solo ocupe el espacio de los elementos internos */
+}
+
+.resourceAmount {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.resourceDisplay.green .resourceAmount {
+  color: #10b981;
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+}
+.resourceDisplay.green { border-color: rgba(16, 185, 129, 0.4); }
+
+.resourceDisplay.red .resourceAmount {
+  color: #ef4444;
+  text-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+}
+.resourceDisplay.red { border-color: rgba(239, 68, 68, 0.4); }
+
+.resourceDisplay.yellow .resourceAmount {
+  color: #f59e0b;
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+}
+.resourceDisplay.yellow { border-color: rgba(245, 158, 11, 0.4); }
+
+.resourceLabel {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #8b949e;
+}
+
+/* ============================================================
+   MODAL BASE GENÉRICO (clases *Base sin variante de color)
+   ============================================================ */
+.modalBase {
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.modalBodyBase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modalTitleBase {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.iconExplosion {
+  font-size: 3.5rem;
+  animation: pulseSupernova 2s infinite ease-in-out;
+  text-shadow: 0 0 25px rgba(245, 158, 11, 0.6);
+}
