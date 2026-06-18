@@ -11,7 +11,7 @@ import {
   TrackMap,
   voidNodes,
 } from "./mapData";
-import styles from "./game.module.css";
+import styles from "./styles/game.module.css";
 
 interface BoardGridProps {
   onNodeClick: (id: string) => void;

@@ -140,22 +140,22 @@ export function DeathEndModal(
 ){
   return(
     <div className={styles.modalOverlay}>
-      <div className={styles.modalContentGameOver}>
-        <div className={styles.modalBodyGameOver}>
-          <div className={`${styles.resultIcon} ${styles.iconExplosion}`}>☀️</div>
-          <h3 className={styles.modalTitleGameOver}>Sistema Destruido</h3>
-          <p className={styles.gameOverDescription}>
-            La estabilidad estelar ha llegado a su límite crítico. El sol del sistema ha colapsado en una supernova, desintegrando todo a su paso.
-          </p>
-        </div>
-      
-        <button 
-          className={styles.modalRetryButton}
-          onClick={() => handleResetGame()}
-        >
-          Volver al Menú Principal
-        </button>
+    <div className={styles.modalContentGameOver}>
+      <div className={styles.modalBodyGameOver}>
+        <div className={`${styles.resultIcon} ${styles.iconDeath}`}>💀</div>
+        <h3 className={styles.modalTitleGameOver}>Misión Fracasada</h3>
+        <p className={styles.gameOverDescription}>
+          Los sistemas vitales de todas las naves se han extinguido. Ningún tripulante ha sobrevivido a los peligros del sector Icaro.
+        </p>
       </div>
+      
+      <button 
+        className={styles.modalRetryButton}
+        onClick={() => handleResetGame()}
+      >
+        Volver al Menú Principal
+      </button>
+    </div>
     </div>
   )
 }

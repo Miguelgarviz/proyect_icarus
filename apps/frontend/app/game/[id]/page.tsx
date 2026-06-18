@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import BoardGrid from "./BoardGrid";
 import EntitiesLayer, { PLAYER_IMAGES } from "./EntitiesLayer";
-import styles from "./game.module.css";
+import styles from "./styles/game.module.css";
 import modalStyles from "./styles/modal.module.css"
 import turnStyles from "./styles/turnPlayer.module.css"
 import { useParams, useRouter } from "next/navigation";
@@ -430,12 +430,21 @@ export default function GamePage() {
       setScannerOptions([])
 
       getAdjacentPlayers(false);
-      fetchActualPlayer();
-      fetchActualTile();
-      fetchStorages();
-      fetchShips();
-      fetchMaxDistance();
-      fetchPlayersCards();
+      await fetchActualPlayer();
+      await fetchActualTile();
+      await fetchStorages();
+
+      const players = await fetchPlayers();
+      const ships = await fetchShips();
+
+      if (players && ships) {
+          calculatePlayerChips(players, ships);
+      }
+
+      await fetchMaxDistance();
+      await fetchPlayersCards();
+
+      
 
       setIsPlayCardModalOpen(false);
       setIsScannerModalOpen(false);

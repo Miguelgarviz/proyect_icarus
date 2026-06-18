@@ -69,7 +69,6 @@ export default function PlayerDataComponent({
     }
   }
 
-  // Lógica para calcular la penalización o valor negativo del escudo
   const obtenerDesgasteEscudo = (): number => {
     const basePosicion = (actualTile?.positionY ?? 0) + 1;
     let bonoRonda = 0;
@@ -85,7 +84,6 @@ export default function PlayerDataComponent({
 
   const valorDesgaste = obtenerDesgasteEscudo();
 
-  // Lógica para obtener el coste de excavación del taladro en el planeta actual
   const obtenerCosteTaladro = (): number => {
     if (!shipData.externalId?.includes("planet") || (actualTile?.drillAttempts ?? 0) <= 0) {
       return 0;
@@ -94,7 +92,6 @@ export default function PlayerDataComponent({
   };
 
   const costeTaladro = obtenerCosteTaladro();
-  // Solo se muestra si el coste es mayor que 0 y el jugador tiene suficiente nivel para pagarlo sin bajar de 0
   const mostrarCosteTaladro = costeTaladro > 0 && shipData.drill >= costeTaladro;
 
   return (
