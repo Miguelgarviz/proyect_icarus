@@ -79,18 +79,112 @@ export class GameService {
         });
     }
 
-    async getStoreByGame(storeId: number){
+    async getStoreByGame(game: Game){
         return this.prisma.store.findUniqueOrThrow({
             where:{
-                id:storeId
+                id: game.storeId!
             }
         })
     }
+
     
-async movePlayer(tile: Tile, actualPlayer: Player) {
+
+    async nextPlayer(player: Player, game: Game, ship: Ship){
+        await this.prisma.player.update({
+            where: {id: player.id},
+            data:{
+                movement: ship.engine
+            }
+        })
+        await this.prisma.game.update({
+            where:{id: game.id},
+            data:{
+                actualPlayerId: player.id
+            }
+        })
+        await this.prisma.ship.update({
+            where: {id: ship.id},
+            data: {
+                engineUpgraded: false
+            }
+        })
+    }
+
+    
+
+    async upgradeShield(ship: Ship, storage: Storage){
+        await this.prisma.ship.update({
+            where:{
+                id: ship.id
+            },
+            data:{
+                shield:{increment: 1}
+            }
+        })
+        await this.prisma.storage.update({
+            where: {id: storage.id},
+            data: {green: {decrement: 1}}
+        })
+    }
+
+    async upgradeDrill(ship: Ship, storage: Storage){
+        await this.prisma.ship.update({
+            where:{
+                id: ship.id
+            },
+            data:{
+                drill:{increment: 1}
+            }
+        })
+        await this.prisma.storage.update({
+            where: {id: storage.id},
+            data: {green: {decrement: 1}}
+        })
+    }
+    async upgradeEngine(ship: Ship, storage: Storage){
+        await this.prisma.ship.update({
+            where:{
+                id: ship.id
+            },
+            data:{
+                engine:{increment: 1},
+                engineUpgraded: true
+            }
+        })
+        await this.prisma.storage.update({
+            where: {id: storage.id},
+            data: {red: {decrement: 1}}
+        })
+    }
+
+    async increaseSupernovaLvL(game: Game){
+        await this.prisma.game.update({
+            where: {id: game.id},
+            data: {
+                supernovaLvL: {increment: 1}
+            }
+        })
+    }
+
+    async haveAchivedGoal(lobby: Lobby, storage: Storage){
+        const goal = goalValues[lobby.dificulty.toString()]
+        const storageValues:[number,number,number] = [storage.green,storage.red,storage.yellow]
+
+        const greenGoal = goal[0]=== 0 || storage.green >= goal[0];
+        const redGoal = goal[1]=== 0 || storage.red >= goal[1];
+        const yellowGoal = goal[2]=== 0 || storage.yellow >= goal[2];
+
+        return greenGoal && redGoal && yellowGoal;
+    }
+
+    // ---------------------------------------------------------
+    // MOVEMENT LOGIC
+    // ---------------------------------------------------------
+    
+async movePlayer(tile: Tile, actualPlayer: Player, ship: Ship) {
     let distance = 0;
     let validMove = false;
-    const ship = await this.getShipFromPlayer(actualPlayer);
+    // const ship = await this.getShipFromPlayer(actualPlayer);
     
     const originTile = await this.tileService.getTilesByCoordinates(tile.gameId!, ship.positionX, ship.positionY);
 
@@ -126,8 +220,8 @@ async movePlayer(tile: Tile, actualPlayer: Player) {
             validMove = distance <= actualPlayer.movement;
         }
     }
-    
     if (validMove) {
+
         await this.prisma.ship.update({
             where: { id: ship.id },
             data: {
@@ -136,7 +230,6 @@ async movePlayer(tile: Tile, actualPlayer: Player) {
                 externalId: tile.externalId
             }
         });
-
         await this.prisma.player.update({
             where: { id: actualPlayer.id },
             data: {
@@ -331,100 +424,5 @@ async calculateMaxDistance(player: Player, ship: Ship, gameId: number, otherPlay
 
     return reachableTiles;
 }
-
-    async getShipFromPlayer(player: Player){
-        return this.prisma.ship.findUniqueOrThrow({
-            where:{id: player.shipId!}
-        })
-    }
-
-    async nextPlayer(player: Player, game: Game){
-        const ship = await this.getShipFromPlayer(player)
-        await this.prisma.player.update({
-            where: {id: player.id},
-            data:{
-                movement: ship.engine
-            }
-        })
-        await this.prisma.game.update({
-            where:{id: game.id},
-            data:{
-                actualPlayerId: player.id
-            }
-        })
-        await this.prisma.ship.update({
-            where: {id: ship.id},
-            data: {
-                engineUpgraded: false
-            }
-        })
-    }
-
-    
-
-    async upgradeShield(ship: Ship, storage: Storage){
-        await this.prisma.ship.update({
-            where:{
-                id: ship.id
-            },
-            data:{
-                shield:{increment: 1}
-            }
-        })
-        await this.prisma.storage.update({
-            where: {id: storage.id},
-            data: {green: {decrement: 1}}
-        })
-    }
-
-    async upgradeDrill(ship: Ship, storage: Storage){
-        await this.prisma.ship.update({
-            where:{
-                id: ship.id
-            },
-            data:{
-                drill:{increment: 1}
-            }
-        })
-        await this.prisma.storage.update({
-            where: {id: storage.id},
-            data: {green: {decrement: 1}}
-        })
-    }
-    async upgradeEngine(ship: Ship, storage: Storage){
-        await this.prisma.ship.update({
-            where:{
-                id: ship.id
-            },
-            data:{
-                engine:{increment: 1},
-                engineUpgraded: true
-            }
-        })
-        await this.prisma.storage.update({
-            where: {id: storage.id},
-            data: {red: {decrement: 1}}
-        })
-    }
-
-    async increaseSupernovaLvL(game: Game){
-        await this.prisma.game.update({
-            where: {id: game.id},
-            data: {
-                supernovaLvL: {increment: 1}
-            }
-        })
-    }
-
-    async haveAchivedGoal(lobby: Lobby, storage: Storage){
-        const goal = goalValues[lobby.dificulty.toString()]
-        const storageValues:[number,number,number] = [storage.green,storage.red,storage.yellow]
-
-        const greenGoal = goal[0]=== 0 || storage.green >= goal[0];
-        const redGoal = goal[1]=== 0 || storage.red >= goal[1];
-        const yellowGoal = goal[2]=== 0 || storage.yellow >= goal[2];
-
-        return greenGoal && redGoal && yellowGoal;
-    }
 
 }

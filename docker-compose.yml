@@ -19,3 +19,12 @@ services:
       - "8080:80"
     depends_on:
       - db
+  postgres-test:
+    image: postgres
+    container_name: postgres_db_test
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: icarus_test
+    ports:
+      - "5433:5432"

@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CardService } from '../card/card.service';
 
 @Module({
-  imports:[],
   controllers: [StoreController],
   providers: [StoreService, PrismaService, CardService]
 }) 

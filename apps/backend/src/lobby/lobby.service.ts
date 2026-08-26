@@ -27,6 +27,16 @@ export class LobbyService {
             orderBy: { turnOrder: 'asc' }
         })
     }
+
+    async getRemainingPlayers(lobbyWhereUniqueInput: Prisma.LobbyWhereUniqueInput){
+        return this.prisma.player.findMany({
+            where: {
+                lobbyId: lobbyWhereUniqueInput.id,
+                cleanedUp: false
+            },
+            orderBy: { turnOrder: 'asc' }
+        })
+    }
     async updateLobby(params: {
         where: Prisma.LobbyWhereUniqueInput;
         data: Prisma.LobbyUpdateInput;
@@ -90,7 +100,10 @@ export class LobbyService {
             where: { id: playerId },
             include: { lobby: true }
         });
-        return player?.lobby || null;
+        const lobby = await this.prisma.lobby.findUniqueOrThrow({
+            where: {id: player.lobbyId!}
+        })
+        return lobby;
     }
 
     async updateLobbyDifficulty(params: {

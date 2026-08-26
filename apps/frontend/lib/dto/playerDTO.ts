@@ -8,6 +8,7 @@ export interface PlayerDTO {
   turnOrder: number;
   isDead: boolean;
   initialHelp: boolean;
+  cleanedUp: boolean;
 }
 export interface PlayerChipDTO {
   id: string;

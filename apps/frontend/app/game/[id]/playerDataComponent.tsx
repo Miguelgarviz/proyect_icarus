@@ -63,6 +63,8 @@ export default function PlayerDataComponent({
       case "BACKUP_POWER":
         return (shipData?.shield?? 0) < 10
       case "SLINGSHOT":
+        console.log(adjacentPlayers)
+        console.log(adjacentPlayers.length > 0)
         return playerMovement >= 2 && adjacentPlayers.length > 0;
       default:
         return true

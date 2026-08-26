@@ -32,6 +32,7 @@ model Player {
 
   initialHelp Boolean @default(true)
   isDead Boolean @default(false)
+  cleanedUp Boolean @default(false)
 
   game Game?
   @@unique([name, lobbyId])

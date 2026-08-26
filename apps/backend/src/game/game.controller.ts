@@ -94,7 +94,7 @@ export class GameController {
     async getStore(@Param('id') id:string){
         const game = await this.gameService.getGame({ id: Number(id) })
         if(game && game.storeId){
-            return await this.gameService.getStoreByGame(game.storeId)
+            return await this.gameService.getStoreByGame(game)
         }else{
             return null;
         }
@@ -123,9 +123,10 @@ export class GameController {
         const game = await this.gameService.getGame({id: Number(gameId)});
         const endTile = await this.tileService.getTileByExternalId(externalId, Number(gameId));
         const player = await this.playerService.getPlayer({id: game.actualPlayerId})
+        const ship = await this.shipService.getShipById(player.shipId!)
 
         if(!player.isDead){
-            this.gameService.movePlayer(endTile, player)
+            this.gameService.movePlayer(endTile, player, ship)
         }
     }
 
@@ -141,8 +142,11 @@ export class GameController {
         const actualPlayer = await this.playerService.getPlayer({id: game.actualPlayerId})
         const ship = await this.shipService.getShipById(actualPlayer.shipId!)
 
+
         if(ship.shield <= 0){
             await this.playerService.setPlayerDeath(actualPlayer)
+            const actualTile = await this.tileService.getTileByExternalId(ship.externalId, Number(gameId))
+            if(actualTile.externalId.includes("space_station")) await this.playerService.cleanPlayerShip(actualPlayer)
         }else{
             let superNovaDamage = 0;
             if(game.supernovaLvL >= 9 && game.supernovaLvL < 15){
@@ -183,7 +187,8 @@ export class GameController {
         if(game.supernovaLvL>=20){
             return {defeat: true, type: "explote"}
         }
-        await this.gameService.nextPlayer(nextPlayer!, game)
+        const actualShip = await this.shipService.getShipById(nextPlayer!.shipId!)
+        await this.gameService.nextPlayer(nextPlayer!, game, actualShip)
         await this.tileService.resetDrillAttempts(Number(gameId))
         return {defeat: false}
     }
@@ -200,7 +205,7 @@ export class GameController {
         const player = await this.playerService.getPlayer({id: game.actualPlayerId})
         const ship = await this.shipService.getShipById(player.shipId!)
         if(player.isDead) return []
-        const otherPlayers = await this.lobbyService.getPlayersInLobby({id:player.lobbyId!})
+        const otherPlayers = await this.lobbyService.getRemainingPlayers({id:player.lobbyId!})
         otherPlayers.filter((p) => p.id !== player.id)
 
         const reachableTiles = await this.gameService.calculateMaxDistance(player,ship,Number(gameId), otherPlayers)
@@ -460,12 +465,12 @@ export class GameController {
                     await this.cardService.applyRocketThrustersCard(player)
                     break;
                 case 'SLINGSHOT':
-                    if(effect.includes("swap-player_") && player.movement >= 2){
+                    if(effect.includes("swap-player_") && player.movement >= 2 ){
                         const otherPlayerId = Number(effect.replace("swap-player_",""))
                         const otherPlayer = await this.playerService.getPlayer({id: Number(otherPlayerId)})
                         const otherShip = await this.shipService.getShipById(otherPlayer.shipId!)
                         const otherTile = await this.tileService.getTileByExternalId(otherShip.externalId!, game.id)
-                        await this.cardService.applySlingShotCard(ship,otherShip, player, otherPlayer, actualTile, otherTile)
+                        if(!otherPlayer.cleanedUp) await this.cardService.applySlingShotCard(ship,otherShip, player, otherPlayer, actualTile, otherTile)
                     }
                     break;
                 case 'TEMPORARY_PATCH':
@@ -494,11 +499,11 @@ export class GameController {
         const game = await this.gameService.getGame({id: Number(gameId)})
         const player = await this.playerService.getPlayer({id: game.actualPlayerId})
         const playerShip = await this.shipService.getShipById(player.shipId!)
-        const players = await this.lobbyService.getPlayersInLobby({id: game.lobbyId!})
+        const players = await this.lobbyService.getRemainingPlayers({id: game.lobbyId!})
 
         const adjacentPlayers: {id: number, name: string, color: string, coordX: number, coordY: number, externalId: string}[] = []
         for(const p of players){
-            if(p.id !== player.id || !p.isDead){
+            if(p.id !== player.id){
                 const maxPlanetNum = [32, 16, 10];
                 const ship = await this.shipService.getShipById(p.shipId!)
 

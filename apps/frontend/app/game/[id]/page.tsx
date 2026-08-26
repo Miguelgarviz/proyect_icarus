@@ -221,6 +221,7 @@ export default function GamePage() {
     const limit = Math.min(playersData.length, shipsData.length);
 
     for (let i = 0; i < limit; i++) {
+      if(!playersData[i].cleanedUp){
       newChips.push({
         id: playersData[i].id,
         name: playersData[i].name,
@@ -228,9 +229,11 @@ export default function GamePage() {
         coordX: shipsData[i].positionX,
         coordY: shipsData[i].positionY,
         isDead: playersData[i].isDead,
-        externalId: shipsData[i].externalId,
+        externalId: shipsData[i].externalId, 
       });
     }
+    }
+    console.log(newChips)
     setPlayersChips(newChips);
   }
 
@@ -413,6 +416,7 @@ export default function GamePage() {
       if(!response.ok) throw new Error("Error al cargar las cartas de recursos para la carta del jugador");
       const adjacentPlayersData = await response.json();
       setAdjacentPlayers(adjacentPlayersData)
+      console.log("en el fetch:", adjacentPlayersData)
       if(card) setIsSwapCardModalOpen(true)
     }catch(error){
       console.error(error)

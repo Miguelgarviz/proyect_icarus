@@ -61,7 +61,9 @@ export class PlayerService {
     async setPlayerDeath(player: Player){
         await this.prisma.player.update({
             where: {id: player.id},
-            data: { isDead: true }
+            data: { 
+                isDead: true,
+            }
         })
         await this.prisma.ship.update({
             where: {id: player.shipId!},
@@ -85,4 +87,19 @@ export class PlayerService {
             }
         })
     }
+
+    async cleanPlayerShip(player: Player){
+        await this.prisma.player.update({
+            where:{id: player.id},
+            data: {
+                cleanedUp:true
+            }
+        })
+    }
+
+    async getShipFromPlayer(player: Player){
+            return this.prisma.ship.findUniqueOrThrow({
+                where:{id: player.shipId!}
+            })
+        }
 }
