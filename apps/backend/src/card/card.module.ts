@@ -6,6 +6,6 @@ import { DrillCardService } from '@backend/drill-card/drill-card.service';
 
 @Module({
   controllers: [CardController],
-  providers: [CardService, PrismaService, DrillCardService]
+  providers: [CardService, PrismaService, DrillCardService],
 })
 export class CardModule {}

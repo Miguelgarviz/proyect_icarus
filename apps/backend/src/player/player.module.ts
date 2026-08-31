@@ -5,8 +5,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ShipService } from '../ship/ship.service';
 import { StorageService } from '../storage/storage.service';
 @Module({
-    imports:[],
-    controllers:[PlayerController],
-    providers:[PlayerService, PrismaService, ShipService, StorageService],
+  imports: [],
+  controllers: [PlayerController],
+  providers: [PlayerService, PrismaService, ShipService, StorageService],
 })
 export class PlayerModule {}

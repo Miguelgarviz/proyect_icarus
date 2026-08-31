@@ -12,7 +12,11 @@ import { StoreService } from '../store/store.service';
 import { DrillCardService } from '../drill-card/drill-card.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { PrismaExceptionFilter } from '../prisma/prisma-exception.filter';
-import { seedTestDatabase, TestData, clearTestDatabase } from '../../test/test-data';
+import {
+  seedTestDatabase,
+  TestData,
+  clearTestDatabase,
+} from '../../test/test-data';
 import { CardType } from '../generated/prisma/client';
 
 const request = require('supertest');
@@ -71,15 +75,11 @@ describe('GameController', () => {
     });
 
     it('should return 404 when the game does not exist', async () => {
-      await request(app.getHttpServer())
-        .get('/game/999999')
-        .expect(404);
+      await request(app.getHttpServer()).get('/game/999999').expect(404);
     });
 
     it('should return 400 for a non-numeric id', async () => {
-      await request(app.getHttpServer())
-        .get('/game/abc')
-        .expect(400);
+      await request(app.getHttpServer()).get('/game/abc').expect(400);
     });
   });
 
@@ -131,26 +131,27 @@ describe('GameController', () => {
       expect(response.body.numCards).toBe(18);
 
       // Verificamos que se crearon cartas
-      const cards = await prisma.card.findMany({ where: { storeId: response.body.id } });
+      const cards = await prisma.card.findMany({
+        where: { storeId: response.body.id },
+      });
       expect(cards.length).toBeGreaterThan(0);
 
       // Verificamos que 3 cartas están en el storefront
-      const storefrontCards = cards.filter(c => c.inFrontStore);
+      const storefrontCards = cards.filter((c) => c.inFrontStore);
       expect(storefrontCards.length).toBe(3);
 
       // Limpiamos el store extra creado
       await prisma.card.deleteMany({ where: { storeId: response.body.id } });
       await prisma.store.delete({ where: { id: response.body.id } });
 
-      await prisma.game.update(
-        {
-          data: {
-            storeId: testData.store1.id
-          },
-          where: {
-            id: testData.game.id
-          }
-        })
+      await prisma.game.update({
+        data: {
+          storeId: testData.store1.id,
+        },
+        where: {
+          id: testData.game.id,
+        },
+      });
     });
 
     it('should return 201 and create a store with 16 cards for a single-player game', async () => {
@@ -217,9 +218,7 @@ describe('GameController', () => {
     });
 
     it('should return 404 when the game does not exist', async () => {
-      await request(app.getHttpServer())
-        .get('/game/999999/ships')
-        .expect(404);
+      await request(app.getHttpServer()).get('/game/999999/ships').expect(404);
     });
   });
 
@@ -238,9 +237,7 @@ describe('GameController', () => {
     });
 
     it('should return 404 when the game does not exist', async () => {
-      await request(app.getHttpServer())
-        .get('/game/999999/store')
-        .expect(404);
+      await request(app.getHttpServer()).get('/game/999999/store').expect(404);
     });
   });
 
@@ -301,7 +298,9 @@ describe('GameController', () => {
         .expect(200);
 
       expect(response.body.difficulty).toBeDefined();
-      expect(response.body.difficulty).toBe(testData.lobby1.dificulty.toString().toLowerCase());
+      expect(response.body.difficulty).toBe(
+        testData.lobby1.dificulty.toString().toLowerCase(),
+      );
     });
 
     it('should return 404 when the game does not exist', async () => {
@@ -347,9 +346,7 @@ describe('GameController', () => {
     });
 
     it('should return 404 when the game does not exist', async () => {
-      await request(app.getHttpServer())
-        .get('/game/999999/goal')
-        .expect(404);
+      await request(app.getHttpServer()).get('/game/999999/goal').expect(404);
     });
   });
 
@@ -367,7 +364,9 @@ describe('GameController', () => {
         .expect(200);
 
       // Verificamos que la nave se movió
-      const updatedShip = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
+      const updatedShip = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
       expect(updatedShip.positionX).toBe(3);
       expect(updatedShip.positionY).toBe(0);
       expect(updatedShip.externalId).toBe('void_3');
@@ -422,10 +421,14 @@ describe('GameController', () => {
         .put(`/game/${testData.game.id}/initial-help`)
         .expect(200);
 
-      const updatedStorage = await prisma.storage.findUniqueOrThrow({ where: { id: testData.storage1.id } });
+      const updatedStorage = await prisma.storage.findUniqueOrThrow({
+        where: { id: testData.storage1.id },
+      });
       expect(updatedStorage.green).toBe(3);
 
-      const updatedPlayer = await prisma.player.findUniqueOrThrow({ where: { id: testData.player1.id } });
+      const updatedPlayer = await prisma.player.findUniqueOrThrow({
+        where: { id: testData.player1.id },
+      });
       expect(updatedPlayer.initialHelp).toBe(false);
 
       // Restauramos
@@ -441,13 +444,17 @@ describe('GameController', () => {
 
     it('should return 200 but not give help when conditions are not met', async () => {
       // storage1 ya tiene recursos — no debe dar ayuda
-      const storageBefore = await prisma.storage.findUniqueOrThrow({ where: { id: testData.storage1.id } });
+      const storageBefore = await prisma.storage.findUniqueOrThrow({
+        where: { id: testData.storage1.id },
+      });
 
       await request(app.getHttpServer())
         .put(`/game/${testData.game.id}/initial-help`)
         .expect(200);
 
-      const storageAfter = await prisma.storage.findUniqueOrThrow({ where: { id: testData.storage1.id } });
+      const storageAfter = await prisma.storage.findUniqueOrThrow({
+        where: { id: testData.storage1.id },
+      });
       expect(storageAfter.green).toBe(storageBefore.green);
     });
 
@@ -513,19 +520,30 @@ describe('GameController', () => {
         .send({ cardId: card.id, effect: '' })
         .expect(200);
 
-      const updatedShip = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
+      const updatedShip = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
       expect(updatedShip.shield).toBe(10);
 
-      const updatedCard = await prisma.card.findUniqueOrThrow({ where: { id: card.id } });
+      const updatedCard = await prisma.card.findUniqueOrThrow({
+        where: { id: card.id },
+      });
       expect(updatedCard.isDiscarded).toBe(true);
 
       // Restauramos
-      await prisma.ship.update({ where: { id: testData.ship1.id }, data: { shield: 7 } });
+      await prisma.ship.update({
+        where: { id: testData.ship1.id },
+        data: { shield: 7 },
+      });
     });
 
     it('should return 200 but not apply card if player is dead', async () => {
       const card = await prisma.card.create({
-        data: { type: CardType.BACKUP_POWER, cost: 1, playerId: testData.player1.id },
+        data: {
+          type: CardType.BACKUP_POWER,
+          cost: 1,
+          playerId: testData.player1.id,
+        },
       });
 
       await prisma.player.update({
@@ -539,11 +557,16 @@ describe('GameController', () => {
         .expect(200);
 
       // La carta no debe haberse descartado
-      const updatedCard = await prisma.card.findUniqueOrThrow({ where: { id: card.id } });
+      const updatedCard = await prisma.card.findUniqueOrThrow({
+        where: { id: card.id },
+      });
       expect(updatedCard.isDiscarded).toBe(false);
 
       // Restauramos
-      await prisma.player.update({ where: { id: testData.player1.id }, data: { isDead: false } });
+      await prisma.player.update({
+        where: { id: testData.player1.id },
+        data: { isDead: false },
+      });
       await prisma.card.delete({ where: { id: card.id } });
     });
 
@@ -556,41 +579,41 @@ describe('GameController', () => {
   });
 
   describe('GET /game/:id/get-resource-cards', () => {
-  it('should return 200 and an array of 3 drill cards', async () => {
-    const response = await request(app.getHttpServer())
-      .get(`/game/${testData.game.id}/get-resource-cards`)
-      .expect(200);
+    it('should return 200 and an array of 3 drill cards', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/game/${testData.game.id}/get-resource-cards`)
+        .expect(200);
 
-    expect(Array.isArray(response.body)).toBe(true);
-    expect(response.body.length).toBe(3);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(3);
 
-    // Verificamos que cada elemento es una DrillCard válida
-    response.body.forEach((card: any) => {
-      expect(card.id).toBeDefined();
-      expect(card.isSupernovaCard).toBe(false);
-      expect(card.gameId).toBe(testData.game.id);
+      // Verificamos que cada elemento es una DrillCard válida
+      response.body.forEach((card: any) => {
+        expect(card.id).toBeDefined();
+        expect(card.isSupernovaCard).toBe(false);
+        expect(card.gameId).toBe(testData.game.id);
+      });
+    });
+
+    it('should return cards deterministas con la misma seed', async () => {
+      const response1 = await request(app.getHttpServer())
+        .get(`/game/${testData.game.id}/get-resource-cards`)
+        .expect(200);
+
+      const response2 = await request(app.getHttpServer())
+        .get(`/game/${testData.game.id}/get-resource-cards`)
+        .expect(200);
+
+      // Con el mismo estado en la BD, la seed es la misma y el resultado debe ser igual
+      expect(response1.body.map((c: any) => c.id)).toEqual(
+        response2.body.map((c: any) => c.id),
+      );
+    });
+
+    it('should return 404 when the game does not exist', async () => {
+      await request(app.getHttpServer())
+        .get('/game/999999/get-resource-cards')
+        .expect(404);
     });
   });
-
-  it('should return cards deterministas con la misma seed', async () => {
-    const response1 = await request(app.getHttpServer())
-      .get(`/game/${testData.game.id}/get-resource-cards`)
-      .expect(200);
-
-    const response2 = await request(app.getHttpServer())
-      .get(`/game/${testData.game.id}/get-resource-cards`)
-      .expect(200);
-
-    // Con el mismo estado en la BD, la seed es la misma y el resultado debe ser igual
-    expect(response1.body.map((c: any) => c.id)).toEqual(
-      response2.body.map((c: any) => c.id)
-    );
-  });
-
-  it('should return 404 when the game does not exist', async () => {
-    await request(app.getHttpServer())
-      .get('/game/999999/get-resource-cards')
-      .expect(404);
-  });
-});
 });

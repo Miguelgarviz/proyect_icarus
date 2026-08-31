@@ -1,107 +1,107 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { Lobby, Player, Prisma } from '../generated/prisma/client';
+import { Player, Prisma } from '../generated/prisma/client';
 
 @Injectable()
 export class PlayerService {
-    constructor(private prisma: PrismaService) {}
-    
-    async getPlayer( playerWhereUniqueInput: Prisma.PlayerWhereUniqueInput ) {
-        return this.prisma.player.findUniqueOrThrow({
-            where: playerWhereUniqueInput
-        });
-    }
+  constructor(private prisma: PrismaService) {}
 
-    async getPlayers(params: {
-        skip?: number;
-        take?: number;
-        cursor?: Prisma.PlayerWhereUniqueInput;
-        where?: Prisma.PlayerWhereInput;
-        orderBy?: Prisma.PlayerOrderByWithRelationInput;
-    }):Promise<Player[]> {
-        const { skip, take, cursor, where, orderBy } = params;
-        return this.prisma.player.findMany({
-            skip,
-            take,
-            cursor,
-            where,
-            orderBy
-        });
-    }
+  async getPlayer(playerWhereUniqueInput: Prisma.PlayerWhereUniqueInput) {
+    return this.prisma.player.findUniqueOrThrow({
+      where: playerWhereUniqueInput,
+    });
+  }
 
-    async createPlayer(data: Prisma.PlayerCreateInput):Promise<Player> {
-        return this.prisma.player.create({
-            data
-        });
-    }
+  async getPlayers(params: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.PlayerWhereUniqueInput;
+    where?: Prisma.PlayerWhereInput;
+    orderBy?: Prisma.PlayerOrderByWithRelationInput;
+  }): Promise<Player[]> {
+    const { skip, take, cursor, where, orderBy } = params;
+    return this.prisma.player.findMany({
+      skip,
+      take,
+      cursor,
+      where,
+      orderBy,
+    });
+  }
 
-    async updatePlayer(params: {
-        where: Prisma.PlayerWhereUniqueInput;
-        data: Prisma.PlayerUpdateInput;
-    }):Promise<Player> {
-        const { where, data } = params;
-        return this.prisma.player.update({
-            data,
-            where
-        });
-    }
+  async createPlayer(data: Prisma.PlayerCreateInput): Promise<Player> {
+    return this.prisma.player.create({
+      data,
+    });
+  }
 
-    async deletePlayer(where: Prisma.PlayerWhereUniqueInput):Promise<Player> {
-        return this.prisma.player.delete({
-            where
-        });
-    }
+  async updatePlayer(params: {
+    where: Prisma.PlayerWhereUniqueInput;
+    data: Prisma.PlayerUpdateInput;
+  }): Promise<Player> {
+    const { where, data } = params;
+    return this.prisma.player.update({
+      data,
+      where,
+    });
+  }
 
-    async getPlayersInLobby(lobbyId: number): Promise<Player[]> {
+  async deletePlayer(where: Prisma.PlayerWhereUniqueInput): Promise<Player> {
+    return this.prisma.player.delete({
+      where,
+    });
+  }
+
+  async getPlayersInLobby(lobbyId: number): Promise<Player[]> {
     const lobby = await this.prisma.lobby.findUniqueOrThrow({
-        where: { id: lobbyId },
-        include: { players: true }
-        });
-        return lobby.players;
-    }
+      where: { id: lobbyId },
+      include: { players: true },
+    });
+    return lobby.players;
+  }
 
-    async setPlayerDeath(player: Player){
-        await this.prisma.player.update({
-            where: {id: player.id},
-            data: { 
-                isDead: true,
-            }
-        })
-        await this.prisma.ship.update({
-            where: {id: player.shipId!},
-            data: {
-                engine: 0,
-                drill: 0
-            }
-        })
-        await this.prisma.storage.update({
-            where: {id: player.storageId!},
-            data: {
-                red: 0,
-                green: 0,
-                yellow: 0
-            }
-        })
-        await this.prisma.card.updateMany({
-            where: { playerId: player.id },
-            data: {
-                playerId: null
-            }
-        })
-    }
+  async setPlayerDeath(player: Player) {
+    await this.prisma.player.update({
+      where: { id: player.id },
+      data: {
+        isDead: true,
+      },
+    });
+    await this.prisma.ship.update({
+      where: { id: player.shipId! },
+      data: {
+        engine: 0,
+        drill: 0,
+      },
+    });
+    await this.prisma.storage.update({
+      where: { id: player.storageId! },
+      data: {
+        red: 0,
+        green: 0,
+        yellow: 0,
+      },
+    });
+    await this.prisma.card.updateMany({
+      where: { playerId: player.id },
+      data: {
+        playerId: null,
+      },
+    });
+  }
 
-    async cleanPlayerShip(player: Player){
-        await this.prisma.player.update({
-            where:{id: player.id},
-            data: {
-                cleanedUp:true
-            }
-        })
-    }
+  async cleanPlayerShip(player: Player) {
+    await this.prisma.player.update({
+      where: { id: player.id },
+      data: {
+        cleanedUp: true,
+      },
+    });
+  }
 
-    async getShipFromPlayer(player: Player){
-            return this.prisma.ship.findUniqueOrThrow({
-                where:{id: player.shipId!}
-            })
-        }
+  async getShipFromPlayer(player: Player) {
+    return this.prisma.ship.findUniqueOrThrow({
+      where: { id: player.shipId! },
+    });
+  }
 }

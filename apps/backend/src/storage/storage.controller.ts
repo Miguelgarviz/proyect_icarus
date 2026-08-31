@@ -3,7 +3,5 @@ import { StorageService } from './storage.service';
 
 @Controller('storage')
 export class StorageController {
-    constructor(
-        private storageService: StorageService
-    ){}
+  constructor(private storageService: StorageService) {}
 }

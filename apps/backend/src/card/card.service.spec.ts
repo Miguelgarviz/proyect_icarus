@@ -2,29 +2,27 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CardService } from './card.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Card, CardType, Prisma } from '../generated/prisma/client';
-import { seedTestDatabase, TestData, clearTestDatabase } from '../../test/test-data';
+import {
+  seedTestDatabase,
+  TestData,
+  clearTestDatabase,
+} from '../../test/test-data';
 import { DrillCardService } from '../drill-card/drill-card.service';
 
 describe('CardService', () => {
   let service: CardService;
   let prisma: PrismaService;
   let testData: TestData;
-  let drillService: DrillCardService
 
   let createdCard: Card;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CardService,
-        PrismaService,
-        DrillCardService
-      ],
+      providers: [CardService, PrismaService, DrillCardService],
     }).compile();
 
     service = module.get<CardService>(CardService);
     prisma = module.get<PrismaService>(PrismaService);
-    drillService = module.get<DrillCardService>(DrillCardService);
 
     testData = await seedTestDatabase(prisma);
   });
@@ -58,7 +56,9 @@ describe('CardService', () => {
       expect(result.storeId).toBe(testData.store1.id);
 
       // Verificamos que existe en la BD
-      const cardInDb = await prisma.card.findUnique({ where: { id: result.id } });
+      const cardInDb = await prisma.card.findUnique({
+        where: { id: result.id },
+      });
       expect(cardInDb).not.toBeNull();
 
       createdCard = result;
@@ -95,17 +95,25 @@ describe('CardService', () => {
       const numCards = 3;
       const cardData = { type: CardType.NEW_DRILL, cost: 2 };
 
-      const cardsBefore = await prisma.card.count({ where: { storeId: testData.store1.id } });
+      const cardsBefore = await prisma.card.count({
+        where: { storeId: testData.store1.id },
+      });
 
       await service.createCardsForStore(testData.store1.id, numCards, cardData);
 
-      const cardsAfter = await prisma.card.count({ where: { storeId: testData.store1.id } });
+      const cardsAfter = await prisma.card.count({
+        where: { storeId: testData.store1.id },
+      });
 
       expect(cardsAfter).toBe(cardsBefore + numCards);
 
       // Verificamos que las cartas creadas tienen el tipo y coste correctos
       const newCards = await prisma.card.findMany({
-        where: { storeId: testData.store1.id, type: CardType.NEW_DRILL, cost: 2 },
+        where: {
+          storeId: testData.store1.id,
+          type: CardType.NEW_DRILL,
+          cost: 2,
+        },
       });
       expect(newCards.length).toBeGreaterThanOrEqual(numCards);
     });
@@ -121,7 +129,7 @@ describe('CardService', () => {
 
       expect(result).toBeDefined();
       expect(result.length).toBeGreaterThan(0);
-      result.forEach(card => {
+      result.forEach((card) => {
         expect(card.inFrontStore).toBe(false);
         expect(card.isDiscarded).toBe(false);
         expect(card.storeId).toBe(testData.store1.id);
@@ -136,7 +144,7 @@ describe('CardService', () => {
       });
 
       const result = await service.getCardsByStore(testData.store1.id);
-      const cardIds = result.map(c => c.id);
+      const cardIds = result.map((c) => c.id);
 
       expect(cardIds).not.toContain(createdCard.id);
 
@@ -155,7 +163,7 @@ describe('CardService', () => {
       });
 
       const result = await service.getCardsByStore(testData.store1.id);
-      const cardIds = result.map(c => c.id);
+      const cardIds = result.map((c) => c.id);
 
       expect(cardIds).not.toContain(createdCard.id);
 
@@ -182,18 +190,18 @@ describe('CardService', () => {
   describe('shuffleCardsWithSeed', () => {
     it('should return the same number of cards after shuffling', async () => {
       const cards = await service.getCardsByStore(testData.store1.id);
-      const shuffled = await service.shuffleCardsWithSeed(cards, 42);
+      const shuffled = service.shuffleCardsWithSeed(cards, 42);
 
       expect(shuffled.length).toBe(cards.length);
     });
 
     it('should return the same cards in a different order with the same seed', async () => {
       const cards = await service.getCardsByStore(testData.store1.id);
-      const shuffled1 = await service.shuffleCardsWithSeed(cards, 12345);
-      const shuffled2 = await service.shuffleCardsWithSeed(cards, 12345);
+      const shuffled1 = service.shuffleCardsWithSeed(cards, 12345);
+      const shuffled2 = service.shuffleCardsWithSeed(cards, 12345);
 
       // Con la misma seed el resultado es determinista
-      expect(shuffled1.map(c => c.id)).toEqual(shuffled2.map(c => c.id));
+      expect(shuffled1.map((c) => c.id)).toEqual(shuffled2.map((c) => c.id));
     });
 
     it('should produce a different order with a different seed', async () => {
@@ -201,20 +209,22 @@ describe('CardService', () => {
 
       if (cards.length < 2) return; // No tiene sentido con menos de 2 cartas
 
-      const shuffled1 = await service.shuffleCardsWithSeed(cards, 1);
-      const shuffled2 = await service.shuffleCardsWithSeed(cards, 9999);
+      const shuffled1 = service.shuffleCardsWithSeed(cards, 1);
+      const shuffled2 = service.shuffleCardsWithSeed(cards, 9999);
 
       // Es estadísticamente imposible que dos seeds distintas produzcan el mismo orden
-      expect(shuffled1.map(c => c.id)).not.toEqual(shuffled2.map(c => c.id));
+      expect(shuffled1.map((c) => c.id)).not.toEqual(
+        shuffled2.map((c) => c.id),
+      );
     });
 
     it('should not mutate the original array', async () => {
       const cards = await service.getCardsByStore(testData.store1.id);
-      const originalIds = cards.map(c => c.id);
+      const originalIds = cards.map((c) => c.id);
 
-      await service.shuffleCardsWithSeed(cards, 42);
+      service.shuffleCardsWithSeed(cards, 42);
 
-      expect(cards.map(c => c.id)).toEqual(originalIds);
+      expect(cards.map((c) => c.id)).toEqual(originalIds);
     });
   });
 
@@ -226,7 +236,9 @@ describe('CardService', () => {
     it('should set inFrontStore to true for the given card', async () => {
       await service.setCardToStorefront(createdCard);
 
-      const updatedCard = await prisma.card.findUniqueOrThrow({ where: { id: createdCard.id } });
+      const updatedCard = await prisma.card.findUniqueOrThrow({
+        where: { id: createdCard.id },
+      });
       expect(updatedCard.inFrontStore).toBe(true);
 
       createdCard = updatedCard;
@@ -243,13 +255,13 @@ describe('CardService', () => {
 
       expect(result).toBeDefined();
       expect(result.length).toBeGreaterThan(0);
-      result.forEach(card => {
+      result.forEach((card) => {
         expect(card.inFrontStore).toBe(true);
         expect(card.storeId).toBe(testData.store1.id);
       });
 
       // La carta que pusimos en el storefront debe estar
-      const cardIds = result.map(c => c.id);
+      const cardIds = result.map((c) => c.id);
       expect(cardIds).toContain(createdCard.id);
     });
 
@@ -277,14 +289,29 @@ describe('CardService', () => {
 
   describe('buyCard', () => {
     it('should assign the card to the player, remove from store and decrement storage red and store numCards', async () => {
-      const storageBefore = await prisma.storage.findUniqueOrThrow({ where: { id: testData.storage1.id } });
-      const storeBefore = await prisma.store.findUniqueOrThrow({ where: { id: testData.store1.id } });
+      const storageBefore = await prisma.storage.findUniqueOrThrow({
+        where: { id: testData.storage1.id },
+      });
+      const storeBefore = await prisma.store.findUniqueOrThrow({
+        where: { id: testData.store1.id },
+      });
 
-      await service.buyCard(createdCard, testData.player1, storageBefore, storeBefore);
+      await service.buyCard(
+        createdCard,
+        testData.player1,
+        storageBefore,
+        storeBefore,
+      );
 
-      const updatedCard = await prisma.card.findUniqueOrThrow({ where: { id: createdCard.id } });
-      const updatedStorage = await prisma.storage.findUniqueOrThrow({ where: { id: testData.storage1.id } });
-      const updatedStore = await prisma.store.findUniqueOrThrow({ where: { id: testData.store1.id } });
+      const updatedCard = await prisma.card.findUniqueOrThrow({
+        where: { id: createdCard.id },
+      });
+      const updatedStorage = await prisma.storage.findUniqueOrThrow({
+        where: { id: testData.storage1.id },
+      });
+      const updatedStore = await prisma.store.findUniqueOrThrow({
+        where: { id: testData.store1.id },
+      });
 
       expect(updatedCard.playerId).toBe(testData.player1.id);
       expect(updatedCard.storeId).toBeNull();
@@ -306,10 +333,10 @@ describe('CardService', () => {
 
       expect(result).toBeDefined();
       expect(result.length).toBeGreaterThan(0);
-      result.forEach(card => expect(card.playerId).toBe(testData.player1.id));
+      result.forEach((card) => expect(card.playerId).toBe(testData.player1.id));
 
       // La carta que compramos debe estar aquí
-      const cardIds = result.map(c => c.id);
+      const cardIds = result.map((c) => c.id);
       expect(cardIds).toContain(createdCard.id);
     });
 
@@ -327,7 +354,9 @@ describe('CardService', () => {
     it('should mark a card as discarded and clear player and store associations', async () => {
       await service.discardCard(createdCard);
 
-      const updatedCard = await prisma.card.findUniqueOrThrow({ where: { id: createdCard.id } });
+      const updatedCard = await prisma.card.findUniqueOrThrow({
+        where: { id: createdCard.id },
+      });
 
       expect(updatedCard.isDiscarded).toBe(true);
       expect(updatedCard.playerId).toBeNull();
@@ -352,7 +381,9 @@ describe('CardService', () => {
 
       await service.applyBackupPowerCard(testData.ship1);
 
-      const updatedShip = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
+      const updatedShip = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
       expect(updatedShip.shield).toBe(10);
     });
   });
@@ -370,7 +401,9 @@ describe('CardService', () => {
 
       await service.applyNewDrillCard(testData.ship1);
 
-      const updatedShip = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
+      const updatedShip = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
       expect(updatedShip.drill).toBe(10);
     });
   });
@@ -381,11 +414,15 @@ describe('CardService', () => {
 
   describe('applyRocketThrustersCard', () => {
     it('should increment player movement by 1', async () => {
-      const playerBefore = await prisma.player.findUniqueOrThrow({ where: { id: testData.player1.id } });
+      const playerBefore = await prisma.player.findUniqueOrThrow({
+        where: { id: testData.player1.id },
+      });
 
       await service.applyRocketThrustersCard(testData.player1);
 
-      const updatedPlayer = await prisma.player.findUniqueOrThrow({ where: { id: testData.player1.id } });
+      const updatedPlayer = await prisma.player.findUniqueOrThrow({
+        where: { id: testData.player1.id },
+      });
       expect(updatedPlayer.movement).toBe(playerBefore.movement + 1);
     });
   });
@@ -396,42 +433,70 @@ describe('CardService', () => {
 
   describe('applyTemporaryPatchCard', () => {
     it('should increment drill by 5 when effect is repair_drill and drill + 5 <= 10', async () => {
-      await prisma.ship.update({ where: { id: testData.ship1.id }, data: { drill: 3 } });
-      const shipBefore = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
+      await prisma.ship.update({
+        where: { id: testData.ship1.id },
+        data: { drill: 3 },
+      });
+      const shipBefore = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
 
       await service.applyTemporaryPatchCard(shipBefore, 'repair_drill');
 
-      const updatedShip = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
+      const updatedShip = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
       expect(updatedShip.drill).toBe(8);
     });
 
     it('should cap drill at 10 when drill + 5 > 10', async () => {
-      await prisma.ship.update({ where: { id: testData.ship1.id }, data: { drill: 8 } });
-      const shipBefore = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
+      await prisma.ship.update({
+        where: { id: testData.ship1.id },
+        data: { drill: 8 },
+      });
+      const shipBefore = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
 
       await service.applyTemporaryPatchCard(shipBefore, 'repair_drill');
 
-      const updatedShip = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
+      const updatedShip = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
       expect(updatedShip.drill).toBe(10);
     });
 
     it('should increment shield by 5 when effect is repair_shield and shield + 5 <= 10', async () => {
-      await prisma.ship.update({ where: { id: testData.ship1.id }, data: { shield: 2 } });
-      const shipBefore = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
+      await prisma.ship.update({
+        where: { id: testData.ship1.id },
+        data: { shield: 2 },
+      });
+      const shipBefore = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
 
       await service.applyTemporaryPatchCard(shipBefore, 'repair_shield');
 
-      const updatedShip = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
+      const updatedShip = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
       expect(updatedShip.shield).toBe(7);
     });
 
     it('should cap shield at 10 when shield + 5 > 10', async () => {
-      await prisma.ship.update({ where: { id: testData.ship1.id }, data: { shield: 8 } });
-      const shipBefore = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
+      await prisma.ship.update({
+        where: { id: testData.ship1.id },
+        data: { shield: 8 },
+      });
+      const shipBefore = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
 
       await service.applyTemporaryPatchCard(shipBefore, 'repair_shield');
 
-      const updatedShip = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
+      const updatedShip = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
       expect(updatedShip.shield).toBe(10);
     });
   });
@@ -447,16 +512,28 @@ describe('CardService', () => {
         data: { green: 2, red: 2, yellow: 2 },
       });
 
-      const storageBefore = await prisma.storage.findUniqueOrThrow({ where: { id: testData.storage1.id } });
-      const drillCard = await prisma.drillCard.findFirst({ where: { gameId: testData.game.id } });
+      const storageBefore = await prisma.storage.findUniqueOrThrow({
+        where: { id: testData.storage1.id },
+      });
+      const drillCard = await prisma.drillCard.findFirst({
+        where: { gameId: testData.game.id },
+      });
 
       await service.applyEnhancedScannerCard(drillCard!, storageBefore);
 
-      const updatedStorage = await prisma.storage.findUniqueOrThrow({ where: { id: testData.storage1.id } });
+      const updatedStorage = await prisma.storage.findUniqueOrThrow({
+        where: { id: testData.storage1.id },
+      });
 
-      expect(updatedStorage.green).toBe(Math.min(storageBefore.green + drillCard!.greenResources, 18));
-      expect(updatedStorage.red).toBe(Math.min(storageBefore.red + drillCard!.redResources, 10));
-      expect(updatedStorage.yellow).toBe(Math.min(storageBefore.yellow + drillCard!.yellowResources, 10));
+      expect(updatedStorage.green).toBe(
+        Math.min(storageBefore.green + drillCard!.greenResources, 18),
+      );
+      expect(updatedStorage.red).toBe(
+        Math.min(storageBefore.red + drillCard!.redResources, 10),
+      );
+      expect(updatedStorage.yellow).toBe(
+        Math.min(storageBefore.yellow + drillCard!.yellowResources, 10),
+      );
     });
 
     it('should cap green at 18', async () => {
@@ -465,7 +542,9 @@ describe('CardService', () => {
         data: { green: 16, red: 0, yellow: 0 },
       });
 
-      const storageBefore = await prisma.storage.findUniqueOrThrow({ where: { id: testData.storage1.id } });
+      const storageBefore = await prisma.storage.findUniqueOrThrow({
+        where: { id: testData.storage1.id },
+      });
       const drillCard = await prisma.drillCard.findFirst({
         where: { gameId: testData.game.id, greenResources: { gt: 0 } },
       });
@@ -474,7 +553,9 @@ describe('CardService', () => {
 
       await service.applyEnhancedScannerCard(drillCard, storageBefore);
 
-      const updatedStorage = await prisma.storage.findUniqueOrThrow({ where: { id: testData.storage1.id } });
+      const updatedStorage = await prisma.storage.findUniqueOrThrow({
+        where: { id: testData.storage1.id },
+      });
       expect(updatedStorage.green).toBeLessThanOrEqual(18);
     });
   });
@@ -485,16 +566,26 @@ describe('CardService', () => {
 
   describe('applySlingShotCard', () => {
     it('should swap positions of two ships, decrement movement and update tiles', async () => {
-      const ship1Before = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
-      const ship2Before = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship2.id } });
-      const player1Before = await prisma.player.findUniqueOrThrow({ where: { id: testData.player1.id } });
+      const ship1Before = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
+      const ship2Before = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship2.id },
+      });
+      const player1Before = await prisma.player.findUniqueOrThrow({
+        where: { id: testData.player1.id },
+      });
 
       // Tiles donde están las naves actualmente
       const tile1 = testData.tiles.find(
-        t => t.positionX === ship1Before.positionX && t.positionY === ship1Before.positionY,
+        (t) =>
+          t.positionX === ship1Before.positionX &&
+          t.positionY === ship1Before.positionY,
       )!;
       const tile2 = testData.tiles.find(
-        t => t.positionX === ship2Before.positionX && t.positionY === ship2Before.positionY,
+        (t) =>
+          t.positionX === ship2Before.positionX &&
+          t.positionY === ship2Before.positionY,
       )!;
 
       await service.applySlingShotCard(
@@ -506,11 +597,21 @@ describe('CardService', () => {
         tile2,
       );
 
-      const updatedShip1 = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship1.id } });
-      const updatedShip2 = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship2.id } });
-      const updatedPlayer1 = await prisma.player.findUniqueOrThrow({ where: { id: testData.player1.id } });
-      const updatedTile1 = await prisma.tile.findUniqueOrThrow({ where: { id: tile1.id } });
-      const updatedTile2 = await prisma.tile.findUniqueOrThrow({ where: { id: tile2.id } });
+      const updatedShip1 = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship1.id },
+      });
+      const updatedShip2 = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship2.id },
+      });
+      const updatedPlayer1 = await prisma.player.findUniqueOrThrow({
+        where: { id: testData.player1.id },
+      });
+      const updatedTile1 = await prisma.tile.findUniqueOrThrow({
+        where: { id: tile1.id },
+      });
+      const updatedTile2 = await prisma.tile.findUniqueOrThrow({
+        where: { id: tile2.id },
+      });
 
       // Las naves intercambian posición
       expect(updatedShip1.positionX).toBe(ship2Before.positionX);

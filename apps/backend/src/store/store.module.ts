@@ -6,6 +6,6 @@ import { CardService } from '../card/card.service';
 
 @Module({
   controllers: [StoreController],
-  providers: [StoreService, PrismaService, CardService]
-}) 
+  providers: [StoreService, PrismaService, CardService],
+})
 export class StoreModule {}

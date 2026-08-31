@@ -15,7 +15,18 @@ import { StorageModule } from './storage/storage.module';
 import { TileModule } from './tile/tile.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), PlayerModule, LobbyModule, GameModule, StoreModule, CardModule, DrillCardModule, ShipModule, StorageModule, TileModule],
+  imports: [
+    ConfigModule.forRoot(),
+    PlayerModule,
+    LobbyModule,
+    GameModule,
+    StoreModule,
+    CardModule,
+    DrillCardModule,
+    ShipModule,
+    StorageModule,
+    TileModule,
+  ],
   controllers: [AppController],
   providers: [AppService, PlayerService, PrismaService],
 })

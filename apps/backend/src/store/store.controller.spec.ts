@@ -5,7 +5,11 @@ import { StoreService } from './store.service';
 import { CardService } from '../card/card.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TileService } from '../tile/tile.service';
-import { seedTestDatabase, TestData, clearTestDatabase } from '../../test/test-data';
+import {
+  seedTestDatabase,
+  TestData,
+  clearTestDatabase,
+} from '../../test/test-data';
 import { PrismaExceptionFilter } from '../prisma/prisma-exception.filter';
 
 const request = require('supertest');
@@ -18,16 +22,11 @@ describe('StoreController', () => {
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StoreController],
-      providers: [
-        StoreService,
-        CardService,
-        TileService,
-        PrismaService,
-      ],
+      providers: [StoreService, CardService, TileService, PrismaService],
     }).compile();
 
     app = module.createNestApplication();
-    app.useGlobalFilters(new PrismaExceptionFilter())
+    app.useGlobalFilters(new PrismaExceptionFilter());
     await app.init();
 
     prisma = module.get<PrismaService>(PrismaService);
@@ -54,16 +53,12 @@ describe('StoreController', () => {
     });
 
     it('should return 404 when the store does not exist', async () => {
-      await request(app.getHttpServer())
-        .get('/store/999999')
-        .expect(404);
+      await request(app.getHttpServer()).get('/store/999999').expect(404);
     });
 
     it('should handle a non-numeric id gracefully', async () => {
       // Number('abc') es NaN — Prisma recibirá NaN y fallará
-      await request(app.getHttpServer())
-        .get('/store/abc')
-        .expect(400);
+      await request(app.getHttpServer()).get('/store/abc').expect(400);
     });
   });
 
@@ -141,9 +136,7 @@ describe('StoreController', () => {
     });
 
     it('should return a 404 if the store does not exist', async () => {
-      await request(app.getHttpServer())
-        .get(`/store/9999/cards`)
-        .expect(404);
-    })
+      await request(app.getHttpServer()).get(`/store/9999/cards`).expect(404);
+    });
   });
 });

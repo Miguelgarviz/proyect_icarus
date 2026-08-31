@@ -7,7 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: 'http://localhost:3000', 
+    origin: 'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
@@ -17,19 +17,21 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Game Lobby API')
-    .setDescription('Documentación de la API para gestión de Lobbies y Jugadores')
+    .setDescription(
+      'Documentación de la API para gestión de Lobbies y Jugadores',
+    )
     .setVersion('1.0')
-    .addTag('players') 
+    .addTag('players')
     .addTag('lobbies')
     .build();
-    
+
   const document = SwaggerModule.createDocument(app, config);
-  
+
   SwaggerModule.setup('docs', app, document);
 
   console.log('Servidor corriendo en: http://localhost:4000/api/v1');
   console.log('Documentación disponible en: http://localhost:4000/docs');
-  
+
   app.useGlobalFilters(new PrismaExceptionFilter());
   await app.listen(4000);
 }

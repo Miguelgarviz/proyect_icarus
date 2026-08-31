@@ -2,7 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LobbyService } from './lobby.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, Dificulty, Lobby } from '../generated/prisma/client';
-import { seedTestDatabase, TestData, clearTestDatabase } from '../../test/test-data';
+import {
+  seedTestDatabase,
+  TestData,
+  clearTestDatabase,
+} from '../../test/test-data';
 
 describe('LobbyService', () => {
   let service: LobbyService;
@@ -13,10 +17,7 @@ describe('LobbyService', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        LobbyService,
-        PrismaService,
-      ],
+      providers: [LobbyService, PrismaService],
     }).compile();
 
     service = module.get<LobbyService>(LobbyService);
@@ -26,7 +27,7 @@ describe('LobbyService', () => {
   });
 
   afterAll(async () => {
-    //await clearTestDatabase(prisma);
+    await clearTestDatabase(prisma);
     await prisma.$disconnect();
   });
 
@@ -52,7 +53,9 @@ describe('LobbyService', () => {
       expect(result.numPlayers).toBe(2);
 
       // Verificamos que realmente existe en la BD
-      const lobbyInDb = await prisma.lobby.findUnique({ where: { id: result.id } });
+      const lobbyInDb = await prisma.lobby.findUnique({
+        where: { id: result.id },
+      });
       expect(lobbyInDb).not.toBeNull();
 
       createdLobby = result;
@@ -121,7 +124,9 @@ describe('LobbyService', () => {
       expect(result.dificulty).toBe(Dificulty.HARD_I);
 
       // Verificamos en la BD
-      const lobbyInDb = await prisma.lobby.findUniqueOrThrow({ where: { id: createdLobby.id } });
+      const lobbyInDb = await prisma.lobby.findUniqueOrThrow({
+        where: { id: createdLobby.id },
+      });
       expect(lobbyInDb.dificulty).toBe(Dificulty.HARD_I);
 
       createdLobby = result;
@@ -143,18 +148,22 @@ describe('LobbyService', () => {
 
   describe('getPlayersInLobby', () => {
     it('should return all players in a lobby ordered by turnOrder', async () => {
-      const result = await service.getPlayersInLobby({ id: testData.lobby1.id });
+      const result = await service.getPlayersInLobby({
+        id: testData.lobby1.id,
+      });
 
       expect(result).toBeDefined();
       expect(result.length).toBeGreaterThanOrEqual(2);
 
       // Verificamos que vienen ordenados por turnOrder
       for (let i = 1; i < result.length; i++) {
-        expect(result[i].turnOrder).toBeGreaterThanOrEqual(result[i - 1].turnOrder);
+        expect(result[i].turnOrder).toBeGreaterThanOrEqual(
+          result[i - 1].turnOrder,
+        );
       }
 
       // Verificamos que los jugadores del seed están presentes
-      const playerIds = result.map(p => p.id);
+      const playerIds = result.map((p) => p.id);
       expect(playerIds).toContain(testData.player1.id);
       expect(playerIds).toContain(testData.player2.id);
     });
@@ -173,11 +182,13 @@ describe('LobbyService', () => {
 
   describe('getRemainingPlayers', () => {
     it('should return players where cleanedUp is false', async () => {
-      const result = await service.getRemainingPlayers({ id: testData.lobby1.id });
+      const result = await service.getRemainingPlayers({
+        id: testData.lobby1.id,
+      });
 
       expect(result).toBeDefined();
       expect(result.length).toBeGreaterThanOrEqual(1);
-      result.forEach(p => expect(p.cleanedUp).toBe(false));
+      result.forEach((p) => expect(p.cleanedUp).toBe(false));
     });
 
     it('should not return players where cleanedUp is true', async () => {
@@ -187,8 +198,10 @@ describe('LobbyService', () => {
         data: { cleanedUp: true },
       });
 
-      const result = await service.getRemainingPlayers({ id: testData.lobby1.id });
-      const playerIds = result.map(p => p.id);
+      const result = await service.getRemainingPlayers({
+        id: testData.lobby1.id,
+      });
+      const playerIds = result.map((p) => p.id);
 
       expect(playerIds).not.toContain(testData.player2.id);
 
@@ -200,10 +213,14 @@ describe('LobbyService', () => {
     });
 
     it('should return players ordered by turnOrder', async () => {
-      const result = await service.getRemainingPlayers({ id: testData.lobby1.id });
+      const result = await service.getRemainingPlayers({
+        id: testData.lobby1.id,
+      });
 
       for (let i = 1; i < result.length; i++) {
-        expect(result[i].turnOrder).toBeGreaterThanOrEqual(result[i - 1].turnOrder);
+        expect(result[i].turnOrder).toBeGreaterThanOrEqual(
+          result[i - 1].turnOrder,
+        );
       }
     });
   });
@@ -214,7 +231,9 @@ describe('LobbyService', () => {
 
   describe('addPlayerToLobby', () => {
     it('should connect a player to the lobby and increment numPlayers', async () => {
-      const lobbyBefore = await prisma.lobby.findUniqueOrThrow({ where: { id: createdLobby.id } });
+      const lobbyBefore = await prisma.lobby.findUniqueOrThrow({
+        where: { id: createdLobby.id },
+      });
 
       const result = await service.addPlayerToLobby({
         where: { id: createdLobby.id },
@@ -225,8 +244,10 @@ describe('LobbyService', () => {
       expect(result.numPlayers).toBe(lobbyBefore.numPlayers + 1);
 
       // Verificamos que el player está conectado al lobby
-      const players = await prisma.player.findMany({ where: { lobbyId: createdLobby.id } });
-      const playerIds = players.map(p => p.id);
+      const players = await prisma.player.findMany({
+        where: { lobbyId: createdLobby.id },
+      });
+      const playerIds = players.map((p) => p.id);
       expect(playerIds).toContain(testData.player1.id);
 
       createdLobby = result;
@@ -248,7 +269,9 @@ describe('LobbyService', () => {
 
   describe('removePlayerFromLobby', () => {
     it('should disconnect a player from the lobby and decrement numPlayers', async () => {
-      const lobbyBefore = await prisma.lobby.findUniqueOrThrow({ where: { id: createdLobby.id } });
+      const lobbyBefore = await prisma.lobby.findUniqueOrThrow({
+        where: { id: createdLobby.id },
+      });
 
       const result = await service.removePlayerFromLobby({
         where: { id: createdLobby.id },
@@ -259,8 +282,10 @@ describe('LobbyService', () => {
       expect(result.numPlayers).toBe(lobbyBefore.numPlayers - 1);
 
       // Verificamos que el player ya no está conectado al lobby
-      const players = await prisma.player.findMany({ where: { lobbyId: createdLobby.id } });
-      const playerIds = players.map(p => p.id);
+      const players = await prisma.player.findMany({
+        where: { lobbyId: createdLobby.id },
+      });
+      const playerIds = players.map((p) => p.id);
       expect(playerIds).not.toContain(testData.player1.id);
 
       createdLobby = result;

@@ -2,7 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PlayerService } from './player.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Player, Prisma } from '../generated/prisma/client';
-import { seedTestDatabase, TestData, clearTestDatabase } from '../../test/test-data';
+import {
+  seedTestDatabase,
+  TestData,
+  clearTestDatabase,
+} from '../../test/test-data';
 
 describe('PlayerService', () => {
   let service: PlayerService;
@@ -13,10 +17,7 @@ describe('PlayerService', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        PlayerService,
-        PrismaService,
-      ],
+      providers: [PlayerService, PrismaService],
     }).compile();
 
     service = module.get<PlayerService>(PlayerService);
@@ -41,7 +42,14 @@ describe('PlayerService', () => {
   describe('createPlayer', () => {
     it('should create a new player associated to a lobby, ship and storage', async () => {
       const newShip = await prisma.ship.create({
-        data: { externalId: 'ship_new_player', positionX: 0, positionY: 0, engine: 5, shield: 5, drill: 5 },
+        data: {
+          externalId: 'ship_new_player',
+          positionX: 0,
+          positionY: 0,
+          engine: 5,
+          shield: 5,
+          drill: 5,
+        },
       });
       const newStorage = await prisma.storage.create({
         data: { green: 0, red: 0, yellow: 0 },
@@ -69,7 +77,9 @@ describe('PlayerService', () => {
       expect(result.storageId).toBe(newStorage.id);
 
       // Verificamos que existe en la BD
-      const playerInDb = await prisma.player.findUnique({ where: { id: result.id } });
+      const playerInDb = await prisma.player.findUnique({
+        where: { id: result.id },
+      });
       expect(playerInDb).not.toBeNull();
 
       createdPlayer = result;
@@ -77,7 +87,14 @@ describe('PlayerService', () => {
 
     it('should throw if the lobby does not exist', async () => {
       const newShip = await prisma.ship.create({
-        data: { externalId: 'ship_bad_lobby', positionX: 0, positionY: 0, engine: 5, shield: 5, drill: 5 },
+        data: {
+          externalId: 'ship_bad_lobby',
+          positionX: 0,
+          positionY: 0,
+          engine: 5,
+          shield: 5,
+          drill: 5,
+        },
       });
       const newStorage = await prisma.storage.create({
         data: { green: 0, red: 0, yellow: 0 },
@@ -133,7 +150,7 @@ describe('PlayerService', () => {
       expect(result).toBeDefined();
       expect(result.length).toBeGreaterThanOrEqual(3);
 
-      const playerIds = result.map(p => p.id);
+      const playerIds = result.map((p) => p.id);
       expect(playerIds).toContain(testData.player1.id);
       expect(playerIds).toContain(testData.player2.id);
       expect(playerIds).toContain(testData.player3.id);
@@ -146,7 +163,9 @@ describe('PlayerService', () => {
       });
 
       for (let i = 1; i < result.length; i++) {
-        expect(result[i].turnOrder).toBeGreaterThanOrEqual(result[i - 1].turnOrder);
+        expect(result[i].turnOrder).toBeGreaterThanOrEqual(
+          result[i - 1].turnOrder,
+        );
       }
     });
   });
@@ -166,7 +185,9 @@ describe('PlayerService', () => {
       expect(result.movement).toBe(10);
 
       // Verificamos en la BD
-      const playerInDb = await prisma.player.findUniqueOrThrow({ where: { id: createdPlayer.id } });
+      const playerInDb = await prisma.player.findUniqueOrThrow({
+        where: { id: createdPlayer.id },
+      });
       expect(playerInDb.name).toBe('UpdatedPlayer');
       expect(playerInDb.movement).toBe(10);
 
@@ -190,9 +211,9 @@ describe('PlayerService', () => {
 
       expect(result).toBeDefined();
       expect(result.length).toBe(1);
-      result.forEach(p => expect(p.lobbyId).toBe(testData.lobby2.id));
+      result.forEach((p) => expect(p.lobbyId).toBe(testData.lobby2.id));
 
-      const playerIds = result.map(p => p.id);
+      const playerIds = result.map((p) => p.id);
       expect(playerIds).toContain(testData.player3.id);
     });
 
@@ -224,7 +245,9 @@ describe('PlayerService', () => {
     it('should throw P2025 if the ship does not exist', async () => {
       const playerWithNoShip = { ...testData.player1, shipId: 999999 };
 
-      await expect(service.getShipFromPlayer(playerWithNoShip)).rejects.toMatchObject({
+      await expect(
+        service.getShipFromPlayer(playerWithNoShip),
+      ).rejects.toMatchObject({
         code: 'P2025',
       });
     });
@@ -238,20 +261,26 @@ describe('PlayerService', () => {
     it('should mark the player as dead', async () => {
       await service.setPlayerDeath(createdPlayer);
 
-      const updatedPlayer = await prisma.player.findUniqueOrThrow({ where: { id: createdPlayer.id } });
+      const updatedPlayer = await prisma.player.findUniqueOrThrow({
+        where: { id: createdPlayer.id },
+      });
       expect(updatedPlayer.isDead).toBe(true);
     });
 
     it('should set ship engine and drill to 0', async () => {
       await service.setPlayerDeath(testData.player2);
 
-      const updatedShip = await prisma.ship.findUniqueOrThrow({ where: { id: testData.ship2.id } });
+      const updatedShip = await prisma.ship.findUniqueOrThrow({
+        where: { id: testData.ship2.id },
+      });
       expect(updatedShip.engine).toBe(0);
       expect(updatedShip.drill).toBe(0);
     });
 
     it('should clear all storage resources', async () => {
-      const updatedStorage = await prisma.storage.findUniqueOrThrow({ where: { id: testData.storage2.id } });
+      const updatedStorage = await prisma.storage.findUniqueOrThrow({
+        where: { id: testData.storage2.id },
+      });
       expect(updatedStorage.green).toBe(0);
       expect(updatedStorage.red).toBe(0);
       expect(updatedStorage.yellow).toBe(0);
@@ -270,7 +299,9 @@ describe('PlayerService', () => {
       // Volvemos a ejecutar setPlayerDeath (ya está muerto pero las cards se limpian igual)
       await service.setPlayerDeath(createdPlayer);
 
-      const updatedCard = await prisma.card.findUniqueOrThrow({ where: { id: card.id } });
+      const updatedCard = await prisma.card.findUniqueOrThrow({
+        where: { id: card.id },
+      });
       expect(updatedCard.playerId).toBeNull();
 
       // Limpiamos la carta
@@ -286,7 +317,9 @@ describe('PlayerService', () => {
     it('should mark the player as cleanedUp', async () => {
       await service.cleanPlayerShip(testData.player1);
 
-      const updatedPlayer = await prisma.player.findUniqueOrThrow({ where: { id: testData.player1.id } });
+      const updatedPlayer = await prisma.player.findUniqueOrThrow({
+        where: { id: testData.player1.id },
+      });
       expect(updatedPlayer.cleanedUp).toBe(true);
 
       // Restauramos para no afectar otros tests
@@ -305,7 +338,9 @@ describe('PlayerService', () => {
     it('should delete a player from the database', async () => {
       await service.deletePlayer({ id: createdPlayer.id });
 
-      const playerInDb = await prisma.player.findUnique({ where: { id: createdPlayer.id } });
+      const playerInDb = await prisma.player.findUnique({
+        where: { id: createdPlayer.id },
+      });
       expect(playerInDb).toBeNull();
     });
 

@@ -15,7 +15,18 @@ import { DrillCardService } from '../drill-card/drill-card.service';
 @Module({
   imports: [TileModule],
   controllers: [GameController],
-  providers: [GameService, PrismaService, LobbyService, ShipService, StorageService, PlayerService, TileService, CardService, StoreService, DrillCardService],
-  exports:[]
+  providers: [
+    GameService,
+    PrismaService,
+    LobbyService,
+    ShipService,
+    StorageService,
+    PlayerService,
+    TileService,
+    CardService,
+    StoreService,
+    DrillCardService,
+  ],
+  exports: [],
 })
 export class GameModule {}

@@ -5,6 +5,6 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Module({
   controllers: [DrillCardController],
-  providers: [DrillCardService, PrismaService]
+  providers: [DrillCardService, PrismaService],
 })
 export class DrillCardModule {}

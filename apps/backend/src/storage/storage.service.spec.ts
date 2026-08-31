@@ -2,7 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { StorageService } from './storage.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Storage } from '../generated/prisma/client';
-import { seedTestDatabase, TestData, clearTestDatabase } from '../../test/test-data';
+import {
+  seedTestDatabase,
+  TestData,
+  clearTestDatabase,
+} from '../../test/test-data';
 
 describe('StorageService', () => {
   let service: StorageService;
@@ -14,15 +18,16 @@ describe('StorageService', () => {
     prisma.storage.findUniqueOrThrow({ where: { id } });
 
   // Helper para resetear el storage a unos valores conocidos
-  const resetStorage = (id: number, green: number, red: number, yellow: number) =>
-    prisma.storage.update({ where: { id }, data: { green, red, yellow } });
+  const resetStorage = (
+    id: number,
+    green: number,
+    red: number,
+    yellow: number,
+  ) => prisma.storage.update({ where: { id }, data: { green, red, yellow } });
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        StorageService,
-        PrismaService,
-      ],
+      providers: [StorageService, PrismaService],
     }).compile();
 
     service = module.get<StorageService>(StorageService);
@@ -70,7 +75,14 @@ describe('StorageService', () => {
     it('should create a storage connected to a player', async () => {
       // Necesitamos un player sin storage propio para conectarlo
       const newShip = await prisma.ship.create({
-        data: { externalId: 'ship_storage_test', positionX: 0, positionY: 0, engine: 5, shield: 5, drill: 5 },
+        data: {
+          externalId: 'ship_storage_test',
+          positionX: 0,
+          positionY: 0,
+          engine: 5,
+          shield: 5,
+          drill: 5,
+        },
       });
       const newPlayer = await prisma.player.create({
         data: {
@@ -91,7 +103,9 @@ describe('StorageService', () => {
       expect(result.yellow).toBe(0);
 
       // Verificamos que existe en la BD
-      const storageInDb = await prisma.storage.findUnique({ where: { id: result.id } });
+      const storageInDb = await prisma.storage.findUnique({
+        where: { id: result.id },
+      });
       expect(storageInDb).not.toBeNull();
 
       // Limpiamos los datos creados
@@ -228,7 +242,11 @@ describe('StorageService', () => {
       await resetStorage(testData.storage1.id, 5, 0, 0);
       const storage = await getStorage(testData.storage1.id);
       const drillCard = await prisma.drillCard.findFirstOrThrow({
-        where: { gameId: testData.game.id, isSupernovaCard: false, greenResources: { gt: 0 } },
+        where: {
+          gameId: testData.game.id,
+          isSupernovaCard: false,
+          greenResources: { gt: 0 },
+        },
       });
 
       await service.addGreenMinerals(storage, drillCard);
@@ -241,7 +259,11 @@ describe('StorageService', () => {
       await resetStorage(testData.storage1.id, 16, 0, 0);
       const storage = await getStorage(testData.storage1.id);
       const drillCard = await prisma.drillCard.findFirstOrThrow({
-        where: { gameId: testData.game.id, isSupernovaCard: false, greenResources: { gte: 4 } },
+        where: {
+          gameId: testData.game.id,
+          isSupernovaCard: false,
+          greenResources: { gte: 4 },
+        },
       });
 
       await service.addGreenMinerals(storage, drillCard);
@@ -260,7 +282,11 @@ describe('StorageService', () => {
       await resetStorage(testData.storage1.id, 0, 2, 0);
       const storage = await getStorage(testData.storage1.id);
       const drillCard = await prisma.drillCard.findFirstOrThrow({
-        where: { gameId: testData.game.id, isSupernovaCard: false, redResources: { gt: 0 } },
+        where: {
+          gameId: testData.game.id,
+          isSupernovaCard: false,
+          redResources: { gt: 0 },
+        },
       });
 
       await service.addRedMinerals(storage, drillCard);
@@ -273,7 +299,11 @@ describe('StorageService', () => {
       await resetStorage(testData.storage1.id, 0, 9, 0);
       const storage = await getStorage(testData.storage1.id);
       const drillCard = await prisma.drillCard.findFirstOrThrow({
-        where: { gameId: testData.game.id, isSupernovaCard: false, redResources: { gte: 2 } },
+        where: {
+          gameId: testData.game.id,
+          isSupernovaCard: false,
+          redResources: { gte: 2 },
+        },
       });
 
       await service.addRedMinerals(storage, drillCard);
@@ -292,7 +322,11 @@ describe('StorageService', () => {
       await resetStorage(testData.storage1.id, 0, 0, 2);
       const storage = await getStorage(testData.storage1.id);
       const drillCard = await prisma.drillCard.findFirstOrThrow({
-        where: { gameId: testData.game.id, isSupernovaCard: false, yellowResources: { gt: 0 } },
+        where: {
+          gameId: testData.game.id,
+          isSupernovaCard: false,
+          yellowResources: { gt: 0 },
+        },
       });
 
       await service.addYellowMinerals(storage, drillCard);
@@ -305,7 +339,11 @@ describe('StorageService', () => {
       await resetStorage(testData.storage1.id, 0, 0, 9);
       const storage = await getStorage(testData.storage1.id);
       const drillCard = await prisma.drillCard.findFirstOrThrow({
-        where: { gameId: testData.game.id, isSupernovaCard: false, yellowResources: { gte: 2 } },
+        where: {
+          gameId: testData.game.id,
+          isSupernovaCard: false,
+          yellowResources: { gte: 2 },
+        },
       });
 
       await service.addYellowMinerals(storage, drillCard);
@@ -341,7 +379,9 @@ describe('StorageService', () => {
       const storage = await getStorage(testData.storage1.id);
       await service.giveInitialHelp(storage, testData.player1);
 
-      const updatedPlayer = await prisma.player.findUniqueOrThrow({ where: { id: testData.player1.id } });
+      const updatedPlayer = await prisma.player.findUniqueOrThrow({
+        where: { id: testData.player1.id },
+      });
       expect(updatedPlayer.initialHelp).toBe(false);
     });
   });

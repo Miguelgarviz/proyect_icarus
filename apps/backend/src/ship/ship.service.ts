@@ -4,51 +4,55 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ShipService {
-    constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
-    async createShip(shipData: Prisma.ShipCreateInput): Promise<Ship> {
-        return this.prisma.ship.create({
-            data: shipData
-        });
-    }
+  async createShip(shipData: Prisma.ShipCreateInput): Promise<Ship> {
+    return this.prisma.ship.create({
+      data: shipData,
+    });
+  }
 
-    async getShips(): Promise<Ship[]> {
-        return this.prisma.ship.findMany();
-    }
+  async getShips(): Promise<Ship[]> {
+    return this.prisma.ship.findMany();
+  }
 
-    async getShipById(id: number) {
-        return this.prisma.ship.findUniqueOrThrow({
-            where: { id }
-        });
-    }
+  async getShipById(id: number) {
+    return this.prisma.ship.findUniqueOrThrow({
+      where: { id },
+    });
+  }
 
-    async moveShip(id: number, newX: number, newY: number, externalId: string): Promise<Ship> {
-        return this.prisma.ship.update({
-            where: { id },
-            data: {
-                positionX: newX,
-                positionY: newY,
-                externalId: externalId
-            }
-        });
-    }
+  async moveShip(
+    id: number,
+    newX: number,
+    newY: number,
+    externalId: string,
+  ): Promise<Ship> {
+    return this.prisma.ship.update({
+      where: { id },
+      data: {
+        positionX: newX,
+        positionY: newY,
+        externalId: externalId,
+      },
+    });
+  }
 
-    async decreaseDrill(id: number, drillCost: number){
-        return this.prisma.ship.update({
-            where: { id },
-            data: {
-                drill: { decrement: drillCost }
-            }
-        });
-    }
+  async decreaseDrill(id: number, drillCost: number) {
+    return this.prisma.ship.update({
+      where: { id },
+      data: {
+        drill: { decrement: drillCost },
+      },
+    });
+  }
 
-    async decreaseShield(id: number, shieldCost: number, shield: number){
-        return this.prisma.ship.update({
-            where: {id},
-            data: {
-                shield: (shield - shieldCost >= 0) ? { decrement: shieldCost}:0
-            }
-        })
-
-    }
+  async decreaseShield(id: number, shieldCost: number, shield: number) {
+    return this.prisma.ship.update({
+      where: { id },
+      data: {
+        shield: shield - shieldCost >= 0 ? { decrement: shieldCost } : 0,
+      },
+    });
+  }
 }

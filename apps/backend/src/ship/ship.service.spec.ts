@@ -2,7 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ShipService } from './ship.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, Ship } from '../generated/prisma/client';
-import { seedTestDatabase, TestData, clearTestDatabase } from '../../test/test-data';
+import {
+  seedTestDatabase,
+  TestData,
+  clearTestDatabase,
+} from '../../test/test-data';
 
 describe('ShipService', () => {
   let service: ShipService;
@@ -13,10 +17,7 @@ describe('ShipService', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ShipService,
-        PrismaService,
-      ],
+      providers: [ShipService, PrismaService],
     }).compile();
 
     service = module.get<ShipService>(ShipService);
@@ -61,7 +62,9 @@ describe('ShipService', () => {
       expect(result.engineUpgraded).toBe(false);
 
       // Verificamos que existe en la BD
-      const shipInDb = await prisma.ship.findUnique({ where: { id: result.id } });
+      const shipInDb = await prisma.ship.findUnique({
+        where: { id: result.id },
+      });
       expect(shipInDb).not.toBeNull();
 
       createdShip = result;
@@ -101,7 +104,7 @@ describe('ShipService', () => {
       expect(result).toBeDefined();
       expect(result.length).toBeGreaterThanOrEqual(2);
 
-      const shipIds = result.map(s => s.id);
+      const shipIds = result.map((s) => s.id);
       expect(shipIds).toContain(testData.ship1.id);
       expect(shipIds).toContain(testData.ship2.id);
     });
@@ -109,7 +112,7 @@ describe('ShipService', () => {
     it('should include the newly created ship', async () => {
       const result = await service.getShips();
 
-      const shipIds = result.map(s => s.id);
+      const shipIds = result.map((s) => s.id);
       expect(shipIds).toContain(createdShip.id);
     });
   });
@@ -124,7 +127,12 @@ describe('ShipService', () => {
       const newY = 1;
       const newExternalId = 'red_planet_1';
 
-      const result = await service.moveShip(createdShip.id, newX, newY, newExternalId);
+      const result = await service.moveShip(
+        createdShip.id,
+        newX,
+        newY,
+        newExternalId,
+      );
 
       expect(result).toBeDefined();
       expect(result.positionX).toBe(newX);
@@ -132,7 +140,9 @@ describe('ShipService', () => {
       expect(result.externalId).toBe(newExternalId);
 
       // Verificamos en la BD
-      const shipInDb = await prisma.ship.findUniqueOrThrow({ where: { id: createdShip.id } });
+      const shipInDb = await prisma.ship.findUniqueOrThrow({
+        where: { id: createdShip.id },
+      });
       expect(shipInDb.positionX).toBe(newX);
       expect(shipInDb.positionY).toBe(newY);
       expect(shipInDb.externalId).toBe(newExternalId);
@@ -141,7 +151,9 @@ describe('ShipService', () => {
     });
 
     it('should throw P2025 if the ship does not exist', async () => {
-      await expect(service.moveShip(999999, 0, 0, 'void_0')).rejects.toMatchObject({
+      await expect(
+        service.moveShip(999999, 0, 0, 'void_0'),
+      ).rejects.toMatchObject({
         code: 'P2025',
       });
     });
@@ -153,7 +165,10 @@ describe('ShipService', () => {
 
   describe('decreaseDrill', () => {
     it('should decrement the drill of a ship by the given cost', async () => {
-      await prisma.ship.update({ where: { id: createdShip.id }, data: { drill: 8 } });
+      await prisma.ship.update({
+        where: { id: createdShip.id },
+        data: { drill: 8 },
+      });
 
       const result = await service.decreaseDrill(createdShip.id, 3);
 
@@ -161,14 +176,19 @@ describe('ShipService', () => {
       expect(result.drill).toBe(5);
 
       // Verificamos en la BD
-      const shipInDb = await prisma.ship.findUniqueOrThrow({ where: { id: createdShip.id } });
+      const shipInDb = await prisma.ship.findUniqueOrThrow({
+        where: { id: createdShip.id },
+      });
       expect(shipInDb.drill).toBe(5);
 
       createdShip = result;
     });
 
     it('should allow drill to go below 0 (el servicio no lo limita)', async () => {
-      await prisma.ship.update({ where: { id: createdShip.id }, data: { drill: 2 } });
+      await prisma.ship.update({
+        where: { id: createdShip.id },
+        data: { drill: 2 },
+      });
 
       const result = await service.decreaseDrill(createdShip.id, 5);
 
@@ -190,7 +210,10 @@ describe('ShipService', () => {
 
   describe('decreaseShield', () => {
     it('should decrement shield by shieldCost when shield - shieldCost >= 0', async () => {
-      await prisma.ship.update({ where: { id: createdShip.id }, data: { shield: 8 } });
+      await prisma.ship.update({
+        where: { id: createdShip.id },
+        data: { shield: 8 },
+      });
 
       const result = await service.decreaseShield(createdShip.id, 3, 8);
 
@@ -198,14 +221,19 @@ describe('ShipService', () => {
       expect(result.shield).toBe(5);
 
       // Verificamos en la BD
-      const shipInDb = await prisma.ship.findUniqueOrThrow({ where: { id: createdShip.id } });
+      const shipInDb = await prisma.ship.findUniqueOrThrow({
+        where: { id: createdShip.id },
+      });
       expect(shipInDb.shield).toBe(5);
 
       createdShip = result;
     });
 
     it('should set shield to 0 when shield - shieldCost < 0', async () => {
-      await prisma.ship.update({ where: { id: createdShip.id }, data: { shield: 2 } });
+      await prisma.ship.update({
+        where: { id: createdShip.id },
+        data: { shield: 2 },
+      });
 
       const result = await service.decreaseShield(createdShip.id, 5, 2);
 
@@ -215,7 +243,10 @@ describe('ShipService', () => {
     });
 
     it('should set shield to 0 when shield and shieldCost are equal', async () => {
-      await prisma.ship.update({ where: { id: createdShip.id }, data: { shield: 4 } });
+      await prisma.ship.update({
+        where: { id: createdShip.id },
+        data: { shield: 4 },
+      });
 
       const result = await service.decreaseShield(createdShip.id, 4, 4);
 

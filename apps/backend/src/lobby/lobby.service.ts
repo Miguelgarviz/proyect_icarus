@@ -1,118 +1,123 @@
-import { Prisma, Lobby, Player, Dificulty } from '@backend/generated/prisma/client';
+import {
+  Prisma,
+  Lobby,
+  Player,
+  Dificulty,
+} from '@backend/generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { LookupAddress } from 'node:dns';
 
 @Injectable()
 export class LobbyService {
-    constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
-    async getLobby(lobbyWhereUniqueInput: Prisma.LobbyWhereUniqueInput){
-        return this.prisma.lobby.findUniqueOrThrow({
-            where: lobbyWhereUniqueInput
-        });
-    }
+  async getLobby(lobbyWhereUniqueInput: Prisma.LobbyWhereUniqueInput) {
+    return this.prisma.lobby.findUniqueOrThrow({
+      where: lobbyWhereUniqueInput,
+    });
+  }
 
-    async createLobby(data: Prisma.LobbyCreateInput): Promise<Lobby>{
-        return this.prisma.lobby.create({
-            data
-        });
-    }
+  async createLobby(data: Prisma.LobbyCreateInput): Promise<Lobby> {
+    return this.prisma.lobby.create({
+      data,
+    });
+  }
 
-    async getPlayersInLobby(lobbyWhereUniqueInput: Prisma.LobbyWhereUniqueInput): Promise<Player[]>{
-        return this.prisma.player.findMany({
-            where: { 
-                lobbyId: lobbyWhereUniqueInput.id
-            },
-            orderBy: { turnOrder: 'asc' }
-        })
-    }
+  async getPlayersInLobby(
+    lobbyWhereUniqueInput: Prisma.LobbyWhereUniqueInput,
+  ): Promise<Player[]> {
+    return this.prisma.player.findMany({
+      where: {
+        lobbyId: lobbyWhereUniqueInput.id,
+      },
+      orderBy: { turnOrder: 'asc' },
+    });
+  }
 
-    async getRemainingPlayers(lobbyWhereUniqueInput: Prisma.LobbyWhereUniqueInput){
-        return this.prisma.player.findMany({
-            where: {
-                lobbyId: lobbyWhereUniqueInput.id,
-                cleanedUp: false
-            },
-            orderBy: { turnOrder: 'asc' }
-        })
-    }
-    async updateLobby(params: {
-        where: Prisma.LobbyWhereUniqueInput;
-        data: Prisma.LobbyUpdateInput;
-    }): Promise<Lobby> {
-        const { where, data } = params;
-        return this.prisma.lobby.update({
-            data,
-            where
-        }); 
-    }
+  async getRemainingPlayers(
+    lobbyWhereUniqueInput: Prisma.LobbyWhereUniqueInput,
+  ) {
+    return this.prisma.player.findMany({
+      where: {
+        lobbyId: lobbyWhereUniqueInput.id,
+        cleanedUp: false,
+      },
+      orderBy: { turnOrder: 'asc' },
+    });
+  }
+  async updateLobby(params: {
+    where: Prisma.LobbyWhereUniqueInput;
+    data: Prisma.LobbyUpdateInput;
+  }): Promise<Lobby> {
+    const { where, data } = params;
+    return this.prisma.lobby.update({
+      data,
+      where,
+    });
+  }
 
-    async changeLobbyDificulty(params: {
-        where: Prisma.LobbyWhereUniqueInput;
-        data: { dificulty: Dificulty };
-    }): Promise<Lobby> {
-        const { where, data } = params;
-        return this.prisma.lobby.update({
-            where,
-            data: {
-                dificulty: data.dificulty
-            }
-        });
-    }
+  async changeLobbyDificulty(params: {
+    where: Prisma.LobbyWhereUniqueInput;
+    data: { dificulty: Dificulty };
+  }): Promise<Lobby> {
+    const { where, data } = params;
+    return this.prisma.lobby.update({
+      where,
+      data: {
+        dificulty: data.dificulty,
+      },
+    });
+  }
 
-    async addPlayerToLobby(params: {
-        where: Prisma.LobbyWhereUniqueInput;
-        data: { playerId: number };
-    }): Promise<Lobby> {
-        const { where, data } = params;
+  async addPlayerToLobby(params: {
+    where: Prisma.LobbyWhereUniqueInput;
+    data: { playerId: number };
+  }): Promise<Lobby> {
+    const { where, data } = params;
 
-        return this.prisma.lobby.update({
-            where,
-            data: {
-                numPlayers: { increment: 1 },
-                players: {
-                    connect: { id: data.playerId }
-                }
-            }
-        });
-    }
+    return this.prisma.lobby.update({
+      where,
+      data: {
+        numPlayers: { increment: 1 },
+        players: {
+          connect: { id: data.playerId },
+        },
+      },
+    });
+  }
 
-    async removePlayerFromLobby(params: {
-        where: Prisma.LobbyWhereUniqueInput;
-        data: { playerId: number };
-    }): Promise<Lobby> {
-        const { where, data } = params;
+  async removePlayerFromLobby(params: {
+    where: Prisma.LobbyWhereUniqueInput;
+    data: { playerId: number };
+  }): Promise<Lobby> {
+    const { where, data } = params;
 
-        return this.prisma.lobby.update({
-            where,
-            data: {
-                numPlayers: { decrement: 1 },
-                players: {
-                    disconnect: { id: data.playerId }
-                }
-            }
-        });
-    }
+    return this.prisma.lobby.update({
+      where,
+      data: {
+        numPlayers: { decrement: 1 },
+        players: {
+          disconnect: { id: data.playerId },
+        },
+      },
+    });
+  }
 
-    async getLobbieFromPlayer(playerId: number) {
-        const player = await this.prisma.player.findUniqueOrThrow({
-            where: { id: playerId },
-            include: { lobby: true }
-        });
-        const lobby = await this.prisma.lobby.findUniqueOrThrow({
-            where: {id: player.lobbyId!}
-        })
-        return lobby;
-    }
+  async getLobbieFromPlayer(playerId: number) {
+    const player = await this.prisma.player.findUniqueOrThrow({
+      where: { id: playerId },
+      include: { lobby: true },
+    });
+    const lobby = await this.prisma.lobby.findUniqueOrThrow({
+      where: { id: player.lobbyId! },
+    });
+    return lobby;
+  }
 
-    
-
-    async getGoalFromLobby(lobbyId:number){
-        const lobby = await this.prisma.lobby.findFirstOrThrow({
-            where:{id: lobbyId}
-        })
-        return lobby.dificulty
-    }
-
+  async getGoalFromLobby(lobbyId: number) {
+    const lobby = await this.prisma.lobby.findFirstOrThrow({
+      where: { id: lobbyId },
+    });
+    return lobby.dificulty;
+  }
 }

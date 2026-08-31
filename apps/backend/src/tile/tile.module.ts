@@ -6,6 +6,6 @@ import { PrismaService } from '../prisma/prisma.service';
 @Module({
   controllers: [TileController],
   providers: [TileService, PrismaService],
-  exports: [TileModule]
+  exports: [TileModule],
 })
 export class TileModule {}
