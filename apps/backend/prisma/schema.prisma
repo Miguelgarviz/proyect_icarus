@@ -183,3 +183,11 @@ model DrillCard {
   game Game? @relation(fields: [gameId], references: [id])
   gameId Int?
 }
+
+model User {
+  id Int @default(autoincrement()) @id
+
+  username String @unique
+  password String
+
+}
