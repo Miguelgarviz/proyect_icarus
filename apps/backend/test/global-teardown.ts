@@ -12,7 +12,7 @@ export default async function globalTeardown(): Promise<void> {
   await prisma.$connect();
 
   try {
-    //await clearTestDatabase(prisma);
+    await clearTestDatabase(prisma);
     console.log('\n✔ Base de datos de test limpiada correctamente.\n');
   } finally {
     await prisma.$disconnect();

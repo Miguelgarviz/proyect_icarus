@@ -147,7 +147,7 @@ export default function Lobby() {
 
   const handleDifficultyChange = async (newDifficulty: Difficulty) => {
     try {
-      await fetch(`${LOBBY_API}/${idLobby}/difficulty`, {
+      await fetch(`${LOBBY_API}/${idLobby}/change-difficulty`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ difficulty: newDifficulty }),

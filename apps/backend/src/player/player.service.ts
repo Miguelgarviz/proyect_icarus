@@ -53,9 +53,11 @@ export class PlayerService {
     }
 
     async getPlayersInLobby(lobbyId: number): Promise<Player[]> {
-        return this.prisma.player.findMany({
-            where: { lobbyId }
+    const lobby = await this.prisma.lobby.findUniqueOrThrow({
+        where: { id: lobbyId },
+        include: { players: true }
         });
+        return lobby.players;
     }
 
     async setPlayerDeath(player: Player){

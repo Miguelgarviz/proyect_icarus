@@ -13,9 +13,9 @@ export class CardService {
         });
     }
 
-    async getCard(cardWhereUniqueInput: Prisma.CardWhereUniqueInput) {
+    async getCard(cardId: number) {
         return this.prisma.card.findUniqueOrThrow({
-            where: cardWhereUniqueInput
+            where: {id: cardId }
         });
     }
 
@@ -44,6 +44,7 @@ export class CardService {
     } 
     
     async getPlayerCards(playerId: number): Promise<Card[]>{
+        await this.prisma.player.findUniqueOrThrow({where: { id:playerId } })
         const cards = await this.prisma.card.findMany({
             where:{
                 playerId: playerId

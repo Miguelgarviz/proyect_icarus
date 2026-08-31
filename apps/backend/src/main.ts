@@ -29,7 +29,8 @@ async function bootstrap() {
 
   console.log('Servidor corriendo en: http://localhost:4000/api/v1');
   console.log('Documentación disponible en: http://localhost:4000/docs');
-
+  
+  app.useGlobalFilters(new PrismaExceptionFilter());
   await app.listen(4000);
 }
 bootstrap();

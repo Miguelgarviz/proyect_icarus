@@ -1,4 +1,4 @@
-import { Controller, Param, Get, Post, Body, Put, Delete } from '@nestjs/common';
+import { Controller, Param, Get, Post, Body, Put, Delete, NotFoundException, HttpCode } from '@nestjs/common';
 import { PlayerService } from './player.service';
 import { Player, Prisma, Ship, Storage } from '../generated/prisma/client';
 import { ShipService } from '../ship/ship.service';
@@ -12,7 +12,7 @@ export class PlayerController {
     ) {}
 
     @Get('/:id')    
-    async getPlayer( @Param('id') id: string ):Promise<Player | null> {
+    async getPlayer( @Param('id') id: string ):Promise<Player> {
         return this.playerService.getPlayer({ id: Number(id) });
     }
 
@@ -27,44 +27,45 @@ export class PlayerController {
     }
 
     @Get('/:id/ship')
-    async getPlayersShip(@Param('id') id: string):Promise<Ship|null>{
+    async getPlayersShip(@Param('id') id: string):Promise<Ship>{
         const player = await this.playerService.getPlayer({id:Number(id)})
-        if(!player || !player.shipId){
-            return null
+        if(!player.shipId){
+            throw new NotFoundException(`El jugador no tiene nave asignada`);
         }
         return this.shipService.getShipById(player.shipId)
     }
 
     @Get('/:id/storage')
-    async getPlayersStorage(@Param('id') id: string):Promise<Storage|null>{
+    async getPlayersStorage(@Param('id') id: string):Promise<Storage>{
         const player = await this.playerService.getPlayer({id:Number(id)})
-        if(!player || !player.storageId){
-            return null
+        if(!player.storageId){
+            throw new NotFoundException(`El jugador no tiene un almacen asignado`);
         }
         return this.storageService.getStorage(player.storageId)
     }
-    @Post()
-    async createPlayer(@Body() playerData: Prisma.PlayerCreateInput):Promise<Player> {
-        return this.playerService.createPlayer(playerData);
-    }
+    
 
     @Post('/:lobbyId/ship')
+    @HttpCode(201)
     async createShipToPlayer(@Param('lobbyId') lobbyId: string): Promise<void> {
         const players: Player[] = await this.playerService.getPlayersInLobby(Number(lobbyId));
         const position = [{x: 0, y: 0},{x: 16, y: 0},{x: 10, y: 0},{x: 26, y: 0}]
         let i = 1
         for (const player of players) {
-            await this.shipService.createShip({
-                player: { connect: { id: player.id } },
-                externalId: `initial_${i}`,
-                positionX: position[i-1].x,
-                positionY: position[i-1].y
-            });
+            if(!player.shipId){
+                await this.shipService.createShip({
+                    player: { connect: { id: player.id } },
+                    externalId: `initial_${i}`,
+                    positionX: position[i-1].x,
+                    positionY: position[i-1].y
+                });
+            }
             i=i+1;
         }
     }
 
     @Post('/:lobbyId/storage')
+    @HttpCode(201)
     async createStorageForPlayer(@Param('lobbyId') lobbyId: string): Promise<void> {
         const players: Player[] = await this.playerService.getPlayersInLobby(Number(lobbyId));
         if (players.length === 0) {

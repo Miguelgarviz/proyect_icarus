@@ -138,33 +138,6 @@ describe('LobbyService', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // updateLobbyDifficulty
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  describe('updateLobbyDifficulty', () => {
-    it('should update the difficulty of a lobby', async () => {
-      const result = await service.updateLobbyDifficulty({
-        where: { id: createdLobby.id },
-        data: { difficulty: Dificulty.MEDIUM_II },
-      });
-
-      expect(result).toBeDefined();
-      expect(result.dificulty).toBe(Dificulty.MEDIUM_II);
-
-      createdLobby = result;
-    });
-
-    it('should throw P2025 if the lobby does not exist', async () => {
-      await expect(
-        service.updateLobbyDifficulty({
-          where: { id: 999999 },
-          data: { difficulty: Dificulty.EASY_I },
-        }),
-      ).rejects.toMatchObject({ code: 'P2025' });
-    });
-  });
-
-  // ─────────────────────────────────────────────────────────────────────────────
   // getPlayersInLobby
   // ─────────────────────────────────────────────────────────────────────────────
 

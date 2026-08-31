@@ -71,7 +71,7 @@ describe('CardService', () => {
 
   describe('getCard', () => {
     it('should get a card by its ID', async () => {
-      const result = await service.getCard({ id: createdCard.id });
+      const result = await service.getCard(createdCard.id);
 
       expect(result).toBeDefined();
       expect(result.id).toBe(createdCard.id);
@@ -80,7 +80,7 @@ describe('CardService', () => {
     });
 
     it('should throw P2025 if the card does not exist', async () => {
-      await expect(service.getCard({ id: 999999 })).rejects.toMatchObject({
+      await expect(service.getCard(999999)).rejects.toMatchObject({
         code: 'P2025',
       });
     });

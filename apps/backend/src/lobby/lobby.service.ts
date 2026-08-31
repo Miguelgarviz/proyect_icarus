@@ -106,18 +106,7 @@ export class LobbyService {
         return lobby;
     }
 
-    async updateLobbyDifficulty(params: {
-        where: Prisma.LobbyWhereUniqueInput;
-        data: { difficulty: Dificulty };
-    }): Promise<Lobby> {
-        const { where, data } = params;
-        return this.prisma.lobby.update({
-            where,
-            data: {
-                dificulty: data.difficulty
-            }
-        });
-    }
+    
 
     async getGoalFromLobby(lobbyId:number){
         const lobby = await this.prisma.lobby.findFirstOrThrow({

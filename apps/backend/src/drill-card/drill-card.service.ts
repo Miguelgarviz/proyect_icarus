@@ -25,6 +25,7 @@ export class DrillCardService {
     }
 
     async createDrillCardsForGame(gameId: number){
+        await this.prisma.game.findUniqueOrThrow({where: {id: gameId } })
         const drillCardsGreenResources = [4,4,4,5,4,5,3,3,5,4,4,3,6,3,4,3,6,3];
         const drillCardsRedResources = [1,0,1,3,2,1,0,3,0,2,2,0,1,1,1,0,1,0];
         const drillCardsYellowResources = [2,2,0,0,0,1,1,0,1,0,0,1,0,0,2,1,0,1];
@@ -50,9 +51,11 @@ export class DrillCardService {
     }
 
     async getDrillCardsByGame(gameId: number): Promise<DrillCard[]> {
-        return await this.prisma.drillCard.findMany({
-            where: { gameId }
+        const game = await this.prisma.game.findUniqueOrThrow({
+        where: { id: gameId },
+        include: { drillCards: true }
         });
+        return game.drillCards;
     }
 
     async getResourceDrillCardsByGame(gameId: number){

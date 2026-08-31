@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, HttpCode } from '@nestjs/common';
 import { DrillCardService } from './drill-card.service';
 import { DrillCard, Prisma } from '../generated/prisma/client';
 
@@ -14,7 +14,7 @@ export class DrillCardController {
     }
 
     @Get('/:id')
-    async getDrillCardById(@Param('id') id: string):Promise<DrillCard | null> {
+    async getDrillCardById(@Param('id') id: string):Promise<DrillCard> {
         return await this.drillCardService.getDrillCardById(Number(id));
     }
 
@@ -24,6 +24,7 @@ export class DrillCardController {
     }
     
     @Post()
+    @HttpCode(201)
     async createDrillCard(@Body('gameId') gameId: number): Promise<void>{
         await this.drillCardService.createDrillCardsForGame(gameId);
     }

@@ -19,6 +19,8 @@ export class StoreController {
 
     @Get('/:id/cards')
     async getCardsByStore(@Param('id') storeId: string):Promise<Card[]> {
+        await this.storeService.getStore({ id: Number(storeId) });
+        
         return await this.cardService.getCardsByStore(Number(storeId));
     }
 }

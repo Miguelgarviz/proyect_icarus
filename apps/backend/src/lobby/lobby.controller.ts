@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post, Put } from '@nestjs/common';
 import { LobbyService } from './lobby.service';
 import { Lobby, Prisma, Player, Dificulty } from '../generated/prisma/client';
 import { PlayerService } from '../player/player.service';
@@ -11,16 +11,18 @@ export class LobbyController {
     ) {}
 
     @Get('/:id')
-    async getLobby( @Param('id') id: string ):Promise<Lobby | null> {
+    async getLobby( @Param('id') id: string ):Promise<Lobby> {
         return await this.lobbyService.getLobby({ id: Number(id) });
     }
 
     @Get('players/:id')
-    async getPlayersInLobby( @Param('id') id: string ):Promise<Player[] | null> {
+    async getPlayersInLobby( @Param('id') id: string ):Promise<Player[]> {
+        await this.lobbyService.getLobby({ id: Number(id) });
         return this.lobbyService.getPlayersInLobby({ id: Number(id) });
     }
 
     @Post()
+    @HttpCode(201)
     async createLobby( @Body() lobbyData: Prisma.LobbyCreateInput ):Promise<Lobby> {
         return this.lobbyService.createLobby(lobbyData);
     }
@@ -68,14 +70,6 @@ export class LobbyController {
         } catch (error: unknown) {
             throw new NotFoundException(`Error al eliminar el jugador ${Number(playerId)}: ${ (error as Error).message }`);
         }
-    }
-
-    @Put('/:id/difficulty')
-    async updateLobbyDifficulty(@Param('id') id:string, @Body() difficulty: { difficulty: Dificulty }): Promise<Lobby> {
-        return this.lobbyService.updateLobbyDifficulty({
-            where: { id: Number(id) },
-            data: difficulty
-        });
     }
 
     

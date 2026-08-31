@@ -93,11 +93,8 @@ export class GameController {
     @Get('/:id/store')
     async getStore(@Param('id') id:string){
         const game = await this.gameService.getGame({ id: Number(id) })
-        if(game && game.storeId){
-            return await this.gameService.getStoreByGame(game)
-        }else{
-            return null;
-        }
+        return await this.gameService.getStoreByGame(game)
+        
     }
 
     @Get('/:id/storages')
@@ -275,7 +272,7 @@ export class GameController {
     async buyStoreCard(@Param('id') gameId: string, @Body('cardId') cardId: number){
         const game = await this.gameService.getGame({id: Number(gameId)})
         const store = await this.storeService.getStore({id: game.storeId!})
-        const card = await this.cardService.getCard({id: cardId})
+        const card = await this.cardService.getCard(cardId)
         const player = await this.playerService.getPlayer({id: game.actualPlayerId})
         const storage = await this.storageService.getStorage(player.storageId!)
         const ship = await this.shipService.getShipById(player.shipId!)
@@ -429,14 +426,13 @@ export class GameController {
         const player = await this.playerService.getPlayer({id: game.actualPlayerId})
         const storage = await this.storageService.getStorage(player.storageId!)
 
-        const goal =  await this.gameService.haveAchivedGoal(lobby,storage)
-        return goal
+        return await this.gameService.haveAchivedGoal(lobby,storage)
     }
 
     @Put('/:id/use-card')
     async usePlayerCards(@Param('id') gameId: string, @Body('cardId') cardId: number, @Body('effect') effect: string){
         const game = await this.gameService.getGame({id: Number(gameId)})
-        const card = await this.cardService.getCard({id: cardId})
+        const card = await this.cardService.getCard(cardId)
         const player = await this.playerService.getPlayer({id: game.actualPlayerId})
         const ship = await this.shipService.getShipById(player.shipId!)
         const resourcesDrillCards = await this.drillCardsService.getResourceDrillCardsByGame(Number(gameId))
@@ -485,7 +481,7 @@ export class GameController {
     async getResourcesCardsForEHCard(@Param('id') gameId: string){
         const game = await this.gameService.getGame({id: Number(gameId)})
         const resourcesDrillCards = await this.drillCardsService.getResourceDrillCardsByGame(Number(gameId))
-        const player = await this.playerService.getPlayer({id: Number(gameId)})
+        const player = await this.playerService.getPlayer({id: game.actualPlayerId })
         const storage = await this.storageService.getStorage(player.storageId!)
 
         const shuffledResourcesDrillCards1 = await this.drillCardsService.getShuffledDrillCard(resourcesDrillCards, storage.green + storage.red + storage.yellow + game.id + game.actualPlayerId + game.supernovaLvL +player.movement + 1)

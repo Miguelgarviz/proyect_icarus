@@ -112,7 +112,6 @@ export default function GamePage() {
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/get-goal`)
       if(!response.ok) throw new Error("Error al cargar el goal")
       const goal:GoalResponse = await response.json();
-      console.log(goal.difficulty)
       setGoalImageUrl(goal.difficulty)
     }catch(error){
       console.error(error)
@@ -233,7 +232,6 @@ export default function GamePage() {
       });
     }
     }
-    console.log(newChips)
     setPlayersChips(newChips);
   }
 
@@ -416,7 +414,6 @@ export default function GamePage() {
       if(!response.ok) throw new Error("Error al cargar las cartas de recursos para la carta del jugador");
       const adjacentPlayersData = await response.json();
       setAdjacentPlayers(adjacentPlayersData)
-      console.log("en el fetch:", adjacentPlayersData)
       if(card) setIsSwapCardModalOpen(true)
     }catch(error){
       console.error(error)

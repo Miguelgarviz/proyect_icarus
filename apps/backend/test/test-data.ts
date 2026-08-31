@@ -21,12 +21,16 @@ import {
  */
 export interface TestData {
     game: Game;
+    game2: Game;
+
     lobby1: Lobby;
     lobby2: Lobby;
+    lobby3: Lobby;
 
     player1: Player;
     player2: Player;
     player3: Player;
+    player4: Player;
 
     ship1: Ship;
     ship2: Ship;
@@ -86,12 +90,20 @@ export async function clearTestDatabase(
  *         ├── Ship 3
  *         └── Storage 3
  * 
+ * Lobby 3
+ *   └── Player 4
+ * 
  * Game
  *   ├── Lobby 1
  *   ├── Player 1 como actualPlayer
  *   ├── Store 1
  *   ├── DrillCards
  *   └── 58 Tiles
+ * 
+ * Game 2
+ *   ├── Lobby 3
+ *   ├── Player 4 como actualPlayer
+ *   └── Store 3
  * 
  * Store 2 (sin Cards)
  */
@@ -121,6 +133,13 @@ export async function seedTestDatabase(
         data: {
             dificulty: Dificulty.EASY_II,
             numPlayers: 1
+        }
+    })
+
+    const lobby3 = await prisma.lobby.create({
+        data: {
+            dificulty: Dificulty.EXTREME_II,
+            numPlayers: 1,
         }
     })
 
@@ -161,6 +180,7 @@ export async function seedTestDatabase(
         }
     })
 
+
     // ---------------------------------------------------------
     // STORAGE
     // ---------------------------------------------------------
@@ -188,6 +208,7 @@ export async function seedTestDatabase(
             yellow: 0,
         },
     });
+
 
     // ---------------------------------------------------------
     // PLAYERS
@@ -274,6 +295,21 @@ export async function seedTestDatabase(
         },
     });
 
+    const player4 = await prisma.player.create({
+        data: {
+            movement: 3,
+            name: 'TestPlayer4',
+            color: '#fffb00',
+            turnOrder: 0,
+
+            lobby: {
+                connect: {
+                    id: lobby3.id,
+                },
+            }
+        },
+    });
+
     // ---------------------------------------------------------
     // STORE
     // ---------------------------------------------------------
@@ -287,6 +323,12 @@ export async function seedTestDatabase(
     const store2 = await prisma.store.create({
         data: {
             numCards: 18,
+        }
+    })
+
+    const store3 = await prisma.store.create({
+        data: {
+            numCards: 18
         }
     })
 
@@ -326,6 +368,16 @@ export async function seedTestDatabase(
                 type: CardType.ROCKET_THRUSTERS,
                 storeId: store1.id,
             },
+            {
+                cost: 2,
+                type: CardType.ENHANCED_SCANNER,
+                playerId: player1.id
+            },
+            {
+                cost: 2,
+                type: CardType.ROCKET_THRUSTERS,
+                playerId: player1.id
+            },
         ],
     });
 
@@ -351,6 +403,31 @@ export async function seedTestDatabase(
             store: {
                 connect: {
                     id: store1.id,
+                },
+            },
+
+            round: 0,
+            supernovaLvL: 0,
+        },
+    });
+
+    const game2 = await prisma.game.create({
+        data: {
+            lobby: {
+                connect: {
+                    id: lobby3.id,
+                },
+            },
+
+            actualPlayer: {
+                connect: {
+                    id: player4.id,
+                },
+            },
+
+            store: {
+                connect: {
+                    id: store3.id,
                 },
             },
 
@@ -393,8 +470,8 @@ export async function seedTestDatabase(
                 greenResources: 0,
                 redResources: 0,
                 yellowResources: 0,
-                gameId: game.id,
-                isSupernovaCard: true
+                isSupernovaCard: true,
+                gameId: game.id
             },
             {
                 greenResources: 4,
@@ -586,11 +663,14 @@ export async function seedTestDatabase(
 
     return {
         game,
+        game2,
         lobby1,
         lobby2,
+        lobby3,
         player1,
         player2,
         player3,
+        player4,
         ship1,
         ship2,
         ship3,
