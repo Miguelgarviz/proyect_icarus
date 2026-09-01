@@ -1,7 +1,10 @@
-import { NestFactory } from '@nestjs/core';
+import 'dotenv/config';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
+import { JwtService } from '@nestjs/jwt';
+import { AuthGuard } from './auth/auth.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -31,6 +34,10 @@ async function bootstrap() {
 
   console.log('Servidor corriendo en: http://localhost:4000/api/v1');
   console.log('Documentación disponible en: http://localhost:4000/docs');
+
+  const jwtService = app.get(JwtService);
+  const reflector = app.get(Reflector);
+  app.useGlobalGuards(new AuthGuard(jwtService, reflector));
 
   app.useGlobalFilters(new PrismaExceptionFilter());
   await app.listen(4000);
