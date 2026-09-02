@@ -1,4 +1,4 @@
-import { User } from '../generated/prisma/client';
+import { Prisma, User } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 
@@ -35,5 +35,20 @@ export class UserService {
             }
         });
         return user;
+    }
+
+    async updateUser(userId: number, userData: Prisma.UserUpdateInput){
+        return await this.prisma.user.update({
+            where: {id: userId},
+            data: userData
+        })
+    }
+
+    async updateUserPassword(userId: number, newPassword: string){
+        const hash = await bcrypt.hash(newPassword, 10);
+        return await this.prisma.user.update({
+            where: {id: userId},
+            data: {password: hash}
+        })
     }
 }

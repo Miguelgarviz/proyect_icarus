@@ -31,7 +31,7 @@ export class PlayerService {
 
   async createPlayer(data: Prisma.PlayerCreateInput): Promise<Player> {
     return this.prisma.player.create({
-      data,
+      data: data
     });
   }
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import LobbyForm from "./LobbyForm";
+import { getTokenPayload } from "../../../lib/auth";
 
 const PRESET_COLORS = ["#ef4444", "#3b82f6", "#eab308", "#22c55e"];
 
@@ -12,12 +12,15 @@ interface Player {
   name: string;
   color: string;
   movement: number;
+  userId: number;
 }
 
 interface Lobby {
   id: string;
   dificulty: string;
   numPlayers: number;
+  lobbyCode: string;
+  hostId: number;
 }
 
 enum Difficulty {
@@ -68,21 +71,16 @@ export default function Lobby() {
   const idLobby = params.id;
 
   const [players, setPlayers] = useState<Player[]>([]);
-  const [joined, setJoined] = useState(false);
   const [lobby, setLobby] = useState<Lobby | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const [name, setName] = useState("");
-  const [color, setColor] = useState<string | null>(PRESET_COLORS[0]);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editColor, setEditColor] = useState("");
 
-  const [difficulty, setDifficulty] = useState<Difficulty>(
-    Difficulty.beginner_i,
-  );
+  const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.beginner_i);
+  const [userId, setUserId] = useState<number | null>(null);
 
+  const token = localStorage.getItem("access_token");
   const PLAYER_API = "http://localhost:4000/api/v1/player";
   const LOBBY_API = `http://localhost:4000/api/v1/lobby`;
 
@@ -90,7 +88,10 @@ export default function Lobby() {
     try {
       const response = await fetch(`${LOBBY_API}/players/${idLobby}`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
       });
       if (response.ok) {
         const data = await response.json();
@@ -105,7 +106,10 @@ export default function Lobby() {
     try {
       const response = await fetch(`${LOBBY_API}/${idLobby}`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
       });
       if (response.ok) {
         const data = await response.json();
@@ -117,39 +121,26 @@ export default function Lobby() {
   };
 
   useEffect(() => {
+    const payload = getTokenPayload();
+    if (!payload) {
+      router.push("/login");
+      return;
+    }
     if (idLobby) {
       fetchPlayers();
       fetchLobby();
+      setUserId(payload.sub);
     }
   }, [idLobby, players]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const response = await fetch(`${LOBBY_API}/${idLobby}/add-player`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, color, movement: 3 }),
-      });
-
-      if (response.ok) {
-        setName("");
-        setColor(null);
-        fetchPlayers();
-      }
-    } catch (error) {
-      console.error("Error al añadir jugador:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDifficultyChange = async (newDifficulty: Difficulty) => {
     try {
       await fetch(`${LOBBY_API}/${idLobby}/change-difficulty`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({ difficulty: newDifficulty }),
       });
       setDifficulty(newDifficulty);
@@ -162,37 +153,34 @@ export default function Lobby() {
     try {
       const response = await fetch(`http://localhost:4000/api/v1/game`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({ lobby: idLobby, actualPlayer: players[0].id }),
       });
       if (response.ok) {
         const game = await response.json();
-        await fetch(
-          `http://localhost:4000/api/v1/game/${game.id}/create-store`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          },
-        );
+        await fetch(`http://localhost:4000/api/v1/game/${game.id}/create-store`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        });
         await fetch(`http://localhost:4000/api/v1/drill-card`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
           body: JSON.stringify({ gameId: game.id }),
         });
         await fetch(`http://localhost:4000/api/v1/player/${lobby?.id}/ship`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         });
-        await fetch(
-          `http://localhost:4000/api/v1/player/${lobby?.id}/storage`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          },
-        );
+        await fetch(`http://localhost:4000/api/v1/player/${lobby?.id}/storage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        });
         await fetch(`http://localhost:4000/api/v1/tile/${game.id}/game`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         });
         router.push(`/game/${game.id}`);
       } else {
@@ -207,12 +195,14 @@ export default function Lobby() {
     try {
       const response = await fetch(`${PLAYER_API}/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({ name: editName, color: editColor, movement: 3 }),
       });
       if (response.ok) {
         setEditingId(null);
-        setColor(null);
         fetchPlayers();
       }
     } catch (error) {
@@ -220,10 +210,15 @@ export default function Lobby() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleRemove = async (id: string) => {
     try {
       const response = await fetch(`${LOBBY_API}/${id}/remove-player`, {
         method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(userId),
       });
       if (response.ok) fetchPlayers();
     } catch (error) {
@@ -231,28 +226,52 @@ export default function Lobby() {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`${LOBBY_API}/${lobby?.id}/delete`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(userId),
+      });
+      if (response.ok) router.push("/home");
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+    }
+  };
+
+  const validRequest = (player: Player) => {
+    return player.userId === userId || lobby?.hostId === userId;
+  };
+
   return (
     <div className="relative min-h-screen w-full bg-[#030712] p-8 font-mono text-zinc-300 overflow-x-hidden selection:bg-cyan-500 selection:text-black">
       <div className="absolute inset-0 z-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:40px_40px]" />
 
+      {/* Top info boxes */}
       <div className="relative z-10 flex flex-wrap justify-end gap-4 mb-12 max-w-5xl mx-auto">
+        <div className="bg-black/40 backdrop-blur-md border border-cyan-500/30 p-4 rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.05)] min-w-[180px] flex flex-col items-center justify-center text-center">
+          <h3 className="text-xs font-bold tracking-widest text-cyan-400 uppercase mb-1">
+            {"-- Código del lobby --"}
+          </h3>
+          <div className="text-3xl font-black text-white tracking-wider animate-pulse">
+            {lobby?.lobbyCode || "----"}
+          </div>
+        </div>
+
         <div className="bg-black/40 backdrop-blur-md border border-cyan-500/30 p-4 rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.05)] min-w-[220px]">
           <h3 className="text-xs font-bold tracking-widest text-cyan-400 uppercase mb-2">
             {"-- Nivel de Dificultad --"}
           </h3>
           <select
             value={difficulty}
-            onChange={(e) =>
-              handleDifficultyChange(e.target.value as Difficulty)
-            }
+            onChange={(e) => handleDifficultyChange(e.target.value as Difficulty)}
             className="w-full rounded border border-cyan-500/40 bg-zinc-950 px-3 py-1.5 text-xs text-cyan-300 font-mono outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 cursor-pointer"
           >
             {Object.values(Difficulty).map((value) => (
-              <option
-                key={value}
-                value={value}
-                className="bg-zinc-950 text-zinc-300"
-              >
+              <option key={value} value={value} className="bg-zinc-950 text-zinc-300">
                 {difficultyToDisplayName[value].toUpperCase()}
               </option>
             ))}
@@ -273,103 +292,10 @@ export default function Lobby() {
         </div>
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-[280px_1fr_240px] gap-8 items-start">
-        {lobby && lobby.numPlayers < 4 ? (
-          <div className="w-full rounded-lg border border-zinc-800 bg-zinc-950/70 backdrop-blur-md p-6 shadow-xl">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-              <h2 className="text-xs font-black tracking-widest text-cyan-400 uppercase">
-                Añadir Piloto
-              </h2>
-            </div>
+      {/* Main grid — dos columnas: lista de jugadores + imagen dificultad */}
+      <div className="relative z-10 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-[1fr_240px] gap-8 items-start">
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              <div>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="INGRESAR NOMBRE..."
-                  className={`w-full rounded border bg-black px-3 py-2 text-xs font-mono tracking-wide placeholder-zinc-700 outline-none transition-colors focus:ring-1 ${
-                    players.some(
-                      (p) => p.name.toLowerCase() === name.trim().toLowerCase(),
-                    )
-                      ? "border-red-500 text-red-400 focus:ring-red-500"
-                      : "border-zinc-800 text-zinc-200 focus:border-cyan-500 focus:ring-cyan-500"
-                  }`}
-                  required
-                />
-                {players.some(
-                  (p) => p.name.toLowerCase() === name.trim().toLowerCase(),
-                ) && (
-                  <p className="text-[10px] text-red-400 mt-1 font-bold tracking-tight">
-                    ⚠️ REGISTRO DUPLICADO EN EL LOBBY
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <span className="text-[10px] text-zinc-500 uppercase tracking-widest block">
-                  Asignar Color:
-                </span>
-                <div className="flex justify-between gap-2">
-                  {PRESET_COLORS.map((c) => {
-                    const isColorTaken = players.some((p) => p.color === c);
-                    return (
-                      <button
-                        key={c}
-                        type="button"
-                        disabled={isColorTaken}
-                        onClick={() => setColor(c)}
-                        className={`h-8 flex-1 rounded border transition-all relative ${
-                          color === c
-                            ? "border-white scale-105 shadow-[0_0_10px_rgba(255,255,255,0.2)]"
-                            : "border-zinc-900 opacity-60"
-                        } ${
-                          isColorTaken
-                            ? "opacity-10 grayscale cursor-not-allowed border-transparent"
-                            : "hover:opacity-100 hover:scale-105"
-                        }`}
-                        style={{ backgroundColor: c }}
-                        title={
-                          isColorTaken
-                            ? "Frecuencia Bloqueada"
-                            : "Frecuencia Disponible"
-                        }
-                      >
-                        {isColorTaken && (
-                          <span className="absolute inset-0 flex items-center justify-center text-[10px] text-black font-bold">
-                            X
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={
-                  loading ||
-                  !name.trim() ||
-                  !color ||
-                  players.some(
-                    (p) => p.name.toLowerCase() === name.trim().toLowerCase(),
-                  )
-                }
-                className="h-10 w-full rounded border border-cyan-500 bg-cyan-950/20 text-xs font-bold uppercase tracking-widest text-cyan-400 transition-colors hover:bg-cyan-500 hover:text-black disabled:opacity-20 disabled:pointer-events-none"
-              >
-                {loading ? "Sincronizando..." : "Añadir al lobby"}
-              </button>
-            </form>
-          </div>
-        ) : (
-          <div className="w-full rounded-lg border border-red-500/30 bg-red-950/10 p-6 text-center text-xs tracking-widest text-red-400 font-bold uppercase">
-            ⚠️ Capacidad Máxima de Naves Alcanzada
-          </div>
-        )}
-
+        {/* Lista de jugadores */}
         <div className="w-full bg-zinc-950/40 border border-zinc-950 rounded-lg p-2">
           <div className="text-center md:text-left mb-8 px-4">
             <h1 className="text-3xl font-black tracking-widest text-white uppercase flex items-center justify-center md:justify-start gap-3">
@@ -439,24 +365,26 @@ export default function Lobby() {
                           </span>
                         </div>
                       </div>
-                      <div className="flex gap-2 justify-end">
-                        <button
-                          onClick={() => {
-                            setEditingId(player.id);
-                            setEditName(player.name);
-                            setEditColor(player.color);
-                          }}
-                          className="px-3 py-1 text-[11px] font-bold uppercase tracking-widest border border-zinc-700 rounded text-zinc-400 hover:bg-zinc-900 hover:text-white transition-colors"
-                        >
-                          Modificar
-                        </button>
-                        <button
-                          onClick={() => handleDelete(player.id)}
-                          className="px-3 py-1 text-[11px] font-bold uppercase tracking-widest bg-red-950/30 border border-red-900/40 text-red-400 rounded hover:bg-red-900 hover:text-white transition-colors"
-                        >
-                          Expulsar
-                        </button>
-                      </div>
+                      {validRequest(player) && (
+                        <div className="flex gap-2 justify-end">
+                          <button
+                            onClick={() => {
+                              setEditingId(player.id);
+                              setEditName(player.name);
+                              setEditColor(player.color);
+                            }}
+                            className="px-3 py-1 text-[11px] font-bold uppercase tracking-widest border border-zinc-700 rounded text-zinc-400 hover:bg-zinc-900 hover:text-white transition-colors"
+                          >
+                            Modificar
+                          </button>
+                          <button
+                            onClick={() => handleRemove(player.id)}
+                            className="px-3 py-1 text-[11px] font-bold uppercase tracking-widest bg-red-950/30 border border-red-900/40 text-red-400 rounded hover:bg-red-900 hover:text-white transition-colors"
+                          >
+                            Expulsar
+                          </button>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -465,9 +393,9 @@ export default function Lobby() {
           </div>
         </div>
 
+        {/* Imagen de dificultad */}
         <div className="w-full aspect-square md:aspect-[3/4] rounded-lg border border-cyan-500/20 bg-zinc-950/50 backdrop-blur-md p-3 shadow-xl flex items-center justify-center relative overflow-hidden group">
           <div className="absolute inset-x-0 h-[1.5px] bg-cyan-400/20 top-0 animate-[bounce_4s_infinite] pointer-events-none z-10" />
-
           <div className="relative w-full h-full min-h-[200px]">
             <Image
               src={difficultyImages[difficulty.toString().toLocaleLowerCase()]}
@@ -480,8 +408,9 @@ export default function Lobby() {
         </div>
       </div>
 
-      {players.length >= 1 && (
-        <div className="flex flex-col items-center justify-center pb-20 mt-16 relative z-10">
+      {/* Botones de acción */}
+      <div className="flex flex-col items-center justify-center gap-4 pb-20 mt-16 relative z-10">
+        {players.length >= 1 && (
           <button
             onClick={handleStartGame}
             className="group relative inline-flex items-center justify-center px-16 py-4 font-mono font-black tracking-widest text-black transition-all duration-300 bg-cyan-400 rounded uppercase overflow-hidden hover:bg-cyan-300 shadow-[0_0_30px_rgba(34,211,238,0.2)] hover:shadow-[0_0_40px_rgba(34,211,238,0.4)] active:scale-95"
@@ -501,8 +430,15 @@ export default function Lobby() {
               ></path>
             </svg>
           </button>
-        </div>
-      )}
+        )}
+
+        <button
+          onClick={() => handleDelete()}
+          className="px-4 py-2 text-[11px] font-bold uppercase tracking-widest bg-red-950/30 border border-red-900/40 text-red-400 rounded hover:bg-red-900 hover:text-white transition-colors"
+        >
+          Eliminar Sala
+        </button>
+      </div>
     </div>
   );
 }

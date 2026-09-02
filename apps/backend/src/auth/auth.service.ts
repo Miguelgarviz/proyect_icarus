@@ -12,7 +12,6 @@ export class AuthService {
     ) {}
 
     async signIn(username: string, password: string): Promise<{ access_token: string }> {
-        console.log("signIn", username, password)
         const user = await this.userService.getUserByUsername(username);
         if (!user) throw new UnauthorizedException('Usuario no encontrado');
 

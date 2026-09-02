@@ -18,9 +18,21 @@ export class LobbyService {
   }
 
   async createLobby(data: Prisma.LobbyCreateInput): Promise<Lobby> {
-    return this.prisma.lobby.create({
-      data,
-    });
+    for (let attempts = 0; attempts < 10; attempts++) {
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      const existing = await this.prisma.lobby.findUnique({
+        where: { lobbyCode: code },
+      });
+
+      if (!existing) {
+        return this.prisma.lobby.create({
+          data: { ...data, lobbyCode: code },
+        });
+      }
+    }
+
+    throw new Error('No se pudo generar un código único para el lobby');
   }
 
   async getPlayersInLobby(
@@ -119,5 +131,17 @@ export class LobbyService {
       where: { id: lobbyId },
     });
     return lobby.dificulty;
+  }
+
+  async getLobbyByCode(lobbyCode: string){
+    return await this.prisma.lobby.findUniqueOrThrow({
+      where: { lobbyCode }
+    })
+  }
+
+  async deleteLobby(lobbyId: number){
+    return this.prisma.lobby.delete({
+      where: { id: lobbyId }
+    });
   }
 }

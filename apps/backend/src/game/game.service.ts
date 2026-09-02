@@ -62,6 +62,9 @@ export class GameService {
         actualPlayer: {
           connect: { id: Number(data.actualPlayer) },
         },
+        store: {
+          connect: { id: Number(data.store) },
+        },
       },
     });
   }

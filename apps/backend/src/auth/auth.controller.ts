@@ -35,7 +35,6 @@ export class AuthController {
   @HttpCode(201)
   @Post('/login')
   async login(@Body() logInDto: { username: string; password: string }) {
-    console.log("loginDto", logInDto)
     const token = await this.authService.signIn(logInDto.username, logInDto.password)
     return token;
   }
