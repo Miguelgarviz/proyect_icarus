@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Put, Post, Body } from '@nestjs/common';
+import { Controller, Get, Param, Put, Post, Body, Delete } from '@nestjs/common';
 import { GameService, spaceStationLandings } from './game.service';
 import {
   Game,
@@ -874,5 +874,10 @@ export class GameController {
     const difficulty = await this.lobbyService.getGoalFromLobby(game.lobbyId);
 
     return { difficulty: difficulty.toString().toLowerCase() };
+  }
+
+  @Delete('/:id/delete-game')
+  async deleteGame(@Param('id') gameId: string) {
+    await this.gameService.deleteGame(Number(gameId));
   }
 }

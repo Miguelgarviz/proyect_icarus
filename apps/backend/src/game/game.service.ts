@@ -500,4 +500,10 @@ export class GameService {
 
     return reachableTiles;
   }
+
+  async deleteGame(gameId: number){
+    return await this.prisma.game.delete({
+      where: { id: gameId }
+    })
+  }
 }

@@ -542,7 +542,19 @@ export default function GamePage() {
   async function handleResetGame(){
     setIsGameOverDeathModalOpen(false);
     setIsGameOverExplosionModalOpen(false);
-    router.push(`http://localhost:3000`);
+    try{
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/delete-game`, {
+        method: "DELETE",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      })
+      if(!response.ok) throw new Error("Error al eliminar el juego");
+      router.push(`http://localhost:3000/home`);
+    }catch(error){
+      console.error(error)
+    }
   }
 
   async function handleVictory(){
