@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Game" ALTER COLUMN "storeId" DROP NOT NULL;

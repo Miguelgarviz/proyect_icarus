@@ -5,6 +5,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from './auth/auth.guard';
+import { IoAdapter } from '@nestjs/platform-socket.io';
+import { CorsIoAdapter } from './socket.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +16,8 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
+
+  app.useWebSocketAdapter(new CorsIoAdapter(app));
 
   app.setGlobalPrefix('api/v1');
   app.useGlobalFilters(new PrismaExceptionFilter());

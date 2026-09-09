@@ -13,7 +13,7 @@ import { UserService } from '../user/user.service.js';
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '600s' },
+      signOptions: { expiresIn: '7d' },
     }),
   ],
   providers: [AuthService, UserService, PrismaService],

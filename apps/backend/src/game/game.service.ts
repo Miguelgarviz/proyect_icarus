@@ -8,8 +8,11 @@ import {
   Player,
   Storage,
   Lobby,
-} from '@backend/generated/prisma/client';
+  CardType
+} from '../generated/prisma/client';
 import { TileService } from '../tile/tile.service';
+import { CardService } from '../card/card.service';
+import { StoreService } from '../store/store.service';
 
 export const spaceStationLandings: Record<string, string[]> = {
   space_station_1: ['void_16'],
@@ -45,6 +48,8 @@ export class GameService {
   constructor(
     private prisma: PrismaService,
     private tileService: TileService,
+    private cardService: CardService,
+    private storeService: StoreService
   ) {}
 
   async getGame(gameWhereUniqueInput: Prisma.GameWhereUniqueInput) {
@@ -53,18 +58,15 @@ export class GameService {
     });
   }
 
-  async createGame(data: Prisma.GameCreateInput) {
+  async createGame(lobbyId: number, playerId: number) {
     return this.prisma.game.create({
       data: {
         lobby: {
-          connect: { id: Number(data.lobby) },
+          connect: { id: lobbyId },
         },
         actualPlayer: {
-          connect: { id: Number(data.actualPlayer) },
-        },
-        store: {
-          connect: { id: Number(data.store) },
-        },
+          connect: { id: playerId },
+        }
       },
     });
   }
@@ -180,6 +182,64 @@ export class GameService {
     const yellowGoal = goal[2] === 0 || storage.yellow >= goal[2];
 
     return greenGoal && redGoal && yellowGoal;
+  }
+
+
+  async createStore(game: Game, lobby: Lobby ){
+    const numPlayers = lobby.numPlayers;
+    
+    const store = await this.storeService.createStore(
+      numPlayers > 1 ? { numCards: 18 } : { numCards: 16 },
+    );
+    await this.cardService.createCardsForStore(store.id, 6, {
+      type: CardType.TEMPORARY_PATCH,
+      cost: 1,
+    });
+    await this.cardService.createCardsForStore(store.id, 3, {
+      type: CardType.NEW_DRILL,
+      cost: 2,
+    });
+    await this.cardService.createCardsForStore(store.id, 3, {
+      type: CardType.BACKUP_POWER,
+      cost: 2,
+    });
+    if (numPlayers > 1){
+      await this.cardService.createCardsForStore(store.id, 2, {
+        type: CardType.SLINGSHOT,
+        cost: 2,
+      });
+    }
+    await this.cardService.createCardsForStore(store.id, 2, {
+      type: CardType.ENHANCED_SCANNER,
+      cost: 2,
+    });
+    await this.cardService.createCardsForStore(store.id, 2, {
+      type: CardType.ROCKET_THRUSTERS,
+      cost: 2,
+    });
+    
+    await this.prisma.game.update({
+      where: { id: game.id},
+      data: { storeId: store.id }
+    })
+
+    const cards = await this.cardService.getCardsByStore(store.id);
+    const shuffledCards = this.cardService.shuffleCardsWithSeed(
+      cards,
+      game.id,
+    );
+    
+    for (let i = 0; i < 3; i++) {
+      await this.cardService.setCardToStorefront(shuffledCards[i]);
+    }
+
+    return store;
+  }
+
+  async deleteGame(gameId: number){
+    return await this.prisma.game.delete({
+      where: { id: gameId }
+    })
   }
 
   // ---------------------------------------------------------
@@ -501,9 +561,7 @@ export class GameService {
     return reachableTiles;
   }
 
-  async deleteGame(gameId: number){
-    return await this.prisma.game.delete({
-      where: { id: gameId }
-    })
-  }
+  
+
+  
 }

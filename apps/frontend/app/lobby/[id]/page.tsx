@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { getTokenPayload } from "../../../lib/auth";
+import { socket } from "../../../lib/sockets";
 
 const PRESET_COLORS = ["#ef4444", "#3b82f6", "#eab308", "#22c55e"];
 
@@ -84,45 +85,46 @@ export default function Lobby() {
   const PLAYER_API = "http://localhost:4000/api/v1/player";
   const LOBBY_API = `http://localhost:4000/api/v1/lobby`;
 
-  const fetchPlayers = async () => {
+  const fetchPlayers = useCallback(async () => {
     try {
-      const response = await fetch(`${LOBBY_API}/players/${idLobby}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setPlayers(data);
-      }
+        const response = await fetch(`${LOBBY_API}/players/${idLobby}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+        });
+        if (response.ok) {
+            const data = await response.json();
+            setPlayers(data);
+        }
     } catch (error) {
-      console.error("Error cargando jugadores del lobby:", error);
+        console.error("Error cargando jugadores del lobby:", error);
     }
-  };
+}, [idLobby, token]);
 
-  const fetchLobby = async () => {
+const fetchLobby = useCallback(async () => {
     try {
-      const response = await fetch(`${LOBBY_API}/${idLobby}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setLobby(data);
-      }
+        const response = await fetch(`${LOBBY_API}/${idLobby}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+        });
+        if (response.ok) {
+            const data = await response.json();
+            setLobby(data);
+            setDifficulty(data.dificulty);
+        }
     } catch (error) {
-      console.error("Error cargando datos del lobby:", error);
+        console.error("Error cargando datos del lobby:", error);
     }
-  };
+}, [idLobby, token]);
 
   useEffect(() => {
     const payload = getTokenPayload();
-    if (!payload) {
+    if (!payload || !token) {
       router.push("/login");
       return;
     }
@@ -131,19 +133,72 @@ export default function Lobby() {
       fetchLobby();
       setUserId(payload.sub);
     }
-  }, [idLobby, players]);
+  }, [idLobby]);
+
+  useEffect(() => {
+    socket.connect();
+
+    // Todos los listeners juntos
+    socket.on('playerJoined', () => {
+        fetchPlayers();
+        fetchLobby();
+    });
+
+    socket.on('removedFromLobby', () => {
+      router.push('/home');
+    });
+
+    socket.on('lobbyDeleted', () => {
+      router.push('/home');
+    });
+
+    socket.on('playerLeft', async () => {
+      await fetchPlayers();
+      await fetchLobby();
+    });
+
+    socket.on('gameStarted', ( response ) => {
+        router.push(`/game/${response.gameId}`);
+    });
+
+    socket.on('updatedData', async () => {
+      await fetchPlayers();
+      await fetchLobby();
+    })
+
+    // Limpias todos al desmontar
+    return () => {
+        socket.off('playerJoined');
+        socket.off('playerLeft');
+        socket.off('removedFromLobby');
+        socket.off('gameStarted');
+        socket.off('lobbyDeleted');
+        socket.off('updatedData');
+        socket.disconnect();
+    };
+  }, [fetchPlayers, fetchLobby]); // 👈 solo se ejecuta al montar y desmontar
+
+  // Separado solo el que necesita esperar al lobbyCode
+  useEffect(() => {
+    if (lobby?.lobbyCode) {
+        socket.emit('joinLobbyRoom', { lobbyCode: lobby.lobbyCode, userId: userId });
+    }
+  }, [lobby?.lobbyCode]);
 
   const handleDifficultyChange = async (newDifficulty: Difficulty) => {
     try {
-      await fetch(`${LOBBY_API}/${idLobby}/change-difficulty`, {
+      await fetch(`${LOBBY_API}/${idLobby}/change-dificulty`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({ difficulty: newDifficulty }),
+        body: JSON.stringify({ dificulty: newDifficulty }),
       });
       setDifficulty(newDifficulty);
+      socket.emit('updateData', {
+        lobbyCode: lobby?.lobbyCode
+      });
     } catch (error) {
       console.error("Error al actualizar dificultad:", error);
     }
@@ -157,7 +212,7 @@ export default function Lobby() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({ lobby: idLobby, actualPlayer: players[0].id }),
+        body: JSON.stringify({ lobbyId: idLobby, playerId: players[0].id }),
       });
       if (response.ok) {
         const game = await response.json();
@@ -182,9 +237,13 @@ export default function Lobby() {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         });
+        socket.emit('startGame', {
+          lobbyCode: lobby?.lobbyCode,
+          gameId: game.id
+        });
         router.push(`/game/${game.id}`);
       } else {
-        console.error("Error al crear el game");
+        console.error("Error al crear el game", response.statusText);
       }
     } catch (error) {
       console.error("Error de red:", error);
@@ -199,48 +258,33 @@ export default function Lobby() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({ name: editName, color: editColor, movement: 3 }),
+        body: JSON.stringify({ name: editName, color: editColor }),
       });
       if (response.ok) {
+        socket.emit('updateData', {
+          lobbyCode: lobby?.lobbyCode
+        });
         setEditingId(null);
-        fetchPlayers();
+        await fetchPlayers();
       }
     } catch (error) {
       console.error("Error al actualizar:", error);
     }
   };
 
-  const handleRemove = async (id: string) => {
-    try {
-      const response = await fetch(`${LOBBY_API}/${id}/remove-player`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(userId),
-      });
-      if (response.ok) fetchPlayers();
-    } catch (error) {
-      console.error("Error al eliminar:", error);
-    }
-  };
+  const handleRemove = (playerId: string) => {
+    socket.emit('removePlayer', {
+        playerId: playerId,
+        userId: userId,
+    });
+};
 
-  const handleDelete = async () => {
-    try {
-      const response = await fetch(`${LOBBY_API}/${lobby?.id}/delete`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(userId),
-      });
-      if (response.ok) router.push("/home");
-    } catch (error) {
-      console.error("Error al eliminar:", error);
-    }
-  };
+  const handleDelete = () => {
+    socket.emit('deleteLobby', {
+        lobbyId: lobby?.id,
+        userId: userId
+    });
+}
 
   const validRequest = (player: Player) => {
     return player.userId === userId || lobby?.hostId === userId;
@@ -432,12 +476,12 @@ export default function Lobby() {
           </button>
         )}
 
-        <button
+        {lobby && lobby.hostId === userId && (<button
           onClick={() => handleDelete()}
           className="px-4 py-2 text-[11px] font-bold uppercase tracking-widest bg-red-950/30 border border-red-900/40 text-red-400 rounded hover:bg-red-900 hover:text-white transition-colors"
         >
           Eliminar Sala
-        </button>
+        </button>)}
       </div>
     </div>
   );

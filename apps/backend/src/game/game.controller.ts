@@ -38,56 +38,17 @@ export class GameController {
   }
 
   @Post()
-  async createGame(@Body() gameData: Prisma.GameCreateInput): Promise<Game> {
-    return this.gameService.createGame(gameData);
+  async createGame(@Body() gameData: {lobbyId: string, playerId: string}): Promise<Game> {
+    console.log("entramos", gameData)
+    return this.gameService.createGame(Number(gameData.lobbyId), Number(gameData.playerId));
   }
 
   @Post('/:id/create-store')
   async createStore(@Param('id') gameId: string): Promise<Store> {
     const game = await this.gameService.getGame({ id: Number(gameId) });
     const lobby = await this.lobbyService.getLobby({ id: game.lobbyId });
-    const numPlayers = lobby.numPlayers;
 
-    const store = await this.storeService.createStore(
-      numPlayers > 1 ? { numCards: 18 } : { numCards: 16 },
-    );
-    await this.cardService.createCardsForStore(store.id, 6, {
-      type: CardType.TEMPORARY_PATCH,
-      cost: 1,
-    });
-    await this.cardService.createCardsForStore(store.id, 3, {
-      type: CardType.NEW_DRILL,
-      cost: 2,
-    });
-    await this.cardService.createCardsForStore(store.id, 3, {
-      type: CardType.BACKUP_POWER,
-      cost: 2,
-    });
-    if (numPlayers > 1)
-      await this.cardService.createCardsForStore(store.id, 2, {
-        type: CardType.SLINGSHOT,
-        cost: 2,
-      });
-    await this.cardService.createCardsForStore(store.id, 2, {
-      type: CardType.ENHANCED_SCANNER,
-      cost: 2,
-    });
-    await this.cardService.createCardsForStore(store.id, 2, {
-      type: CardType.ROCKET_THRUSTERS,
-      cost: 2,
-    });
-    await this.gameService.setGameStore({ id: Number(gameId) }, store.id);
-
-    const cards = await this.cardService.getCardsByStore(store.id);
-    const shuffledCards = this.cardService.shuffleCardsWithSeed(
-      cards,
-      Number(gameId),
-    );
-
-    for (let i = 0; i < 3; i++) {
-      await this.cardService.setCardToStorefront(shuffledCards[i]);
-    }
-
+    const store = await this.gameService.createStore(game, lobby);
     return store;
   }
 

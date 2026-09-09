@@ -110,11 +110,11 @@ model Game {
   round          Int         @default(0)
   actualPlayerId Int         @unique
   supernovaLvL   Int         @default(0)
-  storeId        Int         @unique
+  storeId        Int?        @unique
   drillCards     DrillCard[]
   actualPlayer   Player      @relation(fields: [actualPlayerId], references: [id])
   lobby          Lobby       @relation(fields: [lobbyId], references: [id], onDelete: Cascade)
-  store          Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  store          Store?       @relation(fields: [storeId], references: [id], onDelete: Cascade)
   tiles          Tile[]
 }
 

@@ -4,6 +4,13 @@ import { getTokenPayload, getToken } from "../../lib/auth";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { socket } from "../../lib/sockets";
+
+interface GatewayResponse {
+  success: boolean;
+  lobbyId?: string;
+  error: string;
+}
 
 export default function Home() {
   const router = useRouter();
@@ -12,7 +19,8 @@ export default function Home() {
   const [username, setUsername] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [lobbyCode, setLobbyCode] = useState("");
-  const [joinError, setJoinError] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState<string>("");
+
 
   useEffect(() => {
     const payload = getTokenPayload();
@@ -29,79 +37,46 @@ export default function Home() {
     }
   }, [router]);
 
+
+  useEffect(() => {
+        socket.connect(); // conectas cuando monta el componente
+
+        return () => {
+            socket.disconnect(); // desconectas cuando desmonta
+        };
+    }, []);
+
   const handleCreateLobby = async () => {
     setLoading(true);
-    try {
-      const token = getToken();
-      const response = await fetch("http://localhost:4000/api/v1/lobby", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({ hostId: userId }),
-      });
 
-      if (response.ok) {
-        const lobby = await response.json();
-
-        const response2 = await fetch(`http://localhost:4000/api/v1/lobby/${lobby.id}/add-player`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-          body: JSON.stringify({ userId: userId }),
-        });
-
-        if (!response2.ok) {
-          console.error("Error al agregar el jugador al lobby: ", response2.statusText);
-          return;
-        }
-        router.push(`/lobby/${lobby.id}`);
+    socket.timeout(5000).emit('createLobby', { userId }, (err: Error, response: GatewayResponse) => {
+      if (err) {
+        setJoinError("NO SE PUDO ESTABLECER CONTACTO CON EL SERVIDOR");
+      } else if (response.success) {
+        router.push(`/lobby/${response.lobbyId}`);
       } else {
-        console.error("Error al crear el lobby: ", response.statusText);
+        setJoinError(response.error ?? 'ERROR AL CREAR EL LOBBY');
       }
-    } catch (error) {
-      console.error("Error de red:", error);
-    } finally {
       setLoading(false);
-    }
+    });
   };
 
   const handleJoinLobby = async (e: React.FormEvent) => {
     e.preventDefault();
     setJoinLoading(true);
-    setJoinError(null);
+    setJoinError("");
 
-    try {
-      const token = getToken();
-
-      console.log("token", token)
-      console.log("intentamos", lobbyCode, userId)
-      const response = await fetch(`http://localhost:4000/api/v1/lobby/join`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({ code: lobbyCode, userId: userId })
-      });
-
-      if (response.ok) {
-        const lobby = await response.json();
-        router.push(`/lobby/${lobby.id}`);
-      } else if (response.status === 404) {
-        setJoinError("CÓDIGO DE PARTIDA NO ENCONTRADO");
+    socket.timeout(5000).emit('joinLobby', { lobbyCode, userId }, (err: Error, response: GatewayResponse) => {
+      if (err) {
+        // El servidor no respondió en 5 segundos
+        setJoinError("NO SE PUDO ESTABLECER CONTACTO CON EL SERVIDOR");
+      } else if (response.success) {
+        router.push(`/lobby/${response.lobbyId}`);
       } else {
-        setJoinError(`ERROR AL UNIRSE AL LOBBY: ${response.statusText}`);
+        setJoinError(response.error ?? 'ERROR AL UNIRSE AL LOBBY');
       }
-    } catch (error) {
-      console.error("Error de red:", error);
-      setJoinError("NO SE PUDO ESTABLECER CONTACTO CON EL SERVIDOR");
-    } finally {
       setJoinLoading(false);
-    }
+    });
   };
 
   const handleLogout = () => {
@@ -197,7 +172,7 @@ export default function Home() {
                 value={lobbyCode}
                 onChange={(e) => {
                   setLobbyCode(e.target.value.toUpperCase());
-                  setJoinError(null);
+                  setJoinError("");
                 }}
                 placeholder="XXXXXXXX"
                 maxLength={8}

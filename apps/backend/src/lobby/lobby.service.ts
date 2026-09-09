@@ -68,15 +68,11 @@ export class LobbyService {
     });
   }
 
-  async changeLobbyDificulty(params: {
-    where: Prisma.LobbyWhereUniqueInput;
-    data: { dificulty: Dificulty };
-  }): Promise<Lobby> {
-    const { where, data } = params;
-    return this.prisma.lobby.update({
-      where,
+  async changeLobbyDificulty(lobbyId: number, newDificulty: Dificulty) {
+    return await this.prisma.lobby.update({
+      where:{id: lobbyId},
       data: {
-        dificulty: data.dificulty,
+        dificulty: newDificulty
       },
     });
   }
@@ -87,7 +83,7 @@ export class LobbyService {
   }): Promise<Lobby> {
     const { where, data } = params;
 
-    return this.prisma.lobby.update({
+    return await this.prisma.lobby.update({
       where,
       data: {
         numPlayers: { increment: 1 },

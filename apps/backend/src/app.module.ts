@@ -16,6 +16,7 @@ import { TileModule } from './tile/tile.module';
 import { AuthModule } from './auth/auth.module';
 import { UserService } from './user/user.service';
 import { UserModule } from './user/user.module';
+import { WebsocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { UserModule } from './user/user.module';
     TileModule,
     AuthModule,
     UserModule,
+    WebsocketModule
   ],
   controllers: [AppController],
   providers: [AppService, PlayerService, PrismaService, UserService],

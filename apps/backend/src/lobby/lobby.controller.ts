@@ -49,6 +49,15 @@ export class LobbyController {
     });
   }
 
+  @Put('/:id/change-dificulty')
+  async changeLobbyDificulty(
+    @Param('id') id: string,
+    @Body() dificultyData: { dificulty: Dificulty },
+  ): Promise<Lobby> {
+    return await this.lobbyService.changeLobbyDificulty(
+      Number(id),
+      dificultyData.dificulty);
+  }
   @Get('/:id')
   async getLobby(@Param('id') id: string): Promise<Lobby> {
     return await this.lobbyService.getLobby({ id: Number(id) });
@@ -79,16 +88,7 @@ export class LobbyController {
     });
   }
 
-  @Put('/:id/change-dificulty')
-  async changeLobbyDificulty(
-    @Param('id') id: string,
-    @Body() dificultyData: { dificulty: Dificulty },
-  ): Promise<Lobby> {
-    return this.lobbyService.changeLobbyDificulty({
-      where: { id: Number(id) },
-      data: dificultyData,
-    });
-  }
+  
 
   @Put('/:id/add-player')
   async addPlayerToLobby(
@@ -106,21 +106,20 @@ export class LobbyController {
       user: { connect: { id: Number(userId) } },
     };
     const newPlayer = await this.playerService.createPlayer(data);
-    return this.lobbyService.addPlayerToLobby({
+    return await this.lobbyService.addPlayerToLobby({
       where: { id: Number(id) },
       data: { playerId: newPlayer.id },
     });
   }
 
   @Put('/:id/remove-player')
-  async removePlayerFromLobby(@Param('id') playerId: string, @Body() userId: number): Promise<Lobby> {
+  async removePlayerFromLobby(@Param('id') playerId: string, @Body("userId") userId: number): Promise<Lobby> {
     try {
       const lobby = await this.lobbyService.getLobbieFromPlayer(
         Number(playerId)
       );
-
       const player = await this.playerService.getPlayer({ id: Number(playerId) });
-      if(lobby.hostId !== Number(userId) && player.userId !== Number(userId)) {
+      if(lobby.hostId != Number(userId) && player.userId != Number(userId)) {
         throw new NotFoundException(
           `El jugador no puede ser eliminado`,
         );
@@ -143,7 +142,7 @@ export class LobbyController {
   }
 
   @Delete('/:id')
-  async deleteLobby(@Param('id') id: string, @Body() userId: Number): Promise<Lobby> {
+  async deleteLobby(@Param('id') id: string, @Body("userId") userId: Number): Promise<Lobby> {
     const lobby = await this.lobbyService.getLobby({ id: Number(id) });
     if(lobby.hostId !== Number(userId)) {
       throw new NotFoundException(
