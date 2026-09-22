@@ -11,8 +11,10 @@ import {
   Store,
   Tile,
   DrillCard,
+  User
 } from '../src/generated/prisma/client';
 
+const bcrypt = require('bcrypt') as typeof import('bcrypt');
 /**
  * Datos que devuelve el seed.
  *
@@ -22,6 +24,9 @@ import {
 export interface TestData {
   game: Game;
   game2: Game;
+
+  user1: User;
+  user2: User;
 
   lobby1: Lobby;
   lobby2: Lobby;
@@ -64,7 +69,8 @@ export async function clearTestDatabase(prisma: PrismaService): Promise<void> {
       "Ship",
       "Storage",
       "Store",
-      "Lobby"
+      "Lobby",
+      "User"
     RESTART IDENTITY CASCADE;
   `);
 }
@@ -116,6 +122,27 @@ export async function seedTestDatabase(
    */
   await clearTestDatabase(prisma);
 
+
+  // ---------------------------------------------------------
+  // USER
+  // ---------------------------------------------------------
+
+  const hash = await bcrypt.hash("password", 10);
+
+  const user1 = await prisma.user.create({
+    data: {
+      username: "user1",
+      password: hash
+    }
+  })
+
+  const user2 = await prisma.user.create({
+    data:{
+      username: "user2",
+      password: hash
+    }
+  })
+
   // ---------------------------------------------------------
   // LOBBY
   // ---------------------------------------------------------
@@ -124,6 +151,8 @@ export async function seedTestDatabase(
     data: {
       dificulty: Dificulty.EASY_II,
       numPlayers: 2,
+      lobbyCode: "AAAAAA",
+      hostId: user1.id
     },
   });
 
@@ -131,6 +160,8 @@ export async function seedTestDatabase(
     data: {
       dificulty: Dificulty.EASY_II,
       numPlayers: 1,
+      lobbyCode: "BBBBBB",
+      hostId: user1.id
     },
   });
 
@@ -138,6 +169,8 @@ export async function seedTestDatabase(
     data: {
       dificulty: Dificulty.EXTREME_II,
       numPlayers: 1,
+      lobbyCode: "CCCCCC",
+      hostId: user1.id
     },
   });
 
@@ -223,6 +256,12 @@ export async function seedTestDatabase(
         },
       },
 
+      user: {
+        connect: {
+          id: user1.id
+        }
+      },
+
       ship: {
         connect: {
           id: ship1.id,
@@ -248,6 +287,12 @@ export async function seedTestDatabase(
         connect: {
           id: lobby1.id,
         },
+      },
+
+      user: {
+        connect: {
+          id: user2.id
+        }
       },
 
       ship: {
@@ -277,6 +322,12 @@ export async function seedTestDatabase(
         },
       },
 
+      user: {
+        connect: {
+          id: user1.id
+        }
+      },
+
       ship: {
         connect: {
           id: ship3.id,
@@ -303,6 +354,13 @@ export async function seedTestDatabase(
           id: lobby3.id,
         },
       },
+
+      user: {
+        connect: {
+          id: user1.id
+        }
+      },
+      
     },
   });
 
@@ -651,6 +709,8 @@ export async function seedTestDatabase(
   return {
     game,
     game2,
+    user1,
+    user2,
     lobby1,
     lobby2,
     lobby3,

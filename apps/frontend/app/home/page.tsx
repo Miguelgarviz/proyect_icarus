@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { socket } from "../../lib/sockets";
 
+
 interface GatewayResponse {
   success: boolean;
   lobbyId?: string;
   error: string;
 }
-
 export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -20,6 +20,7 @@ export default function Home() {
   const [userId, setUserId] = useState<number | null>(null);
   const [lobbyCode, setLobbyCode] = useState("");
   const [joinError, setJoinError] = useState<string>("");
+  const token = localStorage.getItem("access_token");
 
 
   useEffect(() => {
@@ -48,17 +49,24 @@ export default function Home() {
 
   const handleCreateLobby = async () => {
     setLoading(true);
-
-    socket.timeout(5000).emit('createLobby', { userId }, (err: Error, response: GatewayResponse) => {
-      if (err) {
-        setJoinError("NO SE PUDO ESTABLECER CONTACTO CON EL SERVIDOR");
-      } else if (response.success) {
-        router.push(`/lobby/${response.lobbyId}`);
-      } else {
-        setJoinError(response.error ?? 'ERROR AL CREAR EL LOBBY');
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/lobby`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ hostId: userId })
+      })
+      if(response.ok){
+        const lobbyData = await response.json()
+        router.push(`/lobby/${lobbyData.lobbyId}`);
       }
-      setLoading(false);
-    });
+    }catch(error){
+      console.error(error)
+      setJoinError('ERROR AL CREAR EL LOBBY');
+    }
+    setLoading(false);
   };
 
   const handleJoinLobby = async (e: React.FormEvent) => {
@@ -66,17 +74,26 @@ export default function Home() {
     setJoinLoading(true);
     setJoinError("");
 
-    socket.timeout(5000).emit('joinLobby', { lobbyCode, userId }, (err: Error, response: GatewayResponse) => {
-      if (err) {
-        // El servidor no respondió en 5 segundos
-        setJoinError("NO SE PUDO ESTABLECER CONTACTO CON EL SERVIDOR");
-      } else if (response.success) {
-        router.push(`/lobby/${response.lobbyId}`);
-      } else {
-        setJoinError(response.error ?? 'ERROR AL UNIRSE AL LOBBY');
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/lobby/add-player`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ userId: userId, lobbyCode: lobbyCode})
+      })
+      if(response.ok){
+        const lobbyData = await response.json()
+        router.push(`/lobby/${lobbyData.lobbyId}`);
       }
-      setJoinLoading(false);
-    });
+      socket.emit('joinLobby', {
+        lobbyCode: lobbyCode
+      })
+    }catch(error){
+      console.error(error)
+      setJoinError('ERROR AL CREAR EL LOBBY');
+    }
   };
 
   const handleLogout = () => {

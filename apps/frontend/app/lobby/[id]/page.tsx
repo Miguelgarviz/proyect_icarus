@@ -283,18 +283,49 @@ const fetchLobby = useCallback(async () => {
     }
   };
 
-  const handleRemove = (playerId: string) => {
-    socket.emit('removePlayer', {
-        playerId: playerId,
-        userId: userId,
-    });
-};
+  const handleRemove = async (playerId: string) => {
 
-  const handleDelete = () => {
-    socket.emit('deleteLobby', {
-        lobbyId: lobby?.id,
-        userId: userId
-    });
+    try{
+      const response = await fetch(`http://localhost:4000/api/v1/lobby/${playerId}/remove-player`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId: userId })
+      })
+      if(response.ok){
+          socket.emit('removePlayer', {
+          userId: userId,
+          lobbyCode: lobby?.lobbyCode
+        });
+      }
+
+    }catch(error){
+      console.error("Error al eliminar jugador: ", error)
+    }
+  };
+
+  const handleDelete = async () => {
+    try{
+      const response = await fetch(`http://localhost:4000/api/v1/lobby/${idLobby}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId: userId })
+      })
+      if(response.ok){
+          socket.emit('deleteLobby', {
+          userId: userId,
+          lobbyCode: lobby?.lobbyCode
+        });
+      }
+
+    }catch(error){
+      console.error("Error al eliminar el lobby: ", error)
+    }
 }
 
   const validRequest = (player: Player) => {
