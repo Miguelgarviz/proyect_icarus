@@ -1,4 +1,4 @@
-import { Body, Controller, Put, Param, Post} from '@nestjs/common';
+import { Body, Controller, Put, Param, Post, UnauthorizedException} from '@nestjs/common';
 import { UserService } from './user.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@backend/generated/prisma/browser';
@@ -15,9 +15,9 @@ export class UserController {
     @Put('/:id')
     async updateUserData(
         @Param('id') id: string,
-        @Body() username: string,
+        @Body() data: {username: string},
     ): Promise<User> {
-        return this.userService.updateUser(Number(id), { username });
+        return this.userService.updateUser(Number(id), data );
     }
 
     @Put('/:id/password')
@@ -25,7 +25,7 @@ export class UserController {
         const user = await this.userService.getUser(Number(id));
         
         const valid = await bcrypt.compare(passwordData.oldPassword, user.password);
-        if(!valid) throw new Error('Contraseña incorrecta');
+        if(!valid) throw new UnauthorizedException('Contraseña incorrecta')
 
         return this.userService.updateUserPassword(Number(id), passwordData.newPassword);
     }
