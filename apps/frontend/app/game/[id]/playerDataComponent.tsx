@@ -21,7 +21,8 @@ export default function PlayerDataComponent({
   handleChange,
   handleDrill,
   handleCard,
-  handleInitialHelp
+  handleInitialHelp,
+  isMyTurn
 }: {
   shipData: ShipDTO | undefined;
   cargoData: StorageDTO | undefined;
@@ -36,6 +37,7 @@ export default function PlayerDataComponent({
   handleDrill: () => void;
   handleCard: (card: CardDTO) => void;
   handleInitialHelp: ()=> void;
+  isMyTurn: boolean
 }) {
   if (!shipData || !cargoData) {
     return (
@@ -123,7 +125,8 @@ export default function PlayerDataComponent({
               {isAtSpaceStation &&
                 shipData.engine < 5 &&
                 cargoData.red >= 1 &&
-                !shipData.upgradedEngine && (
+                !shipData.upgradedEngine && 
+                isMyTurn && (
                   <button
                     className={styles.upgradeButton}
                     onClick={() => handleUpgrade("engine")}
@@ -172,7 +175,8 @@ export default function PlayerDataComponent({
 
               {isAtSpaceStation &&
                 shipData.drill < 10 &&
-                cargoData.green >= 1 && (
+                cargoData.green >= 1 && 
+                isMyTurn && (
                   <button
                     className={styles.upgradeButton}
                     onClick={() => handleUpgrade("drill")}
@@ -219,7 +223,8 @@ export default function PlayerDataComponent({
 
               {isAtSpaceStation &&
                 shipData.shield < 10 &&
-                cargoData.green >= 1 && (
+                cargoData.green >= 1 &&
+                isMyTurn && (
                   <button
                     className={styles.upgradeButton}
                     onClick={() => handleUpgrade("shield")}
@@ -242,7 +247,8 @@ export default function PlayerDataComponent({
             <div className={styles.labelWrapper}>
               {isAtSpaceStation &&
                 cargoData.green >= 7 &&
-                cargoData.red < 10 && (
+                cargoData.red < 10 && 
+                isMyTurn && (
                   <button
                     className={styles.changeToRed}
                     onClick={() => handleChange("green-to-red")}
@@ -267,7 +273,9 @@ export default function PlayerDataComponent({
                 shipData.drill === 0 &&
                 cargoData.green === 0 && 
                 cargoData.red === 0 &&
-                cargoData.yellow === 0 &&(<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                cargoData.yellow === 0 &&
+                isMyTurn && 
+                (<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               {(
                   <button
                     className={styles.upgradeButton}
@@ -284,7 +292,8 @@ export default function PlayerDataComponent({
             <div className={styles.labelWrapper}>
               {isAtSpaceStation &&
                 cargoData.red >= 1 &&
-                cargoData.green < 18 && (
+                cargoData.green < 18 && 
+                isMyTurn && (
                   <button
                     className={styles.changeToGreen}
                     onClick={() => handleChange("red-to-green")}
@@ -304,7 +313,8 @@ export default function PlayerDataComponent({
               </div>{" "}
               {isAtSpaceStation &&
                 cargoData.red >= 5 &&
-                cargoData.yellow < 10 && (
+                cargoData.yellow < 10 && 
+                isMyTurn && (
                   <button
                     className={styles.changeToYellow}
                     onClick={() => handleChange("red-to-yellow")}
@@ -322,7 +332,8 @@ export default function PlayerDataComponent({
             <div className={styles.labelWrapper}>
               {isAtSpaceStation &&
                 cargoData.yellow >= 1 &&
-                cargoData.red < 10 && (
+                cargoData.red < 10 && 
+                isMyTurn && (
                   <button
                     className={styles.changeToRed}
                     onClick={() => handleChange("yellow-to-red")}
@@ -356,7 +367,7 @@ export default function PlayerDataComponent({
             <div className={styles.playerCardName}>
               {CARD_DATA[card.type].name}
             </div>
-            {validUseCard(card) && (<button
+            {validUseCard(card) && isMyTurn && (<button
               style={{
                 marginLeft: "10px",
                 padding: "6px 12px",
@@ -386,7 +397,7 @@ export default function PlayerDataComponent({
           ),
         )}
       </div>
-      {shipData.externalId.includes("planet") && actualTile.drillAttempts > 0 && shipData.drill > 0 && shipData.drill >= drillPrice[actualTile.type.toString()] && (
+      {isMyTurn && shipData.externalId.includes("planet") && actualTile.drillAttempts > 0 && shipData.drill > 0 && shipData.drill >= drillPrice[actualTile.type.toString()] && (
         <button
               style={{
                 padding: "6px 12px",

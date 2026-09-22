@@ -100,8 +100,19 @@ export class PlayerService {
   }
 
   async getShipFromPlayer(player: Player) {
-    return this.prisma.ship.findUniqueOrThrow({
+    return await this.prisma.ship.findUniqueOrThrow({
       where: { id: player.shipId! },
     });
+  }
+
+  async getPlayerByUser(userId: number, lobbyId: number){
+    return await this.prisma.player.findUniqueOrThrow({
+      where:{
+        userId_lobbyId:{
+          userId: userId,
+          lobbyId: lobbyId
+        }
+      }
+    })
   }
 }

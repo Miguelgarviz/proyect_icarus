@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import BoardGrid from "./BoardGrid";
 import EntitiesLayer, { PLAYER_IMAGES } from "./EntitiesLayer";
@@ -19,6 +19,7 @@ import StoreComponent, { CARD_DATA } from "./StoreComponent";
 import PlayerDataComponent from "./playerDataComponent";
 import {DeathEndModal, DrillModal, GoalModal, NormalCardModal, ScannerCardModal, SuperNovaEndModal, SwapCardModal, VictoryModal} from "./modalComponents";
 import { getTokenPayload } from "../../../lib/auth";
+import { socket } from "../../../lib/sockets";
 
 interface DrillResponse {
   empty: boolean;
@@ -31,9 +32,6 @@ interface DrillResponse {
 interface GoalResponse {
   difficulty: string
 }
-
-
-
 
 export default function GamePage() {
   const router = useRouter();
@@ -63,62 +61,39 @@ export default function GamePage() {
   const [isSwapCardModalOpen, setIsSwapCardModalOpen] = useState<boolean>(false);
   const [isVictoryModalOpen, setIsVictoryModalOpen] = useState<boolean>(false);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [userPlayer, setUserPlayer] = useState<PlayerDTO>();
+  const [isMyTurn, setIsMyTurn] = useState<boolean>(false);
 
   const [goalImageUrl, setGoalImageUrl] = useState<string>();
 
   const gameId = params.id;
   const token = localStorage.getItem("access_token");
+  const payload = getTokenPayload();
 
-  useEffect(() => {
-    const payload = getTokenPayload();
-    if (!payload) {
-      router.push("/login");
-      return;
-    }
-    async function loadAllGameData() {
-      setLoading(true);
-      try {
-        await getGoal();
-        const players = await fetchPlayers();
-        const freshShips = await fetchShips();
-        await fetchGame();
-        await fetchStorages();
-        await fetchActualPlayer();
-        await fetchMaxDistance();
-        await fetchPlayersCards();
-        await fetchActualTile();
-        await fetchStoreCards();
-        
+  const userId = payload?.sub;
 
-        if (players && freshShips) {
-          calculatePlayerChips(players, freshShips);
-        }
-      } catch (error) {
-        console.error("Error cargando los datos iniciales de la partida:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadAllGameData();
-  }, [gameId]);
-
-
-  async function fetchPlayers() {
+  const fetchPlayers = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/players`, {
-        headers: {
-          "Authorization": `Bearer ${token}`
+      const response = await fetch(
+        `http://localhost:4000/api/v1/game/${gameId}/players`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
-      if (!response.ok) throw new Error("Error al cargar jugadores");
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al cargar jugadores");
+      }
+
       return await response.json();
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [gameId]);
 
-  async function getGoal(){
+  const getGoal = useCallback(async () => {
     try{
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/get-goal`, {
         headers: {
@@ -131,8 +106,9 @@ export default function GamePage() {
     }catch(error){
       console.error(error)
     }
-  }
-  async function fetchGame() {
+  }, [gameId])
+
+  const fetchGame = useCallback(async () => {
     try {
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}`, {
         headers: {
@@ -140,15 +116,15 @@ export default function GamePage() {
         }
       });
       if (!response.ok) throw new Error("Error al cargar la partida");
-      const gameData = await response.json();
+      const gameData: GameDTO = await response.json();
       setGame(gameData);
       return gameData;
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [gameId])
 
-  async function fetchShips() {
+  const fetchShips = useCallback(async () => {
     try {
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/ships`, {
         headers: {
@@ -162,9 +138,9 @@ export default function GamePage() {
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [gameId])
 
-  async function fetchStorages() {
+  const fetchStorages = useCallback(async () => {
     try {
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/storages`, {
         headers: {
@@ -188,24 +164,43 @@ export default function GamePage() {
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [gameId])
 
-  async function fetchActualPlayer() {
+  const fetchActualPlayer = useCallback(async () => {
     try {
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/current-player`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
       });
-      if (!response.ok) throw new Error("Error al cargar el jugador actual");
-      const currentPlayerData = await response.json();
+      if (!response.ok) throw new Error("Error al cargar el jugador actual ");
+      const currentPlayerData: PlayerDTO = await response.json();
       setCurrentPlayer(currentPlayerData);
+      return currentPlayerData
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [gameId])
 
-  async function fetchStoreCards() {
+  const fetchUserPlayer = useCallback(async (user: number, lobbyId: string) => {
+    try {
+      const response = await fetch(`http://localhost:4000/api/v1/player/user?userId=${user}&lobbyId=${lobbyId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        }
+      });
+      if (!response.ok) throw new Error("Error al cargar el jugador actual");
+      const userPlayerData: PlayerDTO = await response.json();
+      setUserPlayer(userPlayerData);
+      return userPlayerData
+    } catch (error) {
+      console.error(error);
+    }
+  }, [gameId])
+
+  const fetchStoreCards = useCallback(async () => {
     try {
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/store-cards`, {
         headers: {
@@ -218,11 +213,12 @@ export default function GamePage() {
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [gameId])
 
-  async function fetchPlayersCards() {
+  const fetchPlayersCards = useCallback(async (userId: number) => {
+    console.log(userId)
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/players-cards`, {
+      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/players-cards?userId=${userId}`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -233,9 +229,9 @@ export default function GamePage() {
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [gameId])
 
-  async function fetchMaxDistance() {
+  const fetchMaxDistance = useCallback(async () => {
     try {
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/max-range`, {
         headers: {
@@ -248,9 +244,9 @@ export default function GamePage() {
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [gameId])
 
-  async function fetchActualTile(){
+  const fetchActualTile = useCallback(async () => {
     try{
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/current-tile`, {
         headers: {
@@ -263,8 +259,150 @@ export default function GamePage() {
     }catch(error){
       console.error(error);
     }
+  }, [gameId])
+
+  function handleIsMyTurn(userId: string, playerId: string){
+    const res = Number(userId) == Number(playerId)
+    setIsMyTurn(res)
   }
 
+
+  useEffect(() => {
+    const payload = getTokenPayload();
+    if (!payload) {
+      router.push("/login");
+      return;
+    }
+
+    async function loadAllGameData() {
+      setLoading(true);
+      try {
+        await getGoal();
+        const players = await fetchPlayers();
+        const freshShips = await fetchShips();
+        const game = await fetchGame();
+        await fetchStorages();
+        const actualPlayer = await fetchActualPlayer();
+        await fetchMaxDistance();
+        await fetchActualTile();
+        await fetchStoreCards();
+        const userPlayer = await fetchUserPlayer(payload?.sub!, game?.lobbyId!);
+        await fetchPlayersCards(payload?.sub!);
+        handleIsMyTurn(userPlayer?.id!, actualPlayer?.id!)
+        
+
+        if (players && freshShips) {
+          calculatePlayerChips(players, freshShips);
+        }
+      } catch (error) {
+        console.error("Error cargando los datos iniciales de la partida:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadAllGameData();
+  }, [gameId]);
+
+  useEffect(() => {
+    socket.connect();
+
+    const handleConnect = () => {
+
+      if (gameId && userId) {
+
+        socket.emit('joinGameRoom', {
+          gameId,
+          userId,
+        });
+      }
+    };
+
+    socket.on('connect', handleConnect);
+
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.disconnect();
+    };
+  }, [gameId, userId]);
+
+
+  useEffect(() => {
+    socket.connect();
+
+    socket.on('updateData', async () => {
+      const players = await fetchPlayers();
+      const freshShips = await fetchShips();
+      await getAdjacentPlayers(false);
+      const actualPlayer = await fetchActualPlayer();
+      await fetchStorages();
+      await fetchPlayersCards(userId!);
+      await fetchMaxDistance();
+      await fetchActualTile();
+      await fetchGame();
+
+      if (players && freshShips) {
+        calculatePlayerChips(players, freshShips);
+        handleIsMyTurn(userPlayer?.id!, actualPlayer?.id!)
+      }
+    });
+
+    socket.on('explosionGameOver', async () => {
+      setIsGameOverExplosionModalOpen(true)
+    });
+
+    socket.on('buyedCard', async () => {
+      await fetchShips();
+      await fetchActualPlayer();
+      await fetchStorages();
+      await fetchStoreCards();
+    });
+
+    socket.on('playedCard', async () => {
+      setScannerOptions([])
+
+      getAdjacentPlayers(false);
+      await fetchActualPlayer();
+      await fetchActualTile();
+      await fetchStorages();
+
+      const players = await fetchPlayers();
+      const ships = await fetchShips();
+
+      if (players && ships) {
+          calculatePlayerChips(players, ships);
+      }
+
+      await fetchMaxDistance();
+      await fetchPlayersCards(userId!);
+
+      
+
+      setIsPlayCardModalOpen(false);
+      setIsScannerModalOpen(false);
+      setIsSwapCardModalOpen(false);
+      setSelectedCardToPlay(null);
+    })
+
+    socket.on('endGame', async () => {
+      router.push(`http://localhost:3000/home`);
+    })
+
+    socket.on('victoryScreenShow', async() => {
+      setIsVictoryModalOpen(true)
+    })
+
+    // Limpias todos al desmontar
+    return () => {
+        socket.off('passedTurn');
+        socket.off('playerMoved');
+        socket.off('buyedCard');
+        socket.off('playedCard');
+        socket.off('endGame');
+        socket.off('victoryScreenShow');
+        socket.disconnect();
+    };
+  }, [fetchPlayers, fetchGame, fetchShips, fetchActualPlayer, fetchStorages, fetchPlayersCards, fetchMaxDistance, fetchActualTile]);
 
   function calculatePlayerChips(playersData: PlayerDTO[], shipsData: ShipDTO[]) {
     const newChips: PlayerChipDTO[] = [];
@@ -306,16 +444,23 @@ export default function GamePage() {
         const players = await fetchPlayers();
         const freshShips = await fetchShips();
         await getAdjacentPlayers(false);
-        await fetchActualPlayer();
+        const actualPlayer = await fetchActualPlayer();
         await fetchStorages();
-        await fetchPlayersCards();
+        await fetchPlayersCards(userId!);
         await fetchMaxDistance();
         await fetchActualTile();
         await fetchGame();
 
         if (players && freshShips) {
           calculatePlayerChips(players, freshShips);
+          const userPlayer = await fetchUserPlayer(userId!, game?.lobbyId!)
+          handleIsMyTurn(userPlayer?.id!, actualPlayer?.id!)
         }
+
+        socket.emit('passingTurn', {
+          gameId: gameId,
+          type: result.type
+        });
       }
     } catch (error) {
       console.error(error);
@@ -345,6 +490,9 @@ export default function GamePage() {
       if (players && freshShips) {
         calculatePlayerChips(players, freshShips);
       }
+      socket.emit('movingPlayer', {
+        gameId: gameId
+      });
     } catch (error) {
       console.error(error);
     }
@@ -397,7 +545,10 @@ export default function GamePage() {
       if (!response.ok) throw new Error("Error");
       await fetchStoreCards();
       await fetchStorages();
-      await fetchPlayersCards();
+      await fetchPlayersCards(userId!);
+      socket.emit('buyCard', {
+        gameId: gameId
+      });
     } catch (error) {
       console.error(error);
     }
@@ -462,7 +613,7 @@ export default function GamePage() {
   }
 
   async function handleGetCard(card: CardDTO){
-    if(!currentPlayer?.isDead && card.playerId && card.playerId===currentPlayer?.id){
+    if(!userPlayer?.isDead && card.playerId && card.playerId===userPlayer?.id){
       setSelectedCardToPlay(card),
       setIsPlayCardModalOpen(true)
     }
@@ -526,7 +677,7 @@ export default function GamePage() {
       }
 
       await fetchMaxDistance();
-      await fetchPlayersCards();
+      await fetchPlayersCards(userId!);
 
       
 
@@ -534,6 +685,9 @@ export default function GamePage() {
       setIsScannerModalOpen(false);
       setIsSwapCardModalOpen(false);
       setSelectedCardToPlay(null);
+      socket.emit('playCard', {
+        gameId: gameId
+      });
     }catch(error){
       console.error(error)
     }
@@ -551,6 +705,9 @@ export default function GamePage() {
         }
       })
       if(!response.ok) throw new Error("Error al eliminar el juego");
+      socket.emit('resetGame', {
+        gameId: gameId
+      });
       router.push(`http://localhost:3000/home`);
     }catch(error){
       console.error(error)
@@ -653,16 +810,16 @@ export default function GamePage() {
 </div>
 
           <div>
-            {!currentPlayer?.isDead && <StoreComponent
+            {!userPlayer?.isDead && <StoreComponent
               cards={storeCards.slice(0, 3)}
               handleBuy={handleBuy}
-              externalId={ships.find((s) => s.id===currentPlayer?.shipId)?.externalId!}
-              redMinerals={storages.find((s) => s.id === currentPlayer?.storageId)?.red!}
+              externalId={ships.find((s) => s.id===userPlayer?.shipId)?.externalId!}
+              redMinerals={storages.find((s) => s.id === userPlayer?.storageId)?.red!}
               numPlayerCards={playerCards.length}
             />}
           </div>
 
-          {!(achiveGoal && actualTile?.externalId === "initial_"+(currentPlayer?.turnOrder! + 1))?(<button
+          {isMyTurn && (!(achiveGoal && actualTile?.externalId === "initial_"+(userPlayer?.turnOrder! + 1))?(<button
             onClick={async () => await nextPlayer()}
             style={{
               border: "3px solid #00FF00",
@@ -679,7 +836,12 @@ export default function GamePage() {
             Pasar Turno
           </button>):
           (<button
-            onClick={async () => await handleVictory()}
+            onClick={async () => {
+              await handleVictory()
+              socket.emit('playCard', {
+                gameId: gameId
+              });
+            }}
             style={{
               border: "3px solid #c300ff",
               height: "65px",
@@ -693,7 +855,7 @@ export default function GamePage() {
             }}
           >
             Salir del sistema
-          </button>)}
+          </button>))}
         </div>
 
         
@@ -719,7 +881,7 @@ export default function GamePage() {
         </button>
 
         {/* CARTEL DE ALERTA UBICADO EN LA ESQUINA SUPERIOR DERECHA (TAMAÑO REDUCIDO) */}
-        {achiveGoal && (
+        {isMyTurn && achiveGoal && (
           <div className={modalStyles.boardFloatingAlertMini}>
             ⚠️ ¡Recursos listos! Puedes huir del sistema 🚀
           </div>
@@ -749,6 +911,7 @@ export default function GamePage() {
             currentRound={game?.supernovaLvL??0}
             onNodeClick={handleMovePlayer}
             allowedNodes={reachableTiles}
+            isMyTurn={isMyTurn}
           />
           <EntitiesLayer 
             playersData={playersChips}
@@ -761,18 +924,18 @@ export default function GamePage() {
         <div style={{ width: "320px", flexShrink: 0 }}>
           <div
           >
-            {currentPlayer && !currentPlayer.isDead &&(
+            {userPlayer && !userPlayer.isDead &&(
               <PlayerDataComponent
                 shipData={ships.find(
-                  (s) => s.id === Number(currentPlayer.shipId),
+                  (s) => s.id === Number(userPlayer.shipId),
                 )}
                 cargoData={storages.find(
-                  (s) => s.id === Number(currentPlayer.storageId),
+                  (s) => s.id === Number(userPlayer.storageId),
                 )}
                 cardsData={playerCards}
                 actualTile={actualTile??{id:"999",externalId:"externalId", type: TileTypeDTO.EMPTY, positionX: 0, positionY: 0, drillAttempts: 0, gameId: 99} as TileDTO}
-                playerMovement={currentPlayer.movement}
-                initialHelp = {currentPlayer.initialHelp}
+                playerMovement={userPlayer.movement}
+                initialHelp = {userPlayer.initialHelp}
                 adjacentPlayers={adjacentPlayers}
                 actualRound={game?.supernovaLvL!}
                 handleUpgrade={handleUpgradeShip}
@@ -780,6 +943,7 @@ export default function GamePage() {
                 handleDrill={handleDrill}
                 handleCard={handleGetCard}
                 handleInitialHelp={handleInitialHelp}
+                isMyTurn={isMyTurn}
               />
             )}
           </div>
@@ -816,10 +980,10 @@ export default function GamePage() {
   </div>
 )}
 {/*MODAL VICTORIA */}
-{isVictoryModalOpen && currentPlayer && (
+{isVictoryModalOpen && userPlayer && (
   <div>
     <VictoryModal
-      currentPlayer={currentPlayer}
+      currentPlayer={userPlayer}
       handleResetGame={handleResetGame}
     />
   </div>

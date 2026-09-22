@@ -17,16 +17,18 @@ interface BoardGridProps {
   onNodeClick: (id: string) => void;
   currentRound: number;
   allowedNodes: string[]; 
+  isMyTurn: boolean;
 }
 
 export default function BoardGrid({
   onNodeClick,
   currentRound,
   allowedNodes,
+  isMyTurn,
 }: BoardGridProps) {
   const renderTiles = (tileList: TileMap[]) => {
     return tileList.map((node) => {
-      const isAllowed = allowedNodes.includes(node.id);
+      const isAllowed = allowedNodes.includes(node.id) && isMyTurn;
 
       return (
         <ellipse
@@ -36,7 +38,7 @@ export default function BoardGrid({
           rx={node.rx}
           ry={node.ry}
           className={`${styles.interactable} ${isAllowed ? styles.nodeHighlighted : ""}`}
-          onClick={() => onNodeClick(node.id)}
+          onClick={() => {if(isMyTurn) onNodeClick(node.id)}}
         />
       );
     });

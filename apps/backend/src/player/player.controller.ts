@@ -8,6 +8,7 @@ import {
   Delete,
   NotFoundException,
   HttpCode,
+  Query,
 } from '@nestjs/common';
 import { PlayerService } from './player.service';
 import { Player, Ship, Storage } from '../generated/prisma/client';
@@ -21,10 +22,13 @@ export class PlayerController {
     private readonly storageService: StorageService,
   ) {}
 
-  @Get('/:id')
-  async getPlayer(@Param('id') id: string): Promise<Player> {
-    return this.playerService.getPlayer({ id: Number(id) });
+  @Get('/user')
+  async getPlayerByUser(@Query('userId') userId: string, @Query('lobbyId') lobbyId: string){
+    const players = await this.playerService.getPlayersInLobby(Number(lobbyId))
+    return players.find((p) => p.userId == Number(userId))
   }
+
+  
 
   @Get()
   async getPlayers(): Promise<Player[]> {
@@ -112,5 +116,10 @@ export class PlayerController {
   @Delete('/:id')
   async deletePlayer(@Param('id') id: string): Promise<Player> {
     return this.playerService.deletePlayer({ id: Number(id) });
+  }
+
+  @Get('/:id')
+  async getPlayer(@Param('id') id: string): Promise<Player> {
+    return this.playerService.getPlayer({ id: Number(id) });
   }
 }

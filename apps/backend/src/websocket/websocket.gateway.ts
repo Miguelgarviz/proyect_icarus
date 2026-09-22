@@ -231,4 +231,90 @@ handleJoinLobbyRoom(
         
         return { success: true , gameId: data.gameId}
     }
+
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Game Websockets
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  @SubscribeMessage('joinGameRoom')
+    handleJoinGameRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { gameId: number, userId: number }
+) {
+    client.data.userId = data.userId;
+    const room = `game-${data.gameId}`;
+    client.join(room);
+    return { success: true };
+}
+
+  @SubscribeMessage('passingTurn')
+  async handlePassingTurn(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: {gameId: number, type: string}
+  ){
+    const room = `game-${data.gameId}`
+
+    if(data.type === "death"){
+        client.to(room).emit('explosionGameOver')
+    }else{
+        client.to(room).emit('updateData')
+    }
+  }
+
+  @SubscribeMessage('movingPlayer')
+  async handleMovingPlayer(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: {gameId: number}
+  ){
+    const room = `game-${data.gameId}`
+
+    client.to(room).emit('updateData')
+  }
+
+  @SubscribeMessage('buyCard')
+  async handleBuyingCards(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: {gameId: number}
+  ){
+    const room = `game-${data.gameId}`
+
+    client.to(room).emit('buyedCard')
+  }
+
+  @SubscribeMessage('playCard')
+  async handlePlayCardEffect(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: {gameId: number}
+  ){
+    const room = `game-${data.gameId}`
+
+    client.to(room).emit('playedCard')
+  }
+
+  @SubscribeMessage('resetGame')
+  async handleResetGame(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: {gameId: number}
+  ){
+    const room = `game-${data.gameId}`
+
+    client.to(room).emit('endGame')
+
+    const sockets = await this.server.in(room).fetchSockets();
+    for (const socket of sockets) {
+        socket.leave(room);
+    }
+  }
+
+  @SubscribeMessage('victoryScreen')
+  async handleVictoryScreen(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: {gameId: number}
+  ){
+    const room = `game-${data.gameId}`
+
+    client.to(room).emit('victoryScreenShow')
+  }
+
 }

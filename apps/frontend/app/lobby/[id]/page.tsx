@@ -139,6 +139,7 @@ const fetchLobby = useCallback(async () => {
     socket.connect();
 
     // Todos los listeners juntos
+
     socket.on('playerJoined', () => {
         fetchPlayers();
         fetchLobby();
@@ -180,10 +181,20 @@ const fetchLobby = useCallback(async () => {
 
   // Separado solo el que necesita esperar al lobbyCode
   useEffect(() => {
-    if (lobby?.lobbyCode) {
-        socket.emit('joinLobbyRoom', { lobbyCode: lobby.lobbyCode, userId: userId });
+    socket.connect()
+    
+    const handleConnect = () => {
+      if(lobby?.lobbyCode && userId){
+        socket.emit('joinLobbyRoom', { lobbyCode: lobby.lobbyCode, userId: userId })
+      }
     }
-  }, [lobby?.lobbyCode]);
+
+    socket.on('connect', handleConnect)
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.disconnect();
+    }
+  }, [lobby?.lobbyCode, userId]);
 
   const handleDifficultyChange = async (newDifficulty: Difficulty) => {
     try {

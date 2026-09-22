@@ -20,6 +20,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
 
     // PrismaClientValidationError no tiene código — lo identificamos por el tipo
     if (exception instanceof Prisma.PrismaClientValidationError) {
+      console.error('PRISMA VALIDATION ERROR:', exception);
       response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: 400,
         message: 'Datos de entrada inválidos',

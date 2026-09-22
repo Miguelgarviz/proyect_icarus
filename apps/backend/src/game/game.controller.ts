@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Put, Post, Body, Delete } from '@nestjs/common';
+import { Controller, Get, Param, Put, Post, Body, Delete, Query } from '@nestjs/common';
 import { GameService, spaceStationLandings } from './game.service';
 import {
   Game,
@@ -39,7 +39,6 @@ export class GameController {
 
   @Post()
   async createGame(@Body() gameData: {lobbyId: string, playerId: string}): Promise<Game> {
-    console.log("entramos", gameData)
     return this.gameService.createGame(Number(gameData.lobbyId), Number(gameData.playerId));
   }
 
@@ -206,9 +205,11 @@ export class GameController {
   }
 
   @Get('/:id/players-cards')
-  async getPlayersCards(@Param('id') gameId: string) {
+  async getPlayersCards(@Param('id') gameId: string, @Query('userId') userId:string) {
     const game = await this.gameService.getGame({ id: Number(gameId) });
-    return await this.cardService.getPlayerCards(game.actualPlayerId);
+    const lobby = await this.lobbyService.getLobby({ id: game.lobbyId })
+    const player = await this.playerService.getPlayerByUser(Number(userId), Number(lobby.id))
+    return await this.cardService.getPlayerCards(player.id);
   }
 
   @Get('/:id/max-range')
