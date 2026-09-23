@@ -81,7 +81,7 @@ export default function Lobby() {
   const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.beginner_i);
   const [userId, setUserId] = useState<number | null>(null);
 
-  const token = localStorage.getItem("access_token");
+  let token:string|null
   const PLAYER_API = "http://localhost:4000/api/v1/player";
   const LOBBY_API = `http://localhost:4000/api/v1/lobby`;
 
@@ -101,7 +101,7 @@ export default function Lobby() {
     } catch (error) {
         console.error("Error cargando jugadores del lobby:", error);
     }
-}, [idLobby, token]);
+}, [idLobby]);
 
 const fetchLobby = useCallback(async () => {
     try {
@@ -120,10 +120,11 @@ const fetchLobby = useCallback(async () => {
     } catch (error) {
         console.error("Error cargando datos del lobby:", error);
     }
-}, [idLobby, token]);
+}, [idLobby]);
 
   useEffect(() => {
     const payload = getTokenPayload();
+    token = localStorage.getItem("access_token");
     if (!payload || !token) {
       router.push("/login");
       return;

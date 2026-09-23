@@ -68,7 +68,7 @@ export default function GamePage() {
   const [goalImageUrl, setGoalImageUrl] = useState<string>();
 
   const gameId = params.id;
-  const token = localStorage.getItem("access_token");
+  let token: string|null
   const payload = getTokenPayload();
 
   const userId = payload?.sub;
@@ -271,6 +271,7 @@ export default function GamePage() {
 
   useEffect(() => {
     const payload = getTokenPayload();
+    token = localStorage.getItem("access_token");
     if (!payload) {
       router.push("/login");
       return;

@@ -21,11 +21,12 @@ export default function Home() {
   const [userId, setUserId] = useState<number | null>(null);
   const [lobbyCode, setLobbyCode] = useState("");
   const [joinError, setJoinError] = useState<string>("");
-  const token = localStorage.getItem("access_token");
+  let token:string|null;
 
 
   useEffect(() => {
     const payload = getTokenPayload();
+    token = localStorage.getItem("access_token");
     if (!payload) {
       router.push("/login");
       return;
