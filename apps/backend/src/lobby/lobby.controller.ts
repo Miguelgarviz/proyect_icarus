@@ -24,8 +24,21 @@ export class LobbyController {
     private readonly userService: UserService
   ) {}
 
+  @Post()
+  @HttpCode(201)
+  async createLobby(
+    @Body() lobbyData: Prisma.LobbyCreateInput,
+  ): Promise<Lobby> {
+    return this.lobbyService.createLobby(lobbyData);
+  }
 
-  @Put('join')
+  @Get('/players/:id')
+  async getPlayersInLobby(@Param('id') id: string): Promise<Player[]> {
+    await this.lobbyService.getLobby({ id: Number(id) });
+    return this.lobbyService.getPlayersInLobby({ id: Number(id) });
+  }
+
+  @Put('/join')
   async joinLobby(
     @Body() joinData: { code: string, userId: number }
   ): Promise<Lobby> {
@@ -63,19 +76,6 @@ export class LobbyController {
     return await this.lobbyService.getLobby({ id: Number(id) });
   }
 
-  @Get('players/:id')
-  async getPlayersInLobby(@Param('id') id: string): Promise<Player[]> {
-    await this.lobbyService.getLobby({ id: Number(id) });
-    return this.lobbyService.getPlayersInLobby({ id: Number(id) });
-  }
-
-  @Post()
-  @HttpCode(201)
-  async createLobby(
-    @Body() lobbyData: Prisma.LobbyCreateInput,
-  ): Promise<Lobby> {
-    return this.lobbyService.createLobby(lobbyData);
-  }
 
   @Put('/:id')
   async updateLobby(
@@ -85,30 +85,6 @@ export class LobbyController {
     return this.lobbyService.updateLobby({
       where: { id: Number(id) },
       data: lobbyData,
-    });
-  }
-
-  
-
-  @Put('/:id/add-player')
-  async addPlayerToLobby(
-    @Param('id') id: string,
-    @Body('userId') userId: string ,
-  ): Promise<Lobby> {
-    const lobby = await this.lobbyService.getLobby({ id: Number(id) });
-    const user = await this.userService.getUser(Number(userId));
-    const data = {
-      name: user.username,
-      color: PRESET_COLORS[lobby.numPlayers],
-      movement: 3,
-      turnOrder: lobby ? lobby.numPlayers : 0,
-      lobby: { connect: { id: Number(id) } },
-      user: { connect: { id: Number(userId) } },
-    };
-    const newPlayer = await this.playerService.createPlayer(data);
-    return await this.lobbyService.addPlayerToLobby({
-      where: { id: Number(id) },
-      data: { playerId: newPlayer.id },
     });
   }
 
@@ -130,10 +106,7 @@ export class LobbyController {
           `No se encontró un lobby para el jugador ${Number(playerId)}`,
         );
       }
-      return this.lobbyService.removePlayerFromLobby({
-        where: { id: lobby?.id },
-        data: { playerId: Number(playerId) },
-      });
+      return this.lobbyService.removePlayerFromLobby(lobby?.id ,Number(playerId));
     } catch (error: unknown) {
       throw new NotFoundException(
         `Error al eliminar el jugador ${Number(playerId)}: ${(error as Error).message}`,

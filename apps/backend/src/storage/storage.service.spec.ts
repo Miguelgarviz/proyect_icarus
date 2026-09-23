@@ -90,8 +90,9 @@ describe('StorageService', () => {
           color: '#aabbcc',
           turnOrder: 99,
           movement: 5,
-          lobby: { connect: { id: testData.lobby1.id } },
+          lobby: { connect: { id: testData.lobby3.id } },
           ship: { connect: { id: newShip.id } },
+          user: { connect: {id: testData.user3.id }}
         },
       });
 

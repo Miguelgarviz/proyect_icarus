@@ -32,14 +32,15 @@ export class GameController {
     private readonly drillCardsService: DrillCardService,
   ) {}
 
-  @Get('/:id')
-  async getGame(@Param('id') id: string): Promise<Game | null> {
-    return this.gameService.getGame({ id: Number(id) });
-  }
 
   @Post()
   async createGame(@Body() gameData: {lobbyId: string, playerId: string}): Promise<Game> {
-    return this.gameService.createGame(Number(gameData.lobbyId), Number(gameData.playerId));
+    return await this.gameService.createGame(Number(gameData.lobbyId), Number(gameData.playerId));
+  }
+
+  @Get('/:id')
+  async getGame(@Param('id') id: string): Promise<Game> {
+    return await this.gameService.getGame({ id: Number(id) });
   }
 
   @Post('/:id/create-store')

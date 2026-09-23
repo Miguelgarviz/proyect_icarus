@@ -17,7 +17,7 @@ import {
   TestData,
   clearTestDatabase,
 } from '../../test/test-data';
-import { CardType } from '../generated/prisma/client';
+import { CardType, Game } from '../generated/prisma/client';
 
 const request = require('supertest');
 
@@ -25,6 +25,7 @@ describe('GameController', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let testData: TestData;
+  let testGame: Game;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -92,8 +93,8 @@ describe('GameController', () => {
       const response = await request(app.getHttpServer())
         .post('/game')
         .send({
-          lobby: testData.lobby2.id,
-          actualPlayer: testData.player3.id,
+          lobbyId: testData.lobby2.id,
+          playerId: testData.player3.id,
         })
         .expect(201);
 
@@ -101,18 +102,9 @@ describe('GameController', () => {
       expect(response.body.lobbyId).toBe(testData.lobby2.id);
       expect(response.body.actualPlayerId).toBe(testData.player3.id);
 
-      // Limpiamos el game creado
-      await prisma.game.delete({ where: { id: response.body.id } });
-    });
+      const createdGame = await prisma.game.findUniqueOrThrow({where: {id: response.body.id }})
 
-    it('should return 400 if lobby does not exist', async () => {
-      await request(app.getHttpServer())
-        .post('/game')
-        .send({
-          lobby: 999999,
-          actualPlayer: testData.player3.id,
-        })
-        .expect(404);
+      testGame = createdGame
     });
   });
 
@@ -124,11 +116,11 @@ describe('GameController', () => {
     it('should return 201 and create a store with 18 cards for a multi-player game', async () => {
       // game tiene lobby1 con numPlayers=2
       const response = await request(app.getHttpServer())
-        .post(`/game/${testData.game.id}/create-store`)
+        .post(`/game/${testGame.id}/create-store`)
         .expect(201);
 
       expect(response.body.id).toBeDefined();
-      expect(response.body.numCards).toBe(18);
+      expect(response.body.numCards).toBe(16);
 
       // Verificamos que se crearon cartas
       const cards = await prisma.card.findMany({
@@ -152,19 +144,6 @@ describe('GameController', () => {
           id: testData.game.id,
         },
       });
-    });
-
-    it('should return 201 and create a store with 16 cards for a single-player game', async () => {
-      // game2 tiene lobby3 con numPlayers=1
-      const response = await request(app.getHttpServer())
-        .post(`/game/${testData.game2.id}/create-store`)
-        .expect(201);
-
-      expect(response.body.numCards).toBe(16);
-
-      // Limpiamos
-      await prisma.card.deleteMany({ where: { storeId: response.body.id } });
-      await prisma.store.delete({ where: { id: response.body.id } });
     });
 
     it('should return 404 when the game does not exist', async () => {

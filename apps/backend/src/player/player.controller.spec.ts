@@ -206,13 +206,18 @@ describe('PlayerController', () => {
           movement: 3,
           name: 'TestPlayerDelete',
           color: '#1900ff',
-          turnOrder: 1,
+          turnOrder: 2,
 
           lobby: {
             connect: {
               id: testData.lobby3.id,
             },
           },
+          user: {
+            connect: {
+              id: testData.user3.id
+            }
+          }
         },
       });
 

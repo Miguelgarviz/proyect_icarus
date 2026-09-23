@@ -63,6 +63,7 @@ describe('PlayerService', () => {
         lobby: { connect: { id: testData.lobby1.id } },
         ship: { connect: { id: newShip.id } },
         storage: { connect: { id: newStorage.id } },
+        user: { connect : { id: testData.user3.id } }
       };
 
       const result = await service.createPlayer(data);
@@ -75,6 +76,7 @@ describe('PlayerService', () => {
       expect(result.lobbyId).toBe(testData.lobby1.id);
       expect(result.shipId).toBe(newShip.id);
       expect(result.storageId).toBe(newStorage.id);
+      expect(result.userId).toBe(testData.user3.id);
 
       // Verificamos que existe en la BD
       const playerInDb = await prisma.player.findUnique({
@@ -219,7 +221,7 @@ describe('PlayerService', () => {
 
     it('should return an empty array if the lobby has no players', async () => {
       const emptyLobby = await prisma.lobby.create({
-        data: { dificulty: 'BEGINNER_I', numPlayers: 0 },
+        data: { dificulty: 'BEGINNER_I', numPlayers: 0, lobbyCode: "ZZZZZZ", hostId: testData.user1.id},
       });
 
       const result = await service.getPlayersInLobby(emptyLobby.id);

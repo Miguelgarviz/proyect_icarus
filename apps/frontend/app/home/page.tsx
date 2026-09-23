@@ -75,13 +75,13 @@ export default function Home() {
     setJoinError("");
 
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/lobby/add-player`, {
+      const response = await fetch(`http://localhost:4000/api/v1/lobby/join`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ userId: userId, lobbyCode: lobbyCode})
+        body: JSON.stringify({ code: lobbyCode, userId: userId})
       })
       if(response.ok){
         const lobbyData = await response.json()

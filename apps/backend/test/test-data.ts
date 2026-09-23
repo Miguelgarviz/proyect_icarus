@@ -27,6 +27,7 @@ export interface TestData {
 
   user1: User;
   user2: User;
+  user3: User;
 
   lobby1: Lobby;
   lobby2: Lobby;
@@ -36,6 +37,7 @@ export interface TestData {
   player2: Player;
   player3: Player;
   player4: Player;
+  player5: Player;
 
   ship1: Ship;
   ship2: Ship;
@@ -139,6 +141,12 @@ export async function seedTestDatabase(
   const user2 = await prisma.user.create({
     data:{
       username: "user2",
+      password: hash
+    }
+  })
+  const user3 = await prisma.user.create({
+    data:{
+      username: "user3",
       password: hash
     }
   })
@@ -358,6 +366,28 @@ export async function seedTestDatabase(
       user: {
         connect: {
           id: user1.id
+        }
+      },
+      
+    },
+  });
+
+  const player5 = await prisma.player.create({
+    data: {
+      movement: 3,
+      name: 'TestPlayer5',
+      color: '#00ff40',
+      turnOrder: 1,
+
+      lobby: {
+        connect: {
+          id: lobby3.id,
+        },
+      },
+
+      user: {
+        connect: {
+          id: user2.id
         }
       },
       
@@ -711,6 +741,7 @@ export async function seedTestDatabase(
     game2,
     user1,
     user2,
+    user3,
     lobby1,
     lobby2,
     lobby3,
@@ -718,6 +749,7 @@ export async function seedTestDatabase(
     player2,
     player3,
     player4,
+    player5,
     ship1,
     ship2,
     ship3,

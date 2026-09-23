@@ -94,18 +94,13 @@ export class LobbyService {
     });
   }
 
-  async removePlayerFromLobby(params: {
-    where: Prisma.LobbyWhereUniqueInput;
-    data: { playerId: number };
-  }): Promise<Lobby> {
-    const { where, data } = params;
-
+  async removePlayerFromLobby(lobbyId: number, playerId: number): Promise<Lobby> {
     return this.prisma.lobby.update({
-      where,
+      where: {id: lobbyId },
       data: {
         numPlayers: { decrement: 1 },
         players: {
-          disconnect: { id: data.playerId },
+          disconnect: { id: playerId }
         },
       },
     });

@@ -44,6 +44,13 @@ describe('LobbyService', () => {
       const data: Prisma.LobbyCreateInput = {
         dificulty: Dificulty.EASY_I,
         numPlayers: 2,
+        lobbyCode: "AAAAAAA",
+        host: {
+          connect: {
+            id: testData.user1.id
+          }
+        }
+
       };
 
       const result = await service.createLobby(data);
@@ -115,10 +122,7 @@ describe('LobbyService', () => {
 
   describe('changeLobbyDificulty', () => {
     it('should change the difficulty of a lobby', async () => {
-      const result = await service.changeLobbyDificulty({
-        where: { id: createdLobby.id },
-        data: { dificulty: Dificulty.HARD_I },
-      });
+      const result = await service.changeLobbyDificulty(createdLobby.id, Dificulty.HARD_I );
 
       expect(result).toBeDefined();
       expect(result.dificulty).toBe(Dificulty.HARD_I);
@@ -134,10 +138,7 @@ describe('LobbyService', () => {
 
     it('should throw P2025 if the lobby does not exist', async () => {
       await expect(
-        service.changeLobbyDificulty({
-          where: { id: 999999 },
-          data: { dificulty: Dificulty.EASY_I },
-        }),
+        service.changeLobbyDificulty( 999999 , Dificulty.EASY_I ),
       ).rejects.toMatchObject({ code: 'P2025' });
     });
   });
@@ -234,10 +235,9 @@ describe('LobbyService', () => {
       const lobbyBefore = await prisma.lobby.findUniqueOrThrow({
         where: { id: createdLobby.id },
       });
-
       const result = await service.addPlayerToLobby({
         where: { id: createdLobby.id },
-        data: { playerId: testData.player1.id },
+        data: { playerId: testData.player5.id },
       });
 
       expect(result).toBeDefined();
@@ -248,7 +248,7 @@ describe('LobbyService', () => {
         where: { lobbyId: createdLobby.id },
       });
       const playerIds = players.map((p) => p.id);
-      expect(playerIds).toContain(testData.player1.id);
+      expect(playerIds).toContain(testData.player5.id);
 
       createdLobby = result;
     });
@@ -257,7 +257,7 @@ describe('LobbyService', () => {
       await expect(
         service.addPlayerToLobby({
           where: { id: 999999 },
-          data: { playerId: testData.player1.id },
+          data: { playerId: testData.player5.id },
         }),
       ).rejects.toMatchObject({ code: 'P2025' });
     });
@@ -273,10 +273,18 @@ describe('LobbyService', () => {
         where: { id: createdLobby.id },
       });
 
-      const result = await service.removePlayerFromLobby({
-        where: { id: createdLobby.id },
-        data: { playerId: testData.player1.id },
-      });
+      await prisma.player.delete(
+        {
+          where:{
+            id: testData.player5.id
+          }
+        }
+      )
+
+      const result = await service.removePlayerFromLobby(
+        createdLobby.id,
+        testData.player5.id 
+      );
 
       expect(result).toBeDefined();
       expect(result.numPlayers).toBe(lobbyBefore.numPlayers - 1);
@@ -286,17 +294,17 @@ describe('LobbyService', () => {
         where: { lobbyId: createdLobby.id },
       });
       const playerIds = players.map((p) => p.id);
-      expect(playerIds).not.toContain(testData.player1.id);
+      expect(playerIds).not.toContain(testData.player5.id);
 
       createdLobby = result;
     });
 
     it('should throw P2025 if the lobby does not exist', async () => {
       await expect(
-        service.removePlayerFromLobby({
-          where: { id: 999999 },
-          data: { playerId: testData.player1.id },
-        }),
+        service.removePlayerFromLobby(
+          999999,
+          testData.player1.id 
+        ),
       ).rejects.toMatchObject({ code: 'P2025' });
     });
   });

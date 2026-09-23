@@ -11,6 +11,8 @@ import {
 import { PrismaExceptionFilter } from '../prisma/prisma-exception.filter';
 import { Dificulty, Lobby, Player } from '../generated/prisma/client';
 import { PlayerService } from '../player/player.service';
+import { UserService } from '../user/user.service';
+import { connect } from 'http2';
 
 const request = require('supertest');
 
@@ -23,7 +25,7 @@ describe('LobbyController', () => {
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [LobbyController],
-      providers: [PlayerService, LobbyService, PrismaService],
+      providers: [PlayerService, LobbyService, PrismaService, UserService],
     }).compile();
 
     app = module.createNestApplication();
@@ -75,6 +77,12 @@ describe('LobbyController', () => {
       const data = {
         dificulty: Dificulty.BEGINNER_I,
         numPlayers: 0,
+        lobbyCode: "DDDDDD",
+        host: {
+          connect:{
+            id: testData.user1.id
+          }
+        }
       };
 
       const response = await request(app.getHttpServer())
@@ -148,12 +156,12 @@ describe('LobbyController', () => {
   describe('PUT /lobby/:id/add-player', () => {
     it('should return a 200 and create a player in the lobby correctly', async () => {
       const data = {
-        name: 'TestPlayer',
-        color: '#ef4444',
-      };
+        code: testLobby.lobbyCode,
+        userId: testData.user2.id,
+      }
 
       const response = await request(app.getHttpServer())
-        .put(`/lobby/${testLobby.id}/add-player`)
+        .put(`/lobby/join`)
         .send(data)
         .expect(200);
 
@@ -167,12 +175,23 @@ describe('LobbyController', () => {
     });
     it('should return a 404 if the lobby does not exist', async () => {
       const data = {
-        name: 'TestPlayer',
-        color: '#ef4444',
-      };
+        code: "YYYYYYYYY",
+        userId: testData.user2.id,
+      }
 
       await request(app.getHttpServer())
-        .put(`/lobby/99999/add-player`)
+        .put(`/lobby/join`)
+        .send(data)
+        .expect(404);
+    });
+    it('should return a 404 if the user does not exist', async () => {
+      const data = {
+        code: testLobby.lobbyCode,
+        userId: 999999,
+      }
+
+      await request(app.getHttpServer())
+        .put(`/lobby/join`)
         .send(data)
         .expect(404);
     });
@@ -182,11 +201,13 @@ describe('LobbyController', () => {
       const player = await prisma.player.findFirstOrThrow({
         where: {
           lobbyId: testLobby.id,
+          userId: testData.user2.id
         },
       });
 
       const response = await request(app.getHttpServer())
         .put(`/lobby/${player.id}/remove-player`)
+        .send({ userId: testData.user2.id })
         .expect(200);
 
       const updatedLobby = await prisma.lobby.findUniqueOrThrow({

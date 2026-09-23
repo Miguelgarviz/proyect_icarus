@@ -11,7 +11,6 @@ import { TileModule } from '../tile/tile.module';
 import { CardService } from '../card/card.service';
 import { StoreService } from '../store/store.service';
 import { DrillCardService } from '../drill-card/drill-card.service';
-import { GameGateway } from './game.gateway';
 
 @Module({
   imports: [TileModule],
@@ -26,9 +25,7 @@ import { GameGateway } from './game.gateway';
     TileService,
     CardService,
     StoreService,
-    DrillCardService,
-
-    GameGateway
+    DrillCardService
   ],
   exports: [],
 })

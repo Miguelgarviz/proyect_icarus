@@ -8,6 +8,13 @@ import {
   TestData,
   clearTestDatabase,
 } from '../../test/test-data';
+import { LobbyService } from '../lobby/lobby.service';
+import { ShipService } from '../ship/ship.service';
+import { StorageService } from '../storage/storage.service';
+import { PlayerService } from '../player/player.service';
+import { CardService } from '../card/card.service';
+import { StoreService } from '../store/store.service';
+import { DrillCardService } from '../drill-card/drill-card.service';
 
 describe('GameService', () => {
   let service: GameService;
@@ -20,7 +27,7 @@ describe('GameService', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GameService, PrismaService, TileService],
+      providers: [GameService, PrismaService, TileService, LobbyService, ShipService, StorageService, PlayerService, CardService, StoreService, DrillCardService],
     }).compile();
 
     service = module.get<GameService>(GameService);
@@ -44,11 +51,11 @@ describe('GameService', () => {
     it('should create a new game', async () => {
       // Usamos lobby y player del seed, que ya existen en la BD
       const data = {
-        lobby: testData.lobby2.id,
-        actualPlayer: testData.player3.id,
-      } as unknown as Prisma.GameCreateInput;
+        lobbyId: testData.lobby2.id,
+        playerId: testData.player3.id,
+      };
 
-      const result = await service.createGame(data);
+      const result = await service.createGame(data.lobbyId, data.playerId);
 
       // Verificamos el objeto devuelto
       expect(result).toBeDefined();
@@ -68,23 +75,23 @@ describe('GameService', () => {
 
     it('should throw an error if lobby does not exist', async () => {
       const data = {
-        lobby: 999999, // ID que no existe
-        actualPlayer: testData.player3.id,
-      } as unknown as Prisma.GameCreateInput;
+        lobbyId: 999999, // ID que no existe
+        playerId: testData.player3.id,
+      }
 
       // Sin mock — Prisma lanzará el error real por FK violation
-      await expect(service.createGame(data)).rejects.toThrow(
+      await expect(service.createGame(data.lobbyId, data.playerId)).rejects.toThrow(
         Prisma.PrismaClientKnownRequestError,
       );
     });
 
     it('should throw an error if actualPlayer does not exist', async () => {
       const data = {
-        lobby: testData.lobby2.id,
-        actualPlayer: 999999, // ID que no existe
-      } as unknown as Prisma.GameCreateInput;
+        lobbyId: testData.lobby2.id,
+        playerId: 999999, // ID que no existe
+      }
 
-      await expect(service.createGame(data)).rejects.toThrow(
+      await expect(service.createGame(data.lobbyId, data.playerId)).rejects.toThrow(
         Prisma.PrismaClientKnownRequestError,
       );
     });
