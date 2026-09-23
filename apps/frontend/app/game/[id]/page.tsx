@@ -63,6 +63,7 @@ export default function GamePage() {
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [userPlayer, setUserPlayer] = useState<PlayerDTO>();
   const [isMyTurn, setIsMyTurn] = useState<boolean>(false);
+  const [gameEnded, setGameEnded] = useState<boolean>(false);
 
   const [goalImageUrl, setGoalImageUrl] = useState<string>();
 
@@ -263,6 +264,7 @@ export default function GamePage() {
 
   function handleIsMyTurn(userId: string, playerId: string){
     const res = Number(userId) == Number(playerId)
+    console.log(res, userId, playerId)
     setIsMyTurn(res)
   }
 
@@ -288,6 +290,7 @@ export default function GamePage() {
         await fetchStoreCards();
         const userPlayer = await fetchUserPlayer(payload?.sub!, game?.lobbyId!);
         await fetchPlayersCards(payload?.sub!);
+        console.log("Aqui esta el error, useEffect ", userPlayer?.id)
         handleIsMyTurn(userPlayer?.id!, actualPlayer?.id!)
         
 
@@ -330,6 +333,25 @@ export default function GamePage() {
   useEffect(() => {
     socket.connect();
 
+    socket.on('passedTurn', async () => {
+        console.log("entramos en el passedTurn")
+        const players = await fetchPlayers();
+        const freshShips = await fetchShips();
+        const game = await fetchGame();
+        await fetchStorages();
+        const actualPlayer = await fetchActualPlayer();
+        await fetchMaxDistance();
+        await fetchActualTile();
+        await fetchStoreCards();
+        const userPlayer = await fetchUserPlayer(payload?.sub!, game?.lobbyId!);
+        await fetchPlayersCards(payload?.sub!);
+        console.log("aqui esta el error, websocket ", userPlayer?.id)
+        handleIsMyTurn(userPlayer?.id!, actualPlayer?.id!)
+        
+        if (players && freshShips) {
+          calculatePlayerChips(players, freshShips);
+        }
+    })
     socket.on('updateData', async () => {
       const players = await fetchPlayers();
       const freshShips = await fetchShips();
@@ -392,6 +414,10 @@ export default function GamePage() {
       setIsVictoryModalOpen(true)
     })
 
+    socket.on('youAreDead', async() => {
+      setIsGameOverDeathModalOpen(true)
+    })
+
     // Limpias todos al desmontar
     return () => {
         socket.off('passedTurn');
@@ -426,6 +452,10 @@ export default function GamePage() {
 
   async function nextPlayer() {
     try {
+      socket.emit('finalTurn', {
+        playerId: currentPlayer?.id,
+        gameId: gameId
+      })
       const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/next-turn`, {
         method: "PUT",
         headers: { 
@@ -436,8 +466,10 @@ export default function GamePage() {
       const result = await response.json();
       if (result.defeat) {
         if(result.type === "death"){
+          setGameEnded(true)
           setIsGameOverDeathModalOpen(true)
         }else if(result.type === "explote"){
+          setGameEnded(true)
           setIsGameOverExplosionModalOpen(true)
         }
       } else {
@@ -733,6 +765,10 @@ export default function GamePage() {
       console.error(error)
     }
   }
+
+  async function handleCloseModal(){
+    setIsGameOverDeathModalOpen(false)
+  }
   return !loading ? (
     <main
       className={styles.pageContainer}
@@ -968,6 +1004,8 @@ export default function GamePage() {
   <div>
     <DeathEndModal
       handleResetGame={handleResetGame}
+      gameEnded={gameEnded}
+      handleCloseModal={handleCloseModal}
     />
   </div>
 )}

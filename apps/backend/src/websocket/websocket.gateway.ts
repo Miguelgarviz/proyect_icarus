@@ -3,9 +3,9 @@ import { LobbyService } from "../lobby/lobby.service";
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { PlayerService } from "../player/player.service";
-import { NotFoundException } from "@nestjs/common";
-
-const PRESET_COLORS = ["#ef4444", "#3b82f6", "#eab308", "#22c55e"];
+import { ShipService } from "../ship/ship.service";
+import { GameService } from "../game/game.service";
+import { PrismaService } from "../prisma/prisma.service";
 
 @WebSocketGateway({
     cors: {
@@ -16,9 +16,7 @@ const PRESET_COLORS = ["#ef4444", "#3b82f6", "#eab308", "#22c55e"];
 })
 export class AppGateway{
     constructor(
-        private readonly lobbyService: LobbyService,
-        private readonly playerService: PlayerService,
-        private readonly userService: UserService
+        private readonly prisma: PrismaService
     ){}
     @WebSocketServer()
     server!: Server;
@@ -135,7 +133,7 @@ handleJoinLobbyRoom(
     if(data.type === "death"){
         client.to(room).emit('explosionGameOver')
     }else{
-        client.to(room).emit('updateData')
+        client.to(room).emit('passedTurn')
     }
   }
 
@@ -192,6 +190,35 @@ handleJoinLobbyRoom(
     const room = `game-${data.gameId}`
 
     client.to(room).emit('victoryScreenShow')
+  }
+
+  @SubscribeMessage('finalTurn')
+  async handleFinalTurn(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: {playerId: number, gameId: number}
+  ){
+    const room = `game-${data.gameId}`
+
+    const player = await this.prisma.player.findUniqueOrThrow({ 
+      where: {
+        id: Number(data.playerId)
+      }
+    })
+    const ship = await this.prisma.ship.findUniqueOrThrow({
+      where:{
+        id: Number(player.shipId!)
+      }
+    })
+    const game = await this.prisma.game.findUniqueOrThrow({
+      where: { 
+        id: Number(data.gameId) 
+      }
+    })
+
+    
+    if(ship.shield <= 0 && !player.isDead){
+      client.emit('youAreDead')
+    }
   }
 
 }

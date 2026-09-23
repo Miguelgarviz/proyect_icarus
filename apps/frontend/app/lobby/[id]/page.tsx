@@ -496,7 +496,7 @@ const fetchLobby = useCallback(async () => {
 
       {/* Botones de acción */}
       <div className="flex flex-col items-center justify-center gap-4 pb-20 mt-16 relative z-10">
-        {players.length >= 1 && (
+        {players.length >= 1 && lobby?.hostId === userId && (
           <button
             onClick={handleStartGame}
             className="group relative inline-flex items-center justify-center px-16 py-4 font-mono font-black tracking-widest text-black transition-all duration-300 bg-cyan-400 rounded uppercase overflow-hidden hover:bg-cyan-300 shadow-[0_0_30px_rgba(34,211,238,0.2)] hover:shadow-[0_0_40px_rgba(34,211,238,0.4)] active:scale-95"

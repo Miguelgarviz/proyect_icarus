@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { socket } from "../../lib/sockets";
+import { LobbyDTO } from "../../lib/dto/lobbyDTO";
 
 
 interface GatewayResponse {
@@ -58,9 +59,19 @@ export default function Home() {
         },
         body: JSON.stringify({ hostId: userId })
       })
-      if(response.ok){
-        const lobbyData = await response.json()
-        router.push(`/lobby/${lobbyData.lobbyId}`);
+      if(!response.ok) throw new Error("Error al crear el lobby")
+      else{
+        const lobbyData: LobbyDTO = await response.json()
+        const response2 = await fetch(`http://localhost:4000/api/v1/lobby/join`, {
+          method: "PUT",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ code: lobbyData.lobbyCode, userId: userId })
+        })
+        if(!response2.ok) throw new Error("Error al crear el jugador")
+        router.push(`/lobby/${lobbyData.id}`);
       }
     }catch(error){
       console.error(error)
@@ -83,13 +94,16 @@ export default function Home() {
         },
         body: JSON.stringify({ code: lobbyCode, userId: userId})
       })
-      if(response.ok){
-        const lobbyData = await response.json()
-        router.push(`/lobby/${lobbyData.lobbyId}`);
+      if(!response.ok) throw new Error("Error al unirse al lobby")
+      else{
+        const lobbyData: LobbyDTO = await response.json()
+        console.log(lobbyData)
+        router.push(`/lobby/${lobbyData.id}`);
+      
+        socket.emit('joinLobby', {
+          lobbyCode: lobbyCode
+        })
       }
-      socket.emit('joinLobby', {
-        lobbyCode: lobbyCode
-      })
     }catch(error){
       console.error(error)
       setJoinError('ERROR AL CREAR EL LOBBY');

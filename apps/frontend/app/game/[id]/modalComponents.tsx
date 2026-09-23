@@ -133,31 +133,48 @@ export function DrillModal({
     )
 }
 
-export function DeathEndModal(
-  {handleResetGame}
-  :
-  {handleResetGame: ()=>void}
-){
-  return(
+export function DeathEndModal({
+  handleResetGame,
+  gameEnded,
+  handleCloseModal,
+}: {
+  handleResetGame: () => void;
+  gameEnded: boolean;
+  handleCloseModal: () => void;
+}) {
+  return (
     <div className={styles.modalOverlay}>
-    <div className={styles.modalContentGameOver}>
-      <div className={styles.modalBodyGameOver}>
-        <div className={`${styles.resultIcon} ${styles.iconDeath}`}>💀</div>
-        <h3 className={styles.modalTitleGameOver}>Misión Fracasada</h3>
-        <p className={styles.gameOverDescription}>
-          Los sistemas vitales de todas las naves se han extinguido. Ningún tripulante ha sobrevivido a los peligros del sector Icaro.
-        </p>
+      <div className={styles.modalContentGameOver}>
+        <div className={styles.modalBodyGameOver}>
+          <div className={`${styles.resultIcon} ${styles.iconDeath}`}>
+            💀
+          </div>
+
+          <h3 className={styles.modalTitleGameOver}>
+            Misión Fracasada
+          </h3>
+
+          <p className={styles.gameOverDescription}>
+            Los sistemas vitales de todas las naves se han extinguido.
+            Ningún tripulante ha sobrevivido a los peligros del sector Icaro.
+          </p>
+        </div>
+
+        <button
+          className={styles.modalRetryButton}
+          onClick={() => {
+            if (gameEnded) {
+              handleResetGame();
+            } else {
+              handleCloseModal();
+            }
+          }}
+        >
+          {gameEnded ? "Volver al Menú Principal" : "Cerrar el comunicado"}
+        </button>
       </div>
-      
-      <button 
-        className={styles.modalRetryButton}
-        onClick={() => handleResetGame()}
-      >
-        Volver al Menú Principal
-      </button>
     </div>
-    </div>
-  )
+  );
 }
 
 export function SuperNovaEndModal(
