@@ -22,7 +22,7 @@ export default function Home() {
   const [lobbyCode, setLobbyCode] = useState("");
   const [joinError, setJoinError] = useState<string>("");
   const [token, setToken] = useState<string|null>();
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL + "/api/v1"
 
 
   useEffect(() => {

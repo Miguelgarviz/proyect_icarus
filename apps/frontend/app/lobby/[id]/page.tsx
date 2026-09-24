@@ -82,7 +82,7 @@ export default function Lobby() {
   const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.beginner_i);
   const [userId, setUserId] = useState<number | null>(null);
   const [token, setToken] = useState<string>("");
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL + "/api/v1"
 
   const PLAYER_API = `${BACKEND_URL}/player`;
   const LOBBY_API = `${BACKEND_URL}/lobby`;

@@ -69,7 +69,7 @@ export default function GamePage() {
 
   const [goalImageUrl, setGoalImageUrl] = useState<string>();
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL + "/api/v1"
 
   const gameId = params.id;
   const payload = getTokenPayload();
