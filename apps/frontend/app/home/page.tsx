@@ -21,12 +21,14 @@ export default function Home() {
   const [userId, setUserId] = useState<number | null>(null);
   const [lobbyCode, setLobbyCode] = useState("");
   const [joinError, setJoinError] = useState<string>("");
-  let token:string|null;
+  const [token, setToken] = useState<string|null>();
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 
   useEffect(() => {
     const payload = getTokenPayload();
-    token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("access_token");
+    setToken(token)
     if (!payload) {
       router.push("/login");
       return;
@@ -51,8 +53,9 @@ export default function Home() {
 
   const handleCreateLobby = async () => {
     setLoading(true);
+    console.log(token)
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/lobby`, {
+      const response = await fetch(`${BACKEND_URL}/lobby`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -60,10 +63,10 @@ export default function Home() {
         },
         body: JSON.stringify({ hostId: userId })
       })
-      if(!response.ok) throw new Error("Error al crear el lobby")
+      if(!response.ok) throw new Error(`Error al crear el lobby: ${response.statusText}`)
       else{
         const lobbyData: LobbyDTO = await response.json()
-        const response2 = await fetch(`http://localhost:4000/api/v1/lobby/join`, {
+        const response2 = await fetch(`${BACKEND_URL}/lobby/join`, {
           method: "PUT",
           headers: { 
             "Content-Type": "application/json",
@@ -87,7 +90,7 @@ export default function Home() {
     setJoinError("");
 
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/lobby/join`, {
+      const response = await fetch(`${BACKEND_URL}/lobby/join`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",

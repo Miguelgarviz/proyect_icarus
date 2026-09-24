@@ -1,5 +1,6 @@
 "use client";
 
+import 'dotenv/config';
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import BoardGrid from "./BoardGrid";
@@ -64,22 +65,24 @@ export default function GamePage() {
   const [userPlayer, setUserPlayer] = useState<PlayerDTO>();
   const [isMyTurn, setIsMyTurn] = useState<boolean>(false);
   const [gameEnded, setGameEnded] = useState<boolean>(false);
+  const [token, setToken] = useState<string>("")
 
   const [goalImageUrl, setGoalImageUrl] = useState<string>();
 
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+
   const gameId = params.id;
-  let token: string|null
   const payload = getTokenPayload();
 
   const userId = payload?.sub;
 
-  const fetchPlayers = useCallback(async () => {
+  const fetchPlayers = useCallback(async (authToken: string) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/v1/game/${gameId}/players`,
+        `${BACKEND_URL}/game/${gameId}/players`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${authToken}`,
           },
         }
       );
@@ -94,11 +97,11 @@ export default function GamePage() {
     }
   }, [gameId]);
 
-  const getGoal = useCallback(async () => {
+  const getGoal = useCallback(async (authToken: string) => {
     try{
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/get-goal`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/get-goal`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${authToken}`
         }
       });
       if(!response.ok) throw new Error("Error al cargar el goal")
@@ -109,11 +112,11 @@ export default function GamePage() {
     }
   }, [gameId])
 
-  const fetchGame = useCallback(async () => {
+  const fetchGame = useCallback(async (authToken: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${authToken}`
         }
       });
       if (!response.ok) throw new Error("Error al cargar la partida");
@@ -125,11 +128,11 @@ export default function GamePage() {
     }
   }, [gameId])
 
-  const fetchShips = useCallback(async () => {
+  const fetchShips = useCallback(async (authToken: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/ships`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/ships`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${authToken}`
         }
       });
       if (!response.ok) throw new Error("Error al cargar naves");
@@ -141,20 +144,20 @@ export default function GamePage() {
     }
   }, [gameId])
 
-  const fetchStorages = useCallback(async () => {
+  const fetchStorages = useCallback(async (authToken: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/storages`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/storages`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${authToken}`
         }
       });
       if (!response.ok) throw new Error("Error al cargar almacenamiento");
       const storageData = await response.json();
       setStorages(storageData);
 
-      const responseGoal = await fetch(`http://localhost:4000/api/v1/game/${gameId}/goal`, {
+      const responseGoal = await fetch(`${BACKEND_URL}/game/${gameId}/goal`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${authToken}`
         }
       });
       if(!responseGoal.ok) throw new Error("Error al cargar el goal");
@@ -167,11 +170,11 @@ export default function GamePage() {
     }
   }, [gameId])
 
-  const fetchActualPlayer = useCallback(async () => {
+  const fetchActualPlayer = useCallback(async (authToken: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/current-player`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/current-player`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${authToken}`
         }
       });
       if (!response.ok) throw new Error("Error al cargar el jugador actual ");
@@ -183,13 +186,13 @@ export default function GamePage() {
     }
   }, [gameId])
 
-  const fetchUserPlayer = useCallback(async (user: number, lobbyId: string) => {
+  const fetchUserPlayer = useCallback(async (user: number, lobbyId: string, authToken: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/player/user?userId=${user}&lobbyId=${lobbyId}`, {
+      const response = await fetch(`${BACKEND_URL}/player/user?userId=${user}&lobbyId=${lobbyId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          "Authorization": `Bearer ${authToken}`,
         }
       });
       if (!response.ok) throw new Error("Error al cargar el jugador actual");
@@ -201,11 +204,11 @@ export default function GamePage() {
     }
   }, [gameId])
 
-  const fetchStoreCards = useCallback(async () => {
+  const fetchStoreCards = useCallback(async (authToken: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/store-cards`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/store-cards`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${authToken}`
         }
       });
       if (!response.ok) throw new Error("Error al cargar las cartas de la tienda");
@@ -216,12 +219,12 @@ export default function GamePage() {
     }
   }, [gameId])
 
-  const fetchPlayersCards = useCallback(async (userId: number) => {
+  const fetchPlayersCards = useCallback(async (userId: number, authToken: string) => {
     console.log(userId)
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/players-cards?userId=${userId}`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/players-cards?userId=${userId}`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${authToken}`
         }
       });
       if (!response.ok) throw new Error("Error al cargar las cartas del jugador");
@@ -232,11 +235,11 @@ export default function GamePage() {
     }
   }, [gameId])
 
-  const fetchMaxDistance = useCallback(async () => {
+  const fetchMaxDistance = useCallback(async (authToken: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/max-range`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/max-range`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${authToken}`
         }
       });
       if (!response.ok) throw new Error("Error al cargar las casillas a las que puede ir el jugador");
@@ -247,11 +250,11 @@ export default function GamePage() {
     }
   }, [gameId])
 
-  const fetchActualTile = useCallback(async () => {
+  const fetchActualTile = useCallback(async (authToken: string) => {
     try{
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/current-tile`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/current-tile`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${authToken}`
         }
       });
       if(!response.ok) throw new Error("Error al cargar la casilla actual del jugador");
@@ -271,26 +274,26 @@ export default function GamePage() {
 
   useEffect(() => {
     const payload = getTokenPayload();
-    token = localStorage.getItem("access_token");
-    if (!payload) {
+    const authToken = localStorage.getItem("access_token");
+    if (!payload || !authToken) {
       router.push("/login");
       return;
     }
-
-    async function loadAllGameData() {
+    setToken(authToken)
+    async function loadAllGameData(authToken: string) {
       setLoading(true);
       try {
-        await getGoal();
-        const players = await fetchPlayers();
-        const freshShips = await fetchShips();
-        const game = await fetchGame();
-        await fetchStorages();
-        const actualPlayer = await fetchActualPlayer();
-        await fetchMaxDistance();
-        await fetchActualTile();
-        await fetchStoreCards();
-        const userPlayer = await fetchUserPlayer(payload?.sub!, game?.lobbyId!);
-        await fetchPlayersCards(payload?.sub!);
+        await getGoal(authToken);
+        const players = await fetchPlayers(authToken);
+        const freshShips = await fetchShips(authToken);
+        const game = await fetchGame(authToken);
+        await fetchStorages(authToken);
+        const actualPlayer = await fetchActualPlayer(authToken);
+        await fetchMaxDistance(authToken);
+        await fetchActualTile(authToken);
+        await fetchStoreCards(authToken);
+        const userPlayer = await fetchUserPlayer(payload?.sub!, game?.lobbyId!, authToken);
+        await fetchPlayersCards(payload?.sub!, authToken);
         console.log("Aqui esta el error, useEffect ", userPlayer?.id)
         handleIsMyTurn(userPlayer?.id!, actualPlayer?.id!)
         
@@ -305,7 +308,7 @@ export default function GamePage() {
       }
     }
 
-    loadAllGameData();
+    loadAllGameData(authToken);
   }, [gameId]);
 
   useEffect(() => {
@@ -336,16 +339,16 @@ export default function GamePage() {
 
     socket.on('passedTurn', async () => {
         console.log("entramos en el passedTurn")
-        const players = await fetchPlayers();
-        const freshShips = await fetchShips();
-        const game = await fetchGame();
-        await fetchStorages();
-        const actualPlayer = await fetchActualPlayer();
-        await fetchMaxDistance();
-        await fetchActualTile();
-        await fetchStoreCards();
-        const userPlayer = await fetchUserPlayer(payload?.sub!, game?.lobbyId!);
-        await fetchPlayersCards(payload?.sub!);
+        const players = await fetchPlayers(token);
+        const freshShips = await fetchShips(token);
+        const game = await fetchGame(token);
+        await fetchStorages(token);
+        const actualPlayer = await fetchActualPlayer(token);
+        await fetchMaxDistance(token);
+        await fetchActualTile(token);
+        await fetchStoreCards(token);
+        const userPlayer = await fetchUserPlayer(payload?.sub!, game?.lobbyId!, token);
+        await fetchPlayersCards(payload?.sub!, token);
         console.log("aqui esta el error, websocket ", userPlayer?.id)
         handleIsMyTurn(userPlayer?.id!, actualPlayer?.id!)
         
@@ -354,15 +357,15 @@ export default function GamePage() {
         }
     })
     socket.on('updateData', async () => {
-      const players = await fetchPlayers();
-      const freshShips = await fetchShips();
+      const players = await fetchPlayers(token);
+      const freshShips = await fetchShips(token);
       await getAdjacentPlayers(false);
-      const actualPlayer = await fetchActualPlayer();
-      await fetchStorages();
-      await fetchPlayersCards(userId!);
-      await fetchMaxDistance();
-      await fetchActualTile();
-      await fetchGame();
+      const actualPlayer = await fetchActualPlayer(token);
+      await fetchStorages(token);
+      await fetchPlayersCards(userId!, token);
+      await fetchMaxDistance(token);
+      await fetchActualTile(token);
+      await fetchGame(token);
 
       if (players && freshShips) {
         calculatePlayerChips(players, freshShips);
@@ -375,29 +378,29 @@ export default function GamePage() {
     });
 
     socket.on('buyedCard', async () => {
-      await fetchShips();
-      await fetchActualPlayer();
-      await fetchStorages();
-      await fetchStoreCards();
+      await fetchShips(token);
+      await fetchActualPlayer(token);
+      await fetchStorages(token);
+      await fetchStoreCards(token);
     });
 
     socket.on('playedCard', async () => {
       setScannerOptions([])
 
       getAdjacentPlayers(false);
-      await fetchActualPlayer();
-      await fetchActualTile();
-      await fetchStorages();
+      await fetchActualPlayer(token);
+      await fetchActualTile(token);
+      await fetchStorages(token);
 
-      const players = await fetchPlayers();
-      const ships = await fetchShips();
+      const players = await fetchPlayers(token);
+      const ships = await fetchShips(token);
 
       if (players && ships) {
           calculatePlayerChips(players, ships);
       }
 
-      await fetchMaxDistance();
-      await fetchPlayersCards(userId!);
+      await fetchMaxDistance(token);
+      await fetchPlayersCards(userId!, token);
 
       
 
@@ -457,7 +460,7 @@ export default function GamePage() {
         playerId: currentPlayer?.id,
         gameId: gameId
       })
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/next-turn`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/next-turn`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -474,19 +477,19 @@ export default function GamePage() {
           setIsGameOverExplosionModalOpen(true)
         }
       } else {
-        const players = await fetchPlayers();
-        const freshShips = await fetchShips();
+        const players = await fetchPlayers(token);
+        const freshShips = await fetchShips(token);
         await getAdjacentPlayers(false);
-        const actualPlayer = await fetchActualPlayer();
-        await fetchStorages();
-        await fetchPlayersCards(userId!);
-        await fetchMaxDistance();
-        await fetchActualTile();
-        await fetchGame();
+        const actualPlayer = await fetchActualPlayer(token);
+        await fetchStorages(token);
+        await fetchPlayersCards(userId!, token);
+        await fetchMaxDistance(token);
+        await fetchActualTile(token);
+        await fetchGame(token);
 
         if (players && freshShips) {
           calculatePlayerChips(players, freshShips);
-          const userPlayer = await fetchUserPlayer(userId!, game?.lobbyId!)
+          const userPlayer = await fetchUserPlayer(userId!, game?.lobbyId!, token)
           handleIsMyTurn(userPlayer?.id!, actualPlayer?.id!)
         }
 
@@ -502,7 +505,7 @@ export default function GamePage() {
 
   async function handleMovePlayer(targetNodeId: string) {
     try {
-      await fetch(`http://localhost:4000/api/v1/game/${gameId}/move-player`, {
+      await fetch(`${BACKEND_URL}/game/${gameId}/move-player`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -511,14 +514,14 @@ export default function GamePage() {
         body: JSON.stringify({ externalId: targetNodeId }),
       });
       
-      const players = await fetchPlayers();
-      const freshShips = await fetchShips();
+      const players = await fetchPlayers(token);
+      const freshShips = await fetchShips(token);
       await getAdjacentPlayers(false);
-      await fetchGame();
-      await fetchActualPlayer();
-      await fetchMaxDistance();
-      await fetchStorages();
-      await fetchActualTile();
+      await fetchGame(token);
+      await fetchActualPlayer(token);
+      await fetchMaxDistance(token);
+      await fetchStorages(token);
+      await fetchActualTile(token);
 
       if (players && freshShips) {
         calculatePlayerChips(players, freshShips);
@@ -533,7 +536,7 @@ export default function GamePage() {
 
   async function handleUpgradeShip(system:string){
     try{
-      await fetch(`http://localhost:4000/api/v1/game/${gameId}/upgrade-ship`,{
+      await fetch(`${BACKEND_URL}/game/${gameId}/upgrade-ship`,{
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -541,9 +544,9 @@ export default function GamePage() {
         },
         body: JSON.stringify({ system: system})
       });
-      await fetchShips();
-      await fetchActualPlayer();
-      await fetchStorages();
+      await fetchShips(token);
+      await fetchActualPlayer(token);
+      await fetchStorages(token);
     }catch(error){
       console.error(error);
     }
@@ -551,7 +554,7 @@ export default function GamePage() {
 
   async function handleChangeMinerals(system: string){
     try{
-      await fetch(`http://localhost:4000/api/v1/game/${gameId}/change-minerals`,{
+      await fetch(`${BACKEND_URL}/game/${gameId}/change-minerals`,{
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -559,7 +562,7 @@ export default function GamePage() {
         },
         body: JSON.stringify({ system: system})
       });
-      await fetchStorages();
+      await fetchStorages(token);
     }catch(error){
       console.error(error);
     }
@@ -567,7 +570,7 @@ export default function GamePage() {
 
   async function handleBuy (cardId: number) {
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/buy-card`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/buy-card`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -576,9 +579,9 @@ export default function GamePage() {
         body: JSON.stringify({ cardId })
       });
       if (!response.ok) throw new Error("Error");
-      await fetchStoreCards();
-      await fetchStorages();
-      await fetchPlayersCards(userId!);
+      await fetchStoreCards(token);
+      await fetchStorages(token);
+      await fetchPlayersCards(userId!, token);
       socket.emit('buyCard', {
         gameId: gameId
       });
@@ -589,7 +592,7 @@ export default function GamePage() {
 
   async function handleDrill(){
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/drill`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/drill`, {
         method: "PUT", 
         headers: { 
           "Content-Type": "application/json",
@@ -604,10 +607,10 @@ export default function GamePage() {
       if(data.valid){
         setDrillResult(data);
         setIsDrillModalOpen(true);
-        await fetchStorages();
-        await fetchGame();
-        await fetchShips();
-        await fetchActualTile();
+        await fetchStorages(token);
+        await fetchGame(token);
+        await fetchShips(token);
+        await fetchActualTile(token);
       }
       
 
@@ -618,7 +621,7 @@ export default function GamePage() {
 
   async function handleDrillDeeper(){
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/drill-deeper`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/drill-deeper`, {
         method: "PUT", 
         headers: { 
           "Content-Type": "application/json",
@@ -633,10 +636,10 @@ export default function GamePage() {
       if(data.valid){
         setDrillResult(data);
         setIsDrillModalOpen(true);
-        await fetchStorages();
-        await fetchGame();
-        await fetchShips();
-        await fetchActualTile();
+        await fetchStorages(token);
+        await fetchGame(token);
+        await fetchShips(token);
+        await fetchActualTile(token);
       }
       
 
@@ -654,7 +657,7 @@ export default function GamePage() {
 
   async function getResourcesCardsForEHCard(){
     try{
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/get-resource-cards`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/get-resource-cards`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -670,7 +673,7 @@ export default function GamePage() {
 
   async function getAdjacentPlayers(card: boolean){
     try{
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/adjacent-players`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/adjacent-players`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -686,7 +689,7 @@ export default function GamePage() {
 
   async function handlePlayCardEffect(card: CardDTO, option: string){
     try{
-      await fetch(`http://localhost:4000/api/v1/game/${gameId}/use-card`, {
+      await fetch(`${BACKEND_URL}/game/${gameId}/use-card`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -698,19 +701,19 @@ export default function GamePage() {
       setScannerOptions([])
 
       getAdjacentPlayers(false);
-      await fetchActualPlayer();
-      await fetchActualTile();
-      await fetchStorages();
+      await fetchActualPlayer(token);
+      await fetchActualTile(token);
+      await fetchStorages(token);
 
-      const players = await fetchPlayers();
-      const ships = await fetchShips();
+      const players = await fetchPlayers(token);
+      const ships = await fetchShips(token);
 
       if (players && ships) {
           calculatePlayerChips(players, ships);
       }
 
-      await fetchMaxDistance();
-      await fetchPlayersCards(userId!);
+      await fetchMaxDistance(token);
+      await fetchPlayersCards(userId!, token);
 
       
 
@@ -730,7 +733,7 @@ export default function GamePage() {
     setIsGameOverDeathModalOpen(false);
     setIsGameOverExplosionModalOpen(false);
     try{
-      const response = await fetch(`http://localhost:4000/api/v1/game/${gameId}/delete-game`, {
+      const response = await fetch(`${BACKEND_URL}/game/${gameId}/delete-game`, {
         method: "DELETE",
         headers: { 
           "Content-Type": "application/json",
@@ -753,15 +756,15 @@ export default function GamePage() {
 
   async function handleInitialHelp(){
     try{
-      await fetch(`http://localhost:4000/api/v1/game/${gameId}/initial-help`,{
+      await fetch(`${BACKEND_URL}/game/${gameId}/initial-help`,{
         method:"PUT",
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         }
       })
-      await fetchActualPlayer();
-      await fetchStorages();
+      await fetchActualPlayer(token);
+      await fetchStorages(token);
     }catch(error){
       console.error(error)
     }

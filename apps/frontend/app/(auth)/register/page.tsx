@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const AUTH_API = "http://localhost:4000/api/v1/auth";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+const AUTH_API = `${BACKEND_URL}/auth`;
 
 export default function Register() {
   const router = useRouter();

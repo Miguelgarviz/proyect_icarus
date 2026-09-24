@@ -1,5 +1,6 @@
 "use client";
 
+import 'dotenv/config';
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -80,18 +81,23 @@ export default function Lobby() {
 
   const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.beginner_i);
   const [userId, setUserId] = useState<number | null>(null);
+  const [token, setToken] = useState<string>("");
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
-  let token:string|null
-  const PLAYER_API = "http://localhost:4000/api/v1/player";
-  const LOBBY_API = `http://localhost:4000/api/v1/lobby`;
+  const PLAYER_API = `${BACKEND_URL}/player`;
+  const LOBBY_API = `${BACKEND_URL}/lobby`;
+  const GAME_API = `${BACKEND_URL}/game`;
+  const DRILL_CARD_API = `${BACKEND_URL}/drill-card`;
+  const TILE_API = `${BACKEND_URL}/tile`;
 
-  const fetchPlayers = useCallback(async () => {
+  const fetchPlayers = useCallback(async (authToken: string) => {
+    console.log("url: ", token)
     try {
         const response = await fetch(`${LOBBY_API}/players/${idLobby}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
+                "Authorization": `Bearer ${authToken}`,
             },
         });
         if (response.ok) {
@@ -103,13 +109,13 @@ export default function Lobby() {
     }
 }, [idLobby]);
 
-const fetchLobby = useCallback(async () => {
+const fetchLobby = useCallback(async (authToken: string) => {
     try {
         const response = await fetch(`${LOBBY_API}/${idLobby}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
+                "Authorization": `Bearer ${authToken}`,
             },
         });
         if (response.ok) {
@@ -124,14 +130,15 @@ const fetchLobby = useCallback(async () => {
 
   useEffect(() => {
     const payload = getTokenPayload();
-    token = localStorage.getItem("access_token");
-    if (!payload || !token) {
+    const authToken = localStorage.getItem("access_token");
+    if (!payload || !authToken) {
       router.push("/login");
       return;
     }
-    if (idLobby) {
-      fetchPlayers();
-      fetchLobby();
+    setToken(authToken)
+    if(idLobby){
+      fetchPlayers(authToken);
+      fetchLobby(authToken);
       setUserId(payload.sub);
     }
   }, [idLobby]);
@@ -142,8 +149,8 @@ const fetchLobby = useCallback(async () => {
     // Todos los listeners juntos
 
     socket.on('playerJoined', () => {
-        fetchPlayers();
-        fetchLobby();
+        fetchPlayers(token);
+        fetchLobby(token);
     });
 
     socket.on('removedFromLobby', () => {
@@ -155,8 +162,8 @@ const fetchLobby = useCallback(async () => {
     });
 
     socket.on('playerLeft', async () => {
-      await fetchPlayers();
-      await fetchLobby();
+      await fetchPlayers(token);
+      await fetchLobby(token);
     });
 
     socket.on('gameStarted', ( response ) => {
@@ -164,8 +171,8 @@ const fetchLobby = useCallback(async () => {
     });
 
     socket.on('updatedData', async () => {
-      await fetchPlayers();
-      await fetchLobby();
+      await fetchPlayers(token);
+      await fetchLobby(token);
     })
 
     // Limpias todos al desmontar
@@ -218,7 +225,7 @@ const fetchLobby = useCallback(async () => {
 
   const handleStartGame = async () => {
     try {
-      const response = await fetch(`http://localhost:4000/api/v1/game`, {
+      const response = await fetch(`${GAME_API}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -228,24 +235,24 @@ const fetchLobby = useCallback(async () => {
       });
       if (response.ok) {
         const game = await response.json();
-        await fetch(`http://localhost:4000/api/v1/game/${game.id}/create-store`, {
+        await fetch(`${GAME_API}/${game.id}/create-store`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         });
-        await fetch(`http://localhost:4000/api/v1/drill-card`, {
+        await fetch(`${DRILL_CARD_API}`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
           body: JSON.stringify({ gameId: game.id }),
         });
-        await fetch(`http://localhost:4000/api/v1/player/${lobby?.id}/ship`, {
+        await fetch(`${PLAYER_API}/${lobby?.id}/ship`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         });
-        await fetch(`http://localhost:4000/api/v1/player/${lobby?.id}/storage`, {
+        await fetch(`${PLAYER_API}/${lobby?.id}/storage`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         });
-        await fetch(`http://localhost:4000/api/v1/tile/${game.id}/game`, {
+        await fetch(`${TILE_API}/${game.id}/game`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         });
@@ -277,7 +284,7 @@ const fetchLobby = useCallback(async () => {
           lobbyCode: lobby?.lobbyCode
         });
         setEditingId(null);
-        await fetchPlayers();
+        await fetchPlayers(token);
       }
     } catch (error) {
       console.error("Error al actualizar:", error);
@@ -287,7 +294,7 @@ const fetchLobby = useCallback(async () => {
   const handleRemove = async (playerId: string) => {
 
     try{
-      const response = await fetch(`http://localhost:4000/api/v1/lobby/${playerId}/remove-player`, {
+      const response = await fetch(`${LOBBY_API}/${playerId}/remove-player`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -309,7 +316,7 @@ const fetchLobby = useCallback(async () => {
 
   const handleDelete = async () => {
     try{
-      const response = await fetch(`http://localhost:4000/api/v1/lobby/${idLobby}`, {
+      const response = await fetch(`${LOBBY_API}/${idLobby}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
