@@ -14,8 +14,6 @@ socket.on('connect', () => {
 socket.on('connect_error', (error) => {
   console.error('🔴 WebSocket connect_error:', error);
   console.error('message:', error.message);
-  console.error('description:', error.description);
-  console.error('context:', error.context);
 });
 
 socket.on('disconnect', (reason) => {
