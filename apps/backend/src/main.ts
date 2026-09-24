@@ -10,9 +10,10 @@ import { CorsIoAdapter } from './socket.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const FRONTEND_URL = process.env.FRONTEND_URL
 
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: FRONTEND_URL,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
