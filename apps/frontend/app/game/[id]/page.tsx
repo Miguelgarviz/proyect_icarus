@@ -220,7 +220,6 @@ export default function GamePage() {
   }, [gameId])
 
   const fetchPlayersCards = useCallback(async (userId: number, authToken: string) => {
-    console.log(userId)
     try {
       const response = await fetch(`${BACKEND_URL}/game/${gameId}/players-cards?userId=${userId}`, {
         headers: {
@@ -267,7 +266,6 @@ export default function GamePage() {
 
   function handleIsMyTurn(userId: string, playerId: string){
     const res = Number(userId) == Number(playerId)
-    console.log(res, userId, playerId)
     setIsMyTurn(res)
   }
 
@@ -294,7 +292,6 @@ export default function GamePage() {
         await fetchStoreCards(authToken);
         const userPlayer = await fetchUserPlayer(payload?.sub!, game?.lobbyId!, authToken);
         await fetchPlayersCards(payload?.sub!, authToken);
-        console.log("Aqui esta el error, useEffect ", userPlayer?.id)
         handleIsMyTurn(userPlayer?.id!, actualPlayer?.id!)
         
 
@@ -338,7 +335,6 @@ export default function GamePage() {
     socket.connect();
 
     socket.on('passedTurn', async () => {
-        console.log("entramos en el passedTurn")
         const players = await fetchPlayers(token);
         const freshShips = await fetchShips(token);
         const game = await fetchGame(token);
@@ -349,7 +345,6 @@ export default function GamePage() {
         await fetchStoreCards(token);
         const userPlayer = await fetchUserPlayer(payload?.sub!, game?.lobbyId!, token);
         await fetchPlayersCards(payload?.sub!, token);
-        console.log("aqui esta el error, websocket ", userPlayer?.id)
         handleIsMyTurn(userPlayer?.id!, actualPlayer?.id!)
         
         if (players && freshShips) {

@@ -91,7 +91,6 @@ export default function Lobby() {
   const TILE_API = `${BACKEND_URL}/tile`;
 
   const fetchPlayers = useCallback(async (authToken: string) => {
-    console.log("url: ", token)
     try {
         const response = await fetch(`${LOBBY_API}/players/${idLobby}`, {
             method: "GET",

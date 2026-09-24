@@ -37,8 +37,6 @@ async function bootstrap() {
 
   SwaggerModule.setup('docs', app, document);
 
-  console.log('Servidor corriendo en: http://localhost:4000/api/v1');
-  console.log('Documentación disponible en: http://localhost:4000/docs');
 
   const jwtService = app.get(JwtService);
   const reflector = app.get(Reflector);

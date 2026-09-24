@@ -53,7 +53,6 @@ export default function Home() {
 
   const handleCreateLobby = async () => {
     setLoading(true);
-    console.log(token)
     try {
       const response = await fetch(`${BACKEND_URL}/lobby`, {
         method: "POST",
@@ -101,7 +100,6 @@ export default function Home() {
       if(!response.ok) throw new Error("Error al unirse al lobby")
       else{
         const lobbyData: LobbyDTO = await response.json()
-        console.log(lobbyData)
         router.push(`/lobby/${lobbyData.id}`);
       
         socket.emit('joinLobby', {
