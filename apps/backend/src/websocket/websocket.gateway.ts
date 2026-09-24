@@ -1,10 +1,13 @@
+import 'dotenv/config';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 
+const FRONTEND_URL = process.env.FRONTEND_URL
+
 @WebSocketGateway({
     cors: {
-        origin: 'http://localhost:3000',
+        origin: FRONTEND_URL,
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
     }

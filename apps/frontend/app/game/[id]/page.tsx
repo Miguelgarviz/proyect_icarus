@@ -411,7 +411,7 @@ export default function GamePage() {
     })
 
     socket.on('endGame', async () => {
-      router.push(`http://localhost:3000/home`);
+      router.push(`/home`);
     })
 
     socket.on('victoryScreenShow', async() => {
@@ -744,7 +744,7 @@ export default function GamePage() {
       socket.emit('resetGame', {
         gameId: gameId
       });
-      router.push(`http://localhost:3000/home`);
+      router.push(`/home`);
     }catch(error){
       console.error(error)
     }
