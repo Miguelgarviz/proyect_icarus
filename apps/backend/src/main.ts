@@ -43,6 +43,6 @@ async function bootstrap() {
   app.useGlobalGuards(new AuthGuard(jwtService, reflector));
 
   app.useGlobalFilters(new PrismaExceptionFilter());
-  await app.listen(4000);
+  await app.listen(process.env.PORT ?? 4000);
 }
 bootstrap();
