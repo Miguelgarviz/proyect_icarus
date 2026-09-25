@@ -334,17 +334,20 @@ export default function GamePage() {
   useEffect(() => {
     socket.connect();
 
+    let authToken = token;
+    if(!authToken) authToken = localStorage.getItem("access_token")!
+
     socket.on('passedTurn', async () => {
-        const players = await fetchPlayers(token);
-        const freshShips = await fetchShips(token);
-        const game = await fetchGame(token);
-        await fetchStorages(token);
-        const actualPlayer = await fetchActualPlayer(token);
-        await fetchMaxDistance(token);
-        await fetchActualTile(token);
-        await fetchStoreCards(token);
-        const userPlayer = await fetchUserPlayer(payload?.sub!, game?.lobbyId!, token);
-        await fetchPlayersCards(payload?.sub!, token);
+        const players = await fetchPlayers(authToken);
+        const freshShips = await fetchShips(authToken);
+        const game = await fetchGame(authToken);
+        await fetchStorages(authToken);
+        const actualPlayer = await fetchActualPlayer(authToken);
+        await fetchMaxDistance(authToken);
+        await fetchActualTile(authToken);
+        await fetchStoreCards(authToken);
+        const userPlayer = await fetchUserPlayer(payload?.sub!, game?.lobbyId!, authToken);
+        await fetchPlayersCards(payload?.sub!, authToken);
         handleIsMyTurn(userPlayer?.id!, actualPlayer?.id!)
         
         if (players && freshShips) {
@@ -352,20 +355,21 @@ export default function GamePage() {
         }
     })
     socket.on('updateData', async () => {
-      const players = await fetchPlayers(token);
-      const freshShips = await fetchShips(token);
-      await getAdjacentPlayers(false);
-      const actualPlayer = await fetchActualPlayer(token);
-      await fetchStorages(token);
-      await fetchPlayersCards(userId!, token);
-      await fetchMaxDistance(token);
-      await fetchActualTile(token);
-      await fetchGame(token);
-
-      if (players && freshShips) {
-        calculatePlayerChips(players, freshShips);
+        const players = await fetchPlayers(authToken);
+        const freshShips = await fetchShips(authToken);
+        const game = await fetchGame(authToken);
+        await fetchStorages(authToken);
+        const actualPlayer = await fetchActualPlayer(authToken);
+        await fetchMaxDistance(authToken);
+        await fetchActualTile(authToken);
+        await fetchStoreCards(authToken);
+        const userPlayer = await fetchUserPlayer(payload?.sub!, game?.lobbyId!, authToken);
+        await fetchPlayersCards(payload?.sub!, authToken);
         handleIsMyTurn(userPlayer?.id!, actualPlayer?.id!)
-      }
+        
+        if (players && freshShips) {
+          calculatePlayerChips(players, freshShips);
+        }
     });
 
     socket.on('explosionGameOver', async () => {
@@ -373,29 +377,29 @@ export default function GamePage() {
     });
 
     socket.on('buyedCard', async () => {
-      await fetchShips(token);
-      await fetchActualPlayer(token);
-      await fetchStorages(token);
-      await fetchStoreCards(token);
+      await fetchShips(authToken);
+      await fetchActualPlayer(authToken);
+      await fetchStorages(authToken);
+      await fetchStoreCards(authToken);
     });
 
     socket.on('playedCard', async () => {
       setScannerOptions([])
 
       getAdjacentPlayers(false);
-      await fetchActualPlayer(token);
-      await fetchActualTile(token);
-      await fetchStorages(token);
+      await fetchActualPlayer(authToken);
+      await fetchActualTile(authToken);
+      await fetchStorages(authToken);
 
-      const players = await fetchPlayers(token);
-      const ships = await fetchShips(token);
+      const players = await fetchPlayers(authToken);
+      const ships = await fetchShips(authToken);
 
       if (players && ships) {
           calculatePlayerChips(players, ships);
       }
 
-      await fetchMaxDistance(token);
-      await fetchPlayersCards(userId!, token);
+      await fetchMaxDistance(authToken);
+      await fetchPlayersCards(userId!, authToken);
 
       
 
@@ -651,10 +655,11 @@ export default function GamePage() {
   }
 
   async function getResourcesCardsForEHCard(){
+    const authToken = localStorage.getItem("access_token")!
     try{
       const response = await fetch(`${BACKEND_URL}/game/${gameId}/get-resource-cards`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${authToken}`
         }
       })
       if(!response.ok) throw new Error("Error al cargar las cartas de recursos para la carta del jugador");
@@ -667,13 +672,14 @@ export default function GamePage() {
   }
 
   async function getAdjacentPlayers(card: boolean){
+    const authToken = localStorage.getItem("access_token")!
     try{
       const response = await fetch(`${BACKEND_URL}/game/${gameId}/adjacent-players`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${authToken}`
         }
       })
-      if(!response.ok) throw new Error("Error al cargar las cartas de recursos para la carta del jugador");
+      if(!response.ok) throw new Error("Error al cargar los jugadores adyacentes al jugador actual");
       const adjacentPlayersData = await response.json();
       setAdjacentPlayers(adjacentPlayersData)
       if(card) setIsSwapCardModalOpen(true)
@@ -694,7 +700,6 @@ export default function GamePage() {
       })
 
       setScannerOptions([])
-
       getAdjacentPlayers(false);
       await fetchActualPlayer(token);
       await fetchActualTile(token);
