@@ -145,11 +145,14 @@ const fetchLobby = useCallback(async (authToken: string) => {
   useEffect(() => {
     socket.connect();
 
-    // Todos los listeners juntos
 
+
+    let authToken = token;
+    if(!authToken) authToken = localStorage.getItem("access_token")!
+    // Todos los listeners juntos
     socket.on('playerJoined', () => {
-        fetchPlayers(token);
-        fetchLobby(token);
+        fetchPlayers(authToken);
+        fetchLobby(authToken);
     });
 
     socket.on('removedFromLobby', () => {
@@ -161,8 +164,8 @@ const fetchLobby = useCallback(async (authToken: string) => {
     });
 
     socket.on('playerLeft', async () => {
-      await fetchPlayers(token);
-      await fetchLobby(token);
+      await fetchPlayers(authToken);
+      await fetchLobby(authToken);
     });
 
     socket.on('gameStarted', ( response ) => {
@@ -170,8 +173,8 @@ const fetchLobby = useCallback(async (authToken: string) => {
     });
 
     socket.on('updatedData', async () => {
-      await fetchPlayers(token);
-      await fetchLobby(token);
+      await fetchPlayers(authToken);
+      await fetchLobby(authToken);
     })
 
     // Limpias todos al desmontar
