@@ -214,7 +214,7 @@ handleJoinLobbyRoom(
     })
 
     
-    if(ship.shield <= 0 && !player.isDead){
+    if(ship.shield < 0 && !player.isDead){
       client.emit('youAreDead')
     }
   }
