@@ -23,7 +23,14 @@ export class DrillCardService {
   }
 
   async createDrillCardsForGame(gameId: number) {
-    await this.prisma.game.findUniqueOrThrow({ where: { id: gameId } });
+    const game = await this.prisma.game.findUniqueOrThrow({ where: { id: gameId } });
+    const lobby = await this.prisma.lobby.findUniqueOrThrow({ where: { id: game.lobbyId } });
+    let numCards = 22;
+    if (lobby.numPlayers == 2) {
+      numCards = 21;
+    }else if (lobby.numPlayers > 2) {
+      numCards = 20;
+    }
     const drillCardsGreenResources = [
       4, 4, 4, 5, 4, 5, 3, 3, 5, 4, 4, 3, 6, 3, 4, 3, 6, 3,
     ];
@@ -33,7 +40,7 @@ export class DrillCardService {
     const drillCardsYellowResources = [
       2, 2, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 2, 1, 0, 1,
     ];
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < numCards; i++) {
       if (i < drillCardsGreenResources.length) {
         await this.prisma.drillCard.create({
           data: {
