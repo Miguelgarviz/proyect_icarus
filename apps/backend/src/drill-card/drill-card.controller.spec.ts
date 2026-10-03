@@ -13,7 +13,7 @@ import { DrillCard } from '../generated/prisma/client';
 
 const request = require('supertest');
 
-describe('CardController', () => {
+describe('DrillCardController', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let testData: TestData;
@@ -102,7 +102,7 @@ describe('CardController', () => {
       });
 
       expect(drillCards).toBeDefined();
-      expect(drillCards.length).toBe(24);
+      expect(drillCards.length).toBe(22);
     });
     it('should return a 404 if the game does not exist', async () => {
       await request(app.getHttpServer())

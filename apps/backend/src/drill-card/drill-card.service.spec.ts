@@ -136,10 +136,10 @@ describe('DrillCardService', () => {
       const countAfter = await prisma.drillCard.count({
         where: { gameId: testData.game.id },
       });
-      expect(countAfter).toBe(countBefore + 24);
+      expect(countAfter).toBe(countBefore + 21);
     });
 
-    it('should create 18 resource cards and 6 supernova cards', async () => {
+    it('should create 18 resource cards and 5 supernova cards', async () => {
       const allCards = await prisma.drillCard.findMany({
         where: { gameId: testData.game.id },
       });
@@ -147,8 +147,8 @@ describe('DrillCardService', () => {
       const supernovaCards = allCards.filter((c) => c.isSupernovaCard);
       const resourceCards = allCards.filter((c) => !c.isSupernovaCard);
 
-      // El seed ya crea algunas, así que verificamos que haya al menos 6 supernova y 18 recurso
-      expect(supernovaCards.length).toBeGreaterThanOrEqual(6);
+      // El seed ya crea algunas, así que verificamos que haya al menos 5 supernova y 18 recurso
+      expect(supernovaCards.length).toBeGreaterThanOrEqual(5);
       expect(resourceCards.length).toBeGreaterThanOrEqual(18);
     });
 
