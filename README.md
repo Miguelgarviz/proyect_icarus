@@ -293,7 +293,9 @@ Esta versión permite acceder a la aplicación desde un navegador sin necesidad 
 
 La dirección de acceso es:
 
-**[Introducir aquí la URL pública de Project Icarus]**
+**[Dirección Publica del Frontend](https://proyect-icarus-frontend.vercel.app)**
+
+**[Dirección Publica del Backend](https://proyect-icarus-backend.onrender.com)**
 
 La versión desplegada utiliza Vercel para el frontend, Render para el backend y Neon como servicio de base de datos.
 
